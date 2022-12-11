@@ -7,14 +7,6 @@
 - [NodeMCU Device](#nodemcu-device)
   - [Building instructions](#building-instructions)
   - [Some build setup explanations](#some-build-setup-explanations)
-    - [First time NodeMCU device flashing](#first-time-nodemcu-device-flashing)
-    - [First time NodeMCU flashing](#first-time-nodemcu-flashing)
-    - [Consequent LFS updates](#consequent-lfs-updates)
-  - [Flashing NodeMCU sw for first time](#flashing-nodemcu-sw-for-first-time)
-    - [Preparing firmware image(s) manually](#preparing-firmware-images-manually)
-    - [Flashing firmware image(s)](#flashing-firmware-images)
-    - [Determining SPIFFS partition table](#determining-spiffs-partition-table)
-    - [Preparing SPIFFS image](#preparing-spiffs-image)
 
 <!-- /code_chunk_output -->
 
