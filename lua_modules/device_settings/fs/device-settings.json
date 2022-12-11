@@ -1,0 +1,84 @@
+{
+  "sta": {
+    "hostname": "<HOSTNAME>",
+    "sleepType": 2,
+    "config": {
+      "save": false,
+      "ssid": "",
+      "pwd": "<STA_PWD>",
+      "auto": false
+    }
+  },
+  "wifi": {
+    "maxtxpower": 41,
+    "country": {
+      "policy": 0,
+      "country": "AQ",
+      "end_ch": 13,
+      "start_ch": 1
+    },
+    "phymode": 3
+  },
+  "ap": {
+    "staticIp": {
+      "ip": "192.168.1.1",
+      "gateway": "192.168.1.1",
+      "netmask": "255.255.255.0"
+    },
+    "config": {
+      "beacon": 1000,
+      "ssid": "<AP_SSID>",
+      "pwd": "1234567890",
+      "save": false,
+      "max": 1,
+      "auth": 3,
+      "hidden": false,
+      "channel": 6
+    },
+    "dhcpConfig": {
+      "start": "192.168.1.100"
+    }
+  },
+  "webPortal": {
+    "realm": "Device Admin",
+    "usr": "admin",
+    "pwd": "admin"
+  },
+  "webOta": {
+    "realm": "Device Upgrade OTA",
+    "usr": "admin",
+    "pwd": "admin"
+  },
+  "httpSrv": {
+    "port": 80
+  },
+  "log": {
+    "level": "info",
+    "usecolor": true,
+    "logrotate": 1024
+  },
+  "wifiMgr": {
+    "staRetryPeriod": 300000,
+    "apStartDelay": 600000
+  },
+  "restApi": {
+    "realm": "Rest API",
+    "usr": "admin",
+    "pwd": "admin"
+  },
+  "telnet": {
+    "port": 23,
+    "usr": "admin",
+    "pwd": "admin"
+  },
+  "electricHeater": {
+    "periodMs": 60000,
+    "tempSensorPin": 5,
+    "relayPin": 1,
+    "target": {
+      "temp": 0,
+      "tempControl": "ON",
+      "switch": "OFF"
+    }
+  }
+}

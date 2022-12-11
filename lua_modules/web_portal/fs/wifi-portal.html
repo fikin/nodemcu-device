@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Device Admin</title>
+  <link rel="stylesheet" type="text/css" href="wifi-portal.css" />
+</head>
+
+<body>
+  <div id="content">
+    <fieldset>
+      <h3>Connect the device to Wi-Fi</h3>
+      <input id="ssid" type="text" autocorrect="off" autocapitalize="none" placeholder="Wi-Fi Name/SSID" />
+      <br />
+      <input id="pwd" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" placeholder="Password" />
+    </fieldset>
+    <br />
+    <fieldset>
+      <h3>Device settings</h3>
+      <input id="hostname" type="text" autocorrect="off" autocapitalize="none"
+        placeholder="Hostname i.e. door-lights" />
+      <br />
+      <input id="country" type="text" autocorrect="off" autocapitalize="none" autocomplete="off"
+        placeholder="Country i.e. AQ" />
+      <input id="ap_pwd" type="text" autocorrect="off" autocapitalize="none" autocomplete="off"
+        placeholder="Device AP password (WPA2 PSK)" />
+    </fieldset>
+    <br />
+    <fieldset>
+      <h3>Device admin</h3>
+      <input id="admin_usr" type="text" autocorrect="off" autocapitalize="none" placeholder="Username i.e. admin" />
+      <br />
+      <input id="admin_pwd" type="text" autocorrect="off" autocapitalize="none" autocomplete="off"
+        placeholder="Password i.e. hard password" />
+    </fieldset>
+    <br />
+    <button id="save" type="button" class="utility">Save & restart</button>
+  </div>
+  <script src="wifi-portal.js"></script>
+</body>
+
+</html>
