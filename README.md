@@ -10,7 +10,7 @@
 
 <!-- /code_chunk_output -->
 
-Traditionally, programming for [NodeMCU](https://en.wikipedia.org/wiki/NodeMCU) has been rather constrained given the limited space pf RAM (up to ~44kB for heap space for data and code).
+Traditionally, programming for [NodeMCU](https://en.wikipedia.org/wiki/NodeMCU) has been rather constrained given the limited space of RAM (up to ~44kB for heap space for data and code).
 
 But with introduction of [LFS](https://nodemcu.readthedocs.io/en/release/lfs/) support, code and constants can live now in flash ROM. And available heap would remain for computation data only.
 

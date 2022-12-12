@@ -1,0 +1,9 @@
+
+import ./vendor/nodemcu-firmware/local/fs/device-settings.json device-settings.json
+import ./vendor/nodemcu-firmware/local/fs/wifi-portal.js wifi-portal.js
+import ./vendor/nodemcu-firmware/local/fs/wifi-portal.css wifi-portal.css
+import ./vendor/nodemcu-firmware/local/fs/_version.json _version.json
+import ./vendor/nodemcu-firmware/local/fs/LFS.img LFS.img
+import ./vendor/nodemcu-firmware/local/fs/_init.lc _init.lc
+import ./vendor/nodemcu-firmware/local/fs/wifi-portal.html wifi-portal.html
+import ./vendor/nodemcu-firmware/local/fs/_reloadLFS.lc _reloadLFS.lc
