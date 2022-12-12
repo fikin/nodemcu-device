@@ -1,3 +1,3 @@
-nodemcu-firmware
-nodemcu-custom-build
-.env-vars
+vendor/nodemcu-firmware
+vendor/nodemcu-custom-build
+vendor/.env-vars
