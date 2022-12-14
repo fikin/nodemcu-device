@@ -1,5 +1,5 @@
 --[[
-  Process new http connection
+  Process a new http connection
 ]]
 local modname = ...
 
@@ -37,7 +37,7 @@ local function sendingFn(conn, clearSkFn)
   end
 end
 
-local function handleReq(routes, conn)
+local function handleReq(conn)
   return function()
     local log = require("log")
 
@@ -58,7 +58,7 @@ local function handleReq(routes, conn)
 
     local ok, err = pcall(require("http_conn_req"), conn)
     if ok then
-      ok, err = pcall(require("http_conn_route"), routes, conn)
+      ok, err = pcall(require("http_routes").findRoute, conn.req.method, conn.req.url)
     end
     if not ok then
       conn.resp.code, conn.resp.body = errToCode(err)
@@ -72,10 +72,8 @@ local function handleReq(routes, conn)
   end
 end
 
-local function main(srv, sk)
-  package.loaded[modname] = nil
-
-  local conn = {
+local function defaultConn()
+  return {
     sk = sk,
     buffer = "",
     req = {
@@ -91,7 +89,14 @@ local function main(srv, sk)
     },
     onGcFn = {}
   }
-  conn.co = coroutine.create(handleReq(srv.routes, conn))
+end
+
+local function main(sk)
+  package.loaded[modname] = nil
+
+  local conn = defaultConn()
+
+  conn.co = coroutine.create(handleReq(conn))
   sk:on("connection", auditConnFn())
   sk:on("reconnection", traceReconnFn())
   sk:on("disconnection", disconnectedConnFn(conn))

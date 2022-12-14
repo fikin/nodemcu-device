@@ -22,19 +22,8 @@
 ]]
 local modname = ...
 
-local fName = "device-settings.json"
-
-local file, sjson, crypto, encoder = require("file"), require("sjson"), require("crypto"), require("encoder")
-
-local function readCfg()
-  if file.exists(fName) then
-    return sjson.decode(file.getcontents(fName))
-  else
-    error("missing file %s" % fName)
-  end
-end
-
-local function saveCfgIfChanged(cfg)
+local function saveCfgIfChanged(cfg, fName)
+  local file, sjson, crypto, encoder = require("file"), require("sjson"), require("crypto"), require("encoder")
   local txt = sjson.encode(cfg)
   local txtMD5 = encoder.toHex(crypto.hash("MD5", txt))
   local fMD5 = encoder.toHex(crypto.fhash("MD5", fName))
@@ -111,44 +100,55 @@ local function get(parent, child, fullpath)
   end
 end
 
-local function mergeTbls(into, newVal)
-  for k, v in pairs(newVal) do
-    if type(v) == table then
-      -- recursive navigation of tables
-      into[k] = into[k] or {}
-      mergeTbls(into[k], v)
-    else
-      into[k] = v
-    end
-  end
-end
+local fName = "device-settings.json"
 
 local M = {
-  cfg = readCfg()
+  cfg = require("read_json_file")(fName)
 }
+
+-- saves settings if any value was changed
+M.done = function()
+  saveCfgIfChanged(M.cfg, fName)
+  package.loaded[modname] = nil -- gc
+end
+
+-- loads factory-settings.json
+M.loadFactorySettings = function()
+  local tbl = require("read_json_file")("factory-settings.json")
+  require("table_merge")(M.cfg, tbl)
+end
+
+-- sets the field to given value, unconditionally
 M.set = function(field, value)
   local _, parent, child = get(M.cfg, field)
   parent[child] = value
 end
+
+-- sets the field to given value only if:
+-- settings value is empty, not set or in the form "<[%w_]+>"
 M.default = function(field, value)
   local v, parent, child = get(M.cfg, field)
   parent[child] = getDefaultValue(v, value)
 end
+
+-- sets the field to nil
 M.unset = function(field)
   local _, parent, child = get(M.cfg, field)
   parent[child] = nil
 end
+
+-- gets the field value or nil if not defined
 M.get = function(field)
   return get(M.cfg, field)
 end
+
+-- sets the field to given tbl
+-- it merges the content, any other data if field is preserved
+-- it scans tbl recursively i.e. deep merge
 M.mergeTblInto = function(field, tbl)
   local _, parent, child = get(M.cfg, field)
   parent[child] = parent[child] or {}
-  mergeTbls(parent[child], tbl)
-end
-M.done = function()
-  saveCfgIfChanged(M.cfg)
-  package.loaded[modname] = nil -- gc
+  require("table_merge")(parent[child], tbl)
 end
 
 return M

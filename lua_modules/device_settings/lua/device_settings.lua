@@ -1,26 +1,28 @@
 --[[
-  Reads device configuration stored in "device-config.json".
-
-  Any unset KEY value is replaced with empty string.
+  Reads device configuration stored in "device-settings.json".
 
   See "factory_settings" for more info.
   See "device-config.json" for data structure info.
 
-  Use this module to load the configuation and use it wherever needed.
+  Use this module to read configuation and use it wherever needed.
 
   Usage:
-    local cfg = require("device_settings")
+    local cfg = require("device_settings")()
     print(cfg.wifi.country.country) -- prints device country
 ]]
-local modname = ...
+local M = require("read_json_file")("device-settings.json")
 
-local function readJsonFile(fName)
+local function main(modname, defVal)
   package.loaded[modname] = nil
 
-  local fName = "device-settings.json"
-  local file, sjson = require("file"), require("sjson")
-  local txt = file.getcontents(fName)
-  return sjson.decode(txt)
+  if not modname then
+    return M
+  end
+  local s = M[modname]
+  if not s then
+    return defVal
+  end
+  return s
 end
 
-return readJsonFile(fName)
+return main

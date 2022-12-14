@@ -105,8 +105,9 @@ local levels = {
 }
 
 local function readState()
-  local state = require("state")()[modname]
+  local state = require("state")(modname)
   if not state then
+    -- lazy creating the initial table
     state = {level = "info", usecolor = false, outfile = nil, logrotate = 512}
     require("state")()[modname] = state
   end
@@ -133,6 +134,7 @@ local function logEntry(lvl, ...)
     lineinfo,
     toStrArgs(...)
   )
+  
   -- Output to console
   print(str)
 
@@ -151,6 +153,7 @@ for k, v in pairs(levels) do
   end
 end
 
+-- prints the value
 M.print = function(t)
   if type(t) == "table" then
     for k, v in pairs(t) do
@@ -161,6 +164,7 @@ M.print = function(t)
   end
 end
 
+-- returns given table in text format
 M.tbl = function(t)
   local ret = {}
   for k, v in pairs(t) do
@@ -169,6 +173,7 @@ M.tbl = function(t)
   return ret
 end
 
+-- returns the value as json text
 M.json = function(v)
   if type(v) == "table" then
     local sjson = require("sjson")
@@ -182,6 +187,7 @@ M.json = function(v)
   return tostring(v)
 end
 
+-- timestamp function
 M.ts = getTimestamp
 
 return M

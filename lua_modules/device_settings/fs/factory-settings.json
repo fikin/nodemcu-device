@@ -39,17 +39,17 @@
       "start": "192.168.1.100"
     }
   },
-  "webPortal": {
+  "web_portal": {
     "realm": "Device Admin",
     "usr": "admin",
     "pwd": "admin"
   },
-  "webOta": {
+  "web_ota": {
     "realm": "Device Upgrade OTA",
     "usr": "admin",
     "pwd": "admin"
   },
-  "httpSrv": {
+  "http_srv": {
     "port": 80
   },
   "log": {
@@ -57,12 +57,12 @@
     "usecolor": true,
     "logrotate": 1024
   },
-  "wifiMgr": {
+  "wifi_mgr": {
     "staRetryPeriod": 300000,
     "apStartDelay": 600000
   },
-  "restApi": {
-    "realm": "Rest API",
+  "web_ha": {
+    "realm": "HomeAssistant API",
     "usr": "admin",
     "pwd": "admin"
   },
@@ -71,14 +71,38 @@
     "usr": "admin",
     "pwd": "admin"
   },
-  "electricHeater": {
+  "thermostat": {
     "periodMs": 60000,
     "tempSensorPin": 5,
     "relayPin": 1,
-    "target": {
-      "temp": 0,
-      "tempControl": "ON",
-      "switch": "OFF"
+    "modes": {
+      "eco": {
+        "target_temperature_high": 22,
+        "target_temperature_low": 20
+      },
+      "away": {
+        "target_temperature_high": 22,
+        "target_temperature_low": 20
+      },
+      "comfort": {
+        "target_temperature_high": 22,
+        "target_temperature_low": 20
+      },
+      "home": {
+        "target_temperature_high": 22,
+        "target_temperature_low": 20
+      },
+      "sleep": {
+        "target_temperature_high": 22,
+        "target_temperature_low": 20
+      }
+    },
+    "data": {
+      "temperature_unit": "°C",
+      "hvac_mode": "off",
+      "hvac_modes": ["off", "heat", "auto"],
+      "preset_mode": "eco",
+      "supported_features": 2
     }
   }
 }

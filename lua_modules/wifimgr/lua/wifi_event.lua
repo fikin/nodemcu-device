@@ -47,30 +47,19 @@ local function tablelength(T)
   return count
 end
 
-local function decodeWifiEvent(eventType)
-  local names = {
-    [wifi.eventmon.STA_CONNECTED] = "STA_CONNECTED",
-    [wifi.eventmon.STA_DISCONNECTED] = "STA_DISCONNECTED",
-    [wifi.eventmon.STA_AUTHMODE_CHANGE] = "STA_AUTHMODE_CHANGE",
-    [wifi.eventmon.STA_GOT_IP] = "STA_GOT_IP",
-    [wifi.eventmon.STA_DHCP_TIMEOUT] = "STA_DHCP_TIMEOUT",
-    [wifi.eventmon.AP_STACONNECTED] = "AP_STACONNECTED",
-    [wifi.eventmon.AP_STADISCONNECTED] = "AP_STADISCONNECTED",
-    [wifi.eventmon.AP_PROBEREQRECVED] = "AP_PROBEREQRECVED",
-    [wifi.eventmon.WIFI_MODE_CHANGED] = "WIFI_MODE_CHANGED"
-  }
-  return names[eventType] or tostring(eventType)
+local function cbFnc(eT, eventType, T)
+  for k, v in pairs(state[eT]) do
+    local ok, err = pcall(v, T)
+    if not ok then
+      require("log").error("failure inside %s: %s" % {k, err})
+    end
+    collectgarbage()
+  end
 end
 
-local function cbFnc(eT, eventType)
+local function newCbFnc(eT, eventType)
   return function(T)
-    for k, v in pairs(state[eT]) do
-      local ok, err = pcall(v, T)
-      if not ok then
-        require("log").error("failure inside %s: %s" % {k, err})
-      end
-      collectgarbage()
-    end
+    cbFnc(eT, eventType, T)
   end
 end
 
@@ -78,7 +67,7 @@ local function addCb(eT, moduelId, eventType, fnc)
   state[eT] = state[eT] or {}
   state[eT][moduelId] = fnc
   if tablelength(state[eT]) == 1 then
-    wifi.eventmon.register(eventType, cbFnc(eT, eventType))
+    wifi.eventmon.register(eventType, newCbFnc(eT, eventType))
   end
 end
 
@@ -95,7 +84,7 @@ end
 local function onFnc(moduelId, eventType, fnc)
   package.loaded[modname] = nil
 
-  local eT = decodeWifiEvent(eventType)
+  local eT = require("wifi_event_type")(eventType)
   if fnc then
     addCb(eT, moduelId, eventType, fnc)
   else

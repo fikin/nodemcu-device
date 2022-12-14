@@ -51,7 +51,8 @@ local function main()
 
   do
     -- LFS reload automatically if there is LFS.img in SPIFFS
-    require("_reloadLFS")()
+    -- it reboots device after this point if LFS is updated
+    require("_lfs_reload")()
   end
 
   -- LFS print modules, if any
