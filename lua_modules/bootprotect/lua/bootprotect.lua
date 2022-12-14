@@ -123,26 +123,41 @@ run = function(nbr)
   end
 end
 
+-- register function to be started
 M.fnc = function(name, fnc)
   table.insert(funcs, {name, fnc})
   return M
 end
 
+-- register function to be started (shortcut for "require(modName)()")
+M.require = function(name, modName)
+  local fn = function()
+    require(modName)()
+  end
+  return M.fnc(name, fn)
+end
+
+-- function to be called in case some error occured
 M.errFnc = function(fnc)
   onErrFnc = fnc
   return M
 end
 
+-- how much time to wait before repeating a failed function
+-- default defined in device settings
 M.delaySec = function(delay)
   delaySec = delay
   return M
 end
 
+-- start the sequence
 M.start = function()
   log.info("starting up boot sequence")
   run(1)
 end
 
+-- stop the sequence, this can be called manually
+-- during troubleshooting actions
 M.stop = function()
   log.audit("user interrupted boot sequence")
   if tm then

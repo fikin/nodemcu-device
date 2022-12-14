@@ -9,11 +9,11 @@
 ---------------------------------------------------------------------------------]]
 --[[
   -------------------------------------------------------------------------------
-  The second section adds the LFS to the require searchlist, so that you can
+  Adds the LFS to the require searchlist, so that you can
   require a Lua module 'jean' in the LFS by simply doing require "jean". However
   note that this is at the search entry following the FS searcher, so if you also
   have jean.lc or jean.lua in SPIFFS, then this SPIFFS version will get loaded into
-  RAM instead of using. (Useful, for development).
+  RAM instead of using LFS. (Useful, for development).
 
   See docs/en/lfs.md and the 'loaders' array in app/lua/loadlib.c for more details.
 

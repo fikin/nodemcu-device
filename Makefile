@@ -50,9 +50,14 @@ prepare-firmware: vendor/nodemcu-firmware
 #		depends on "prepare-firmware"
 # 	compile firmware, then LFS and SPIFFS
 # 	result files are located in nodemcu-firmware/bin
-build:
+build: prepare-firmware
 	$(MAKE) -C ./vendor/nodemcu-firmware LUA=${X_LUA} all 
-#spiffs-image
-	$(MAKE) -f Makefile.spiffs spiffs-image
+	$(MAKE) -f Makefile-spiffs.mk spiffs-image
+
+spiffs-image: prepare-firmware
+	$(MAKE) -f Makefile-spiffs.mk spiffs-image
+
+lfs-image: prepare-firmware
+	$(MAKE) -f Makefile-spiffs.mk lfs-image
 
 all: prepare-firmware build

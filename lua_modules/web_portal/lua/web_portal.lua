@@ -5,27 +5,19 @@
 ]]
 local modname = ...
 
-local function main(srv)
+local function main()
   package.loaded[modname] = nil
 
   -- portal credentials
-  local adminCred = require("device_settings").webPortal
+  local adminCred = require("device_settings", modname)
 
-  -- Wifi config portal
-  srv.routes["GET /"] = function(conn)
-    conn.req.url = "/wifi-portal.html" -- serve it under /
+  local r = require("http_routes")
+
+  local function returnFile(conn)
     require("http_h_concurr_protect")(1, require("http_h_auth")(adminCred, require("http_h_return_file")))(conn)
   end
-  srv.routes["GET /wifi-portal.js"] = function(conn)
-    require("http_h_concurr_protect")(1, require("http_h_auth")(adminCred, require("http_h_return_file")))(conn)
-  end
-  srv.routes["GET /wifi-portal.css"] = function(conn)
-    require("http_h_concurr_protect")(1, require("http_h_auth")(adminCred, require("http_h_return_file")))(conn)
-  end
-  srv.routes["GET /device-settings.json"] = function(conn)
-    require("http_h_concurr_protect")(1, require("http_h_auth")(adminCred, require("http_h_return_file")))(conn)
-  end
-  srv.routes["POST /device-settings.json"] = function(conn)
+
+  local function saveFile(conn)
     require("http_h_concurr_protect")(
       1,
       require("http_h_auth")(
@@ -35,7 +27,20 @@ local function main(srv)
     )(conn)
   end
 
-  return srv
+  -- Wifi config portal
+
+  r.setPath(
+    "GET",
+    "/",
+    function(conn)
+      conn.req.url = "/wifi-portal.html" -- serve it under /
+      returnFile(conn)
+    end
+  )
+  r.setPath("GET", "/wifi-portal.js", returnFile)
+  r.setPath("GET", "/wifi-portal.css", returnFile)
+  r.setPath("GET", "/device-settings.json", returnFile)
+  r.setPath("POST", "/device-settings.json", saveFile)
 end
 
 return main

@@ -28,24 +28,28 @@ else
 FLASH_FS_LOC := $(shell printf "0x%x" $(FLASH_FS_LOC))
 endif
 
-.PHONY: build-lfs build-spiffs build-spiffs-lc versionJson
+.PHONY: lfs-lc lfs-image spiffs-lc version-json spiffs-lst spiffs-image
 
 # compile local/lua into local/fs/LFS.img (LFS image)
-build-lfs:
-	$(LUAC_CROSS) -f -o $(FSSOURCE)/LFS.img $(LFSSOURCE)/*.lua
+lfs-lc:
+	@rm -f $(LFSSOURCE)/*.lc
+	@$(foreach f, $(shell ls $(LFSSOURCE)/*.lua), $(LUAC_CROSS) -o $(f:.lua=.lc) $(f) ;)
+
+lfs-image: lfs-lc
+	$(LUAC_CROSS) -f -o $(FSSOURCE)/LFS.img $(LFSSOURCE)/*.lc
 
 # compule local/fs/*.lua to local/fs/*.lc
-build-spiffs-lc:
+spiffs-lc:
 	@rm -f $(FSSOURCE)/*.lc
 	@$(foreach f, $(shell ls $(FSSOURCE)/*.lua), $(LUAC_CROSS) -o $(f:.lua=.lc) $(f) ;)
 
 # generate new local/fs/_version.json
-versionJson:
-	echo '{ "version": "$(shell date +"%FT%T")" }' > $(FSSOURCE)/_version.json
+version-json:
+	@echo '{ "version": "$(shell date +"%FT%T")" }' > $(FSSOURCE)/_sw_version.json
 
-./vendor/spiffs.lst:
-	@echo "" > ./vendor/spiffs.lst
+spiffs-lst:
+	@rm -f ./vendor/spiffs.lst
 	@$(foreach f, $(SPIFFSFILES), echo "import $(FSSOURCE)/$(f) $(f)" >> ./vendor/spiffs.lst ;)
 
-spiffs-image: build-lfs build-spiffs-lc versionJson ./vendor/spiffs.lst
+spiffs-image: lfs-image spiffs-lc version-json spiffs-lst
 	$(SPIFFSIMG) -f $(FWDIR)/bin/0x%x-$(FLASHSIZE).img -c $(FLASHSIZE) -U $(FLASH_FS_LOC) -r ./vendor/spiffs.lst -d
