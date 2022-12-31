@@ -7,13 +7,28 @@
 ]]
 local modname = ...
 
+---@class cfg_wifi_mgr
+---@field staRetryPeriod integer
+---@field apStartDelay integer
+
+---@class wifi_event_auth_change
+---@field new_auth_mode integer|string
+---@field old_auth_mode integer|string
+
+---@class wifi_event_disconnect
+---@field reason integer|string
+
 local log = require("log")
 local wifi = require("wifi")
 
+
+---@type cfg_wifi_mgr
 local devSettings = require("device_settings")(modname)
 local connectLaterDelay = devSettings.staRetryPeriod or (1000 * 60)
 local checkGotIpDelay = devSettings.apStartDelay or (1000 * 60 * 2)
 
+---sets the mode away from sta, used after disconnect to pacify
+---some repeating disconnect events fired by firmware
 local function setAwayFromSta()
   local mode = wifi.getmode()
   if mode == wifi.STATION or mode == wifi.STATIONAP then
@@ -21,11 +36,13 @@ local function setAwayFromSta()
   end
 end
 
+---runs sta connection
 local function connectSta()
   log.info("trying to connect to %s" % wifi.sta.getconfig(true).ssid)
   wifi.sta.connect()
 end
 
+---starts sta mode
 local function trySta()
   local mode = wifi.getmode()
   -- connect to STA if not connected already
@@ -40,6 +57,7 @@ local function trySta()
   end
 end
 
+---start up ap mode
 local function setApOn()
   local mode = wifi.getmode()
   if mode == wifi.STATION or mode == wifi.STATIONAP then
@@ -56,7 +74,7 @@ local function setApOn()
   end
   -- start AP if not connected to STA
   if mode == wifi.NULLMODE or mode == wifi.STATION then
-    log.info("starting up ap %s" % wifi.ap.getconfig(true).ssid)
+    log.info(string.format("starting up ap %s", wifi.ap.getconfig(true).ssid))
     wifi.setmode(mode == wifi.NULLMODE and wifi.SOFTAP or wifi.STATIONAP)
     if not wifi.ap.dhcp.start() then
       log.debug("starting up AP dhcp server failed")
@@ -64,6 +82,11 @@ local function setApOn()
   end
 end
 
+---called after disconnect from sta happened
+---tries to reconnect immediately if auth expired
+---or sets timers for periodic reconnect check
+---and starting ap if long enough did not succeeded to connect to sta
+---@param reason number
 local function afterDisconnect(reason)
   if reason == wifi.eventmon.reason.AUTH_EXPIRE then
     -- try again directly, this seems related to ESP itself ...
@@ -76,21 +99,29 @@ local function afterDisconnect(reason)
   end
 end
 
+---called on disconnect from sta endpoint
+---tries reconnect or schedules such
+---@param T wifi_event_disconnect as provided by wifi.event
 local function onStaDisconnect(T)
   local reason = T.reason
   T.reason = require("wifi_reasons")(T.reason)
   log.info("disconnected from", log.json, T)
 
+  ---a wrapper to afterDisconnect
   local fn = function()
-    afterDisconnect(reason)
+    afterDisconnect(tonumber(reason) or 0)
   end
   require("node").task.post(fn)
 end
 
+---called on sta connected to ssid, logs it
+---@param T table as provided by wifi.event
 local function onStaConnect(T)
   log.info("connected to", log.json, T)
 end
 
+---called on wifi sta auth mode change, logs it
+---@param T wifi_event_auth_change as provided by wifi.event
 local function onStaAuthModeChange(T)
   local d = require("wifi_authmode")
   T.new_auth_mode = d(T.new_auth_mode)
@@ -98,10 +129,15 @@ local function onStaAuthModeChange(T)
   log.info("authorization mode changed", log.json, T)
 end
 
+---called on sta dhcp timeout, logs it only
+---@param T table as provided by wifi.event
 local function onStaDhcpTimeout(T)
   log.info("dhcp timeout")
 end
 
+---called on sta-ip address assigned
+---shutdowns ap if still connected after 1min
+---@param T table as provided by wifi.event
 local function onStaGotIp(T)
   log.info("got ip", log.json, T)
 
@@ -112,6 +148,8 @@ local function onStaGotIp(T)
   require("node").task.post(fn)
 end
 
+---called on wifi mode change, logs it
+---@param T table as provided by wifi.event
 local function onWifiModeChanged(T)
   local d = require("wifi_wifimode")
   T.new_mode = d(T.new_mode)
@@ -119,14 +157,20 @@ local function onWifiModeChanged(T)
   log.info("wifi mode changed", log.json, T)
 end
 
+---called on ap-connected, audits the client
+---@param T table as provided by wifi.event
 local function onApConnected(T)
   log.audit("accepted connection from", log.json, T)
 end
 
+---called on ap-disconnect, audits the client
+---@param T table as provided by wifi.event
 local function onApDisconnected(T)
   log.audit("connection closed from", log.json, T)
 end
 
+---assign wifi.event callbacks via which the orchestration
+---of sta/ap modes is happening
 local function assignCbs()
   local onFnc = require("wifi_event")
   onFnc(modname, wifi.eventmon.STA_DISCONNECTED, onStaDisconnect)
@@ -139,6 +183,9 @@ local function assignCbs()
   onFnc(modname, wifi.eventmon.AP_STADISCONNECTED, onApDisconnected)
 end
 
+---starts wifi management
+---it tries to connect to sta if it is defined
+---it starts ap if sta is not defined
 local function main()
   package.loaded[modname] = nil
 
@@ -146,8 +193,10 @@ local function main()
 
   assignCbs()
 
-  local sta = requrie("device_settings")("sta")
-  local ap = requrie("device_settings")("ap")
+  ---@type cfg_sta
+  local sta = require("device_settings")("sta")
+  ---@type cfg_ap
+  local ap = require("device_settings")("ap")
 
   if sta and #sta.config.ssid > 0 then
     trySta() -- try to connect to sta

@@ -5,6 +5,9 @@
 ]]
 local modname = ...
 
+---it frees all connection resources
+---@param conn http_conn*
+---@param hasErr boolean
 local function main(conn, hasErr)
   package.loaded[modname] = nil
 

@@ -6,6 +6,9 @@
 ]]
 local modname = ...
 
+---sends 200 status and given body as json mime type
+---@param conn http_conn*
+---@param data table as response body
 local function main(conn, data)
   package.loaded[modname] = nil -- gc
 

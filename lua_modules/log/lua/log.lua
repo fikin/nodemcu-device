@@ -57,20 +57,32 @@
 ]]
 local modname = ...
 
+---object representing logger state settings
+---@class logger_state
+---@field usecolor boolean
+---@field level integer
+---@field outfile string
+---@field logrotate integer
+
+---returns timestamp from rtctime
+---@return string
 local function getTimestamp()
   local rtctime = require("rtctime")
-  local tm = rtctime.epoch2cal(rtctime.get())
+  local tm = rtctime.epoch2cal(rtctime.get().sec)
   return string.format(
     "%04d/%02d/%02d %02d:%02d:%02d",
-    tm["year"],
-    tm["mon"],
-    tm["day"],
-    tm["hour"],
-    tm["min"],
-    tm["sec"]
+    tm.year,
+    tm.mon,
+    tm.day,
+    tm.hour,
+    tm.min,
+    tm.sec
   )
 end
 
+---formats arguments into logging string
+---@param ... unknown
+---@return string
 local function toStrArgs(...)
   local t = {}
   for i = 1, select("#", ...) do
@@ -84,6 +96,9 @@ local function toStrArgs(...)
   return table.concat(t, " ")
 end
 
+---saves the log message to a file
+---@param state logger_state
+---@param str string
 local function logToFile(state, str)
   local file = require("file")
   local fp = file.stat(state.outfile)
@@ -97,23 +112,35 @@ local function logToFile(state, str)
   end
 end
 
+---@class logger_level
+---@field p integer log level as integer
+---@field n string log level as text
+---@field c string log level color codes
+
+---logger levels
+---@type table<string,logger_level>
 local levels = {
-  ["debug"] = {p = 1, n = "DEBUG", c = "\27[36m"},
-  ["info"] = {p = 2, n = "INFO", c = "\27[32m"},
-  ["error"] = {p = 3, n = "ERROR", c = "\27[31m"},
-  ["audit"] = {p = 4, n = "AUDIT", c = "\27[33m"}
+  ["debug"] = { p = 1, n = "DEBUG", c = "\27[36m" },
+  ["info"] = { p = 2, n = "INFO", c = "\27[32m" },
+  ["error"] = { p = 3, n = "ERROR", c = "\27[31m" },
+  ["audit"] = { p = 4, n = "AUDIT", c = "\27[33m" }
 }
 
+---returns logger RTE state
+---@return logger_state
 local function readState()
   local state = require("state")(modname)
-  if not state then
+  if not state.level then
     -- lazy creating the initial table
-    state = {level = "info", usecolor = false, outfile = nil, logrotate = 512}
+    state = { level = "info", usecolor = false, outfile = nil, logrotate = 512 }
     require("state")()[modname] = state
   end
   return state
 end
 
+---logs an entry for given log level
+---@param lvl logger_level
+---@param ... unknown
 local function logEntry(lvl, ...)
   local state = readState()
 
@@ -125,7 +152,7 @@ local function logEntry(lvl, ...)
   local info = debug.getinfo(3, "Sl")
   local lineinfo = info.short_src .. ":" .. info.currentline
   local str =
-    string.format(
+  string.format(
     "%s[%-6s%s]%s %s: %s",
     state.usecolor and lvl.c or "",
     lvl.n,
@@ -134,7 +161,7 @@ local function logEntry(lvl, ...)
     lineinfo,
     toStrArgs(...)
   )
-  
+
   -- Output to console
   print(str)
 
@@ -144,16 +171,25 @@ local function logEntry(lvl, ...)
   end
 end
 
+---logger object
+---@class logger
 local M = {}
 
--- assign log functions
-for k, v in pairs(levels) do
-  M[k] = function(...)
-    logEntry(v, ...)
-  end
-end
+---debug message
+---@param ... unknown
+M.debug = function(...) logEntry(levels.debug, ...); end
+---info message
+---@param ... unknown
+M.info = function(...) logEntry(levels.info, ...); end
+---error message
+---@param ... unknown
+M.error = function(...) logEntry(levels.error, ...); end
+---audit message
+---@param ... unknown
+M.audit = function(...) logEntry(levels.audit, ...); end
 
--- prints the value
+---print to stdout given data
+---@param t any
 M.print = function(t)
   if type(t) == "table" then
     for k, v in pairs(t) do
@@ -164,30 +200,35 @@ M.print = function(t)
   end
 end
 
--- returns given table in text format
+---returns keys and values in given table as text array
+---@param t table
+---@return table
 M.tbl = function(t)
   local ret = {}
   for k, v in pairs(t) do
-    table.insert(ret, "%s = %s" % {k, v})
+    table.insert(ret, "%s = %s" % { k, v })
   end
   return ret
 end
 
--- returns the value as json text
+---converts value as json text
+---@param v any
+---@return string
 M.json = function(v)
   if type(v) == "table" then
     local sjson = require("sjson")
     local ok, ret = pcall(sjson.encode, v)
-    if ok then
-      return ret
-    else
-      return sjson.encode(M.tbl(v))
+    if not ok then
+      ret = sjson.encode(M.tbl(v))
     end
+    ---@cast ret string
+    return ret
   end
   return tostring(v)
 end
 
--- timestamp function
+---returns timestamp function
+---@return string
 M.ts = getTimestamp
 
 return M

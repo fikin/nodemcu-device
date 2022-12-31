@@ -3,6 +3,9 @@
 ]]
 local modname = ...
 
+---decodes http status code to message
+---@param code string
+---@return string
 local function codeToMsg(code)
   local codes = {
     ["200"] = "OK",
@@ -19,15 +22,19 @@ local function codeToMsg(code)
   return codes[code] or code
 end
 
+---sends status line to output stream
+---@param conn http_conn*
 local function sendStatusLine(conn)
-  conn.sk:send("HTTP/1.0 %s %s\r\n" % {conn.resp.code, codeToMsg(conn.resp.code)})
+  conn.sk:send("HTTP/1.0 %s %s\r\n" % { conn.resp.code, codeToMsg(conn.resp.code) })
   coroutine.yield()
 end
 
+---sends headers to output stream
+---@param conn http_conn*
 local function sendHeaders(conn)
   if conn.resp.headers then
     for k, v in pairs(conn.resp.headers) do
-      conn.sk:send("%s: %s\r\n" % {k, v})
+      conn.sk:send("%s: %s\r\n" % { k, v })
       coroutine.yield()
     end
     conn.resp.headers = nil -- gc
@@ -36,6 +43,8 @@ local function sendHeaders(conn)
   coroutine.yield()
 end
 
+---sends body to the remote peer
+---@param conn http_conn*
 local function sendBody(conn)
   if type(conn.resp.body) == "string" then
     conn.sk:send(conn.resp.body)
@@ -60,6 +69,8 @@ local function sendBody(conn)
   end
 end
 
+---serializes http_resp to the connection stream and closes the connectio at the end
+---@param conn http_conn*
 local function main(conn)
   package.loaded[modname] = nil
 

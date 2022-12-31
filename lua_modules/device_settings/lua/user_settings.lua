@@ -16,16 +16,20 @@
   ]]
 local modname = ...
 
+---place to provide with device specific hardcoded device settings.
+---feel free to modify the settings here, boot sequence will ensure
+---the data is properly handled in device settings.
+---@param builder factory_settings* to use to set device settings
 local function main(builder)
   package.loaded[modname] = nil
 
   -- typically set hostname is based on chipID
   -- until user overwrites it via web-portal for example
-  local hostname = "NodeMCU-" .. node.chipid()
+  local hostname = "NodeMCU-" .. require("node").chipid()
   builder.default("sta.hostname", hostname)
   builder.default("ap.config.ssid", hostname .. "_ap")
 
-  -- TODO add here your other settings if you want to
+  -- TODO add here your other hardcoded settings if you want to
 end
 
 return main

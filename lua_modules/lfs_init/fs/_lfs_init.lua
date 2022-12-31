@@ -5,10 +5,11 @@
   
   It initializes LFS.
 
-Depends on: rtctime, node, _reloadLFS, log
+Depends on: rtctime, node, _reloadLFS
 ]] --
 local modname = ...
 
+---initialize LFS and require and etc.
 local function main()
   print("##### ", modname, "START")
 
@@ -28,6 +29,8 @@ local function main()
   end
   package.loaded["log"] = log -- fake "require" until LFS is brought in
 
+  local node = require("node")
+
   do
     -- initial time seed until net connectivity kicks in
     log.info("RTC time set to Unix epoc start")
@@ -43,10 +46,10 @@ local function main()
     log.info("The SPIFFS addr is " .. tbl.spiffs_addr)
     log.info("The SPIFFS size is " .. tbl.spiffs_size)
     local s, p = {}, tbl
-    for _, k in ipairs {"lfs_addr", "lfs_size", "spiffs_addr", "spiffs_size"} do
-      s[#s + 1] = "%s = 0x%06x" % {k, p[k]}
+    for _, k in ipairs { "lfs_addr", "lfs_size", "spiffs_addr", "spiffs_size" } do
+      s[#s + 1] = string.format("%s = 0x%06x", k, p[k])
     end
-    log.info("{ %s }" % table.concat(s, ", "))
+    log.info(string.format("{ %s }", table.concat(s, ", ")))
   end
 
   do
@@ -74,10 +77,11 @@ local function main()
     if fn then
       log.info("LFS._init loading ...")
       fn()
-      -- clear the simpleton "logger", next user will load it from LFS
-      package.loaded["log"] = nil
     end
   end
+  
+  -- clear the simpleton "logger", next user will load it from LFS
+  package.loaded["log"] = nil
 
   print("##### ", modname, "END")
 

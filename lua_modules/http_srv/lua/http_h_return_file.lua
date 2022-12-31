@@ -5,6 +5,9 @@
 ]]
 local modname = ...
 
+---decodes mime types out of file extension
+---@param url string
+---@return string
 local function getMimeType(url)
   for k, v in pairs(
     {
@@ -24,6 +27,8 @@ local function getMimeType(url)
   return "application/octet-stream"
 end
 
+---returns file with given url path
+---@param conn http_conn*
 local function main(conn)
   package.loaded[modname] = nil
 

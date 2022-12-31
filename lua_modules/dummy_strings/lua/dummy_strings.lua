@@ -28,7 +28,7 @@ end
 ]] --
 
 -- luacheck: ignore
-local preload =
+local preload = {
   " at line ",
   " expected (to close ",
   " near ",
@@ -193,12 +193,12 @@ local preload =
   "WIFI_MODE_CHANGED_",
   "yday",
   "{ %s }"
-
+}
 -- require("dummy_strings")() will print the missing strings, you can add to above list.
 local modname = ...
 
 return function()
-  local a = debug.getstrings "RAM"
+  local a = debug.getstrings("RAM")
   for i = 1, #a do
     a[i] = ("%q"):format(a[i])
   end

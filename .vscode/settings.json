@@ -1,0 +1,7 @@
+{
+  "Lua.workspace.library": [
+    "${workspace}/vendor/nodemcu-lua-mocks/lua/?.lua"
+  ],
+  "Lua.runtime.version": "Lua 5.3",
+  "Lua.workspace.useGitIgnore": true
+}
