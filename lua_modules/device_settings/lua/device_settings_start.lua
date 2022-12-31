@@ -5,6 +5,9 @@
 ]]
 local modname = ...
 
+---called by bootprotect to upgrade device-settings.json
+---with all new defaults (after sw upgrade) from factory-settings.json
+---and applies all user hardcoded settings.
 local function main()
   package.loaded[modname] = nil
 

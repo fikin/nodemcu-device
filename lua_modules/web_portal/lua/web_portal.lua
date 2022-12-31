@@ -5,11 +5,12 @@
 ]]
 local modname = ...
 
+---register Wifi portal rest apis as http routes
 local function main()
   package.loaded[modname] = nil
 
   -- portal credentials
-  local adminCred = require("device_settings", modname)
+  local adminCred = require("device_settings")(modname)
 
   local r = require("http_routes")
 
@@ -22,7 +23,7 @@ local function main()
       1,
       require("http_h_auth")(
         adminCred,
-        require("http_h_restart")(require("http_h_save_file_bak")(require("http_h_save_file")))
+        require("http_h_restart")(require("http_h_save_file_bak")(true, require("http_h_save_file")))
       )
     )(conn)
   end

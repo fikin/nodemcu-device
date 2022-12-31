@@ -34,23 +34,38 @@
 ]]
 local modname = ...
 
+---repesent boot sequence manager
+---@class bootprotect*
 local M = {}
 
-local rtcSlot = 16 -- rtcmem containing number of failing function, survives across restarts
+---rtcmem containing number of failing function, survives across restarts
+local rtcSlot = 16
 
-local funcs = {} -- list of functions to run
-local delaySec = 30 -- delay duration before starting a failing function
-local tm  -- delay timer
-local onErrFnc = function(err) -- function to run on error
-end
+---list of functions to run
+---@type function[]
+local funcs = {}
+
+--- delay duration before starting a failing function
+---@type integer
+local delaySec = 30
+
+---delay timer
+---@type table|nil
+local tm
+
+---function to run on error
+---@type function|nil
+local onErrFnc = nil
 
 local log, rtcmem, tmr = require("log"), require("rtcmem"), require("tmr")
 local rtcW, rtcR = rtcmem.write32, rtcmem.read32
 
+---returns the step number (boot sequence wise) of last step before reboot occurs
+---@return integer the number or 0 if no error has occured previous boot
 local function getLastFailedNbr()
   local nbr = rtcR(rtcSlot) -- survived from previous reboot env
-  local rawcode, reason = node.bootreason()
-  log.debug("rtcmem", rtcSlot, "=", nbr, "boot rawcode=", rawcode, "boot reason=", reason)
+  local rawcode, reason = require("node").bootreason()
+  log.debug("rtcmem slot=", rtcSlot, " value=", nbr, "boot rawcode=", rawcode, "boot reason=", reason)
   if nbr > 0 and nbr < 100 and rawcode == 2 and reason == 4 then
     return nbr
   end
@@ -59,30 +74,48 @@ end
 
 local lastFailedNbr = getLastFailedNbr()
 
+---called at end of boot sequence, purpose is to clear all memory use
 local function endOfSeq()
   log.info("boot sequence is over")
-  funcs = nil
+  funcs = {}
   onErrFnc = nil
   tm = nil
-  M = nil
+  M = {}
   rtcW(rtcSlot, 0)
   package.loaded[modname] = nil --gc at the end
   collectgarbage()
   collectgarbage()
 end
 
+---runs the function at step nbr
+---@param nbr integer step to run
+---@return boolean true if executed ok, otherwise false
+---@return any is the result of the function or error if boolean is false
 local function runFncOk(nbr)
   local msg = funcs[nbr][1]
   local fnc = funcs[nbr][2]
-  log.info("calling function (%d) : %s" % {nbr, msg})
+  log.info(string.format("calling function (%d) : %s", nbr, msg))
   local ok, err = pcall(fnc)
   collectgarbage()
   collectgarbage()
   return ok, err
 end
 
-local run, doRun, delayBeforeRun
+---forward declarations
+---@type fun(nbr: integer)
+local run
+---forward declarations
+---@type fun(nbr: integer)
+local doRun
+---forward declarations
+---@type fun(nbr: integer)
+local delayBeforeRun
 
+---runs the step and:
+---   in case of success, runs next step (tail recursion)
+---   calls errFnc in case of failure and then
+---   schedules are delayed execution of same step using delayBeforeRun
+---@param nbr integer step to run
 doRun = function(nbr)
   local ok, err = runFncOk(nbr)
   if ok then
@@ -90,14 +123,16 @@ doRun = function(nbr)
     run(nbr + 1)
   else
     -- on new failure, repeat via timer with delay
-    log.error("function failed (%d): %s" % {nbr, err})
-    onErrFnc()
+    log.error(string.format("function failed (%d): %s", nbr, err))
+    if onErrFnc then onErrFnc(); end
     delayBeforeRun(nbr)
   end
 end
 
+---schedules a timer to run given step using doRun
+---@param nbr integer step to run
 delayBeforeRun = function(nbr)
-  log.error("waiting for %d sec. before calling function (%d) : %s" % {delaySec, nbr, funcs[nbr][1]})
+  log.error(string.format("waiting for %d sec. before calling function (%d) : %s", delaySec, nbr, funcs[nbr][1]))
   log.info('call `require("bootprotect").stop()` before that to interrupt the sequence.')
   local tmrFnc = function()
     tm = nil
@@ -107,6 +142,10 @@ delayBeforeRun = function(nbr)
   tm:alarm(delaySec * 1000, tmr.ALARM_SINGLE, tmrFnc)
 end
 
+---runs the step using doRun.
+---it maintains track of the execution in rtcmem in case we have to track unexpected reboots.
+---it garbage collects resources if sequence is over.
+---@param nbr integer is step to run
 run = function(nbr)
   if nbr > #funcs then
     -- end of recursion
@@ -115,7 +154,7 @@ run = function(nbr)
     rtcW(rtcSlot, nbr) -- store current nbr in case we fail unexpectedly
     if lastFailedNbr == nbr then
       -- previous boot failed, continue via timer with delay
-      log.error("function failed previous boot (%d): %s" % {nbr, funcs[nbr][1]})
+      log.error("function failed previous boot (%d): %s" % { nbr, funcs[nbr][1] })
       delayBeforeRun(nbr)
     else
       doRun(nbr)
@@ -123,13 +162,19 @@ run = function(nbr)
   end
 end
 
--- register function to be started
+---register function to be started
+---@param name string is boot step name
+---@param fnc function is the function to call
+---@return bootprotect*
 M.fnc = function(name, fnc)
-  table.insert(funcs, {name, fnc})
+  table.insert(funcs, { name, fnc })
   return M
 end
 
--- register function to be started (shortcut for "require(modName)()")
+---register function to be started (shortcut for "require(modName)()")
+---@param name string is boot step name
+---@param modName string is module name to require
+---@return bootprotect*
 M.require = function(name, modName)
   local fn = function()
     require(modName)()
@@ -137,27 +182,31 @@ M.require = function(name, modName)
   return M.fnc(name, fn)
 end
 
--- function to be called in case some error occured
+---function to be called in case some error occured
+---@param fnc function to call in case of error
+---@return bootprotect*
 M.errFnc = function(fnc)
   onErrFnc = fnc
   return M
 end
 
--- how much time to wait before repeating a failed function
--- default defined in device settings
+---how much time to wait before repeating a failed function
+---default defined in device settings
+---@param delay integer in ms
+---@return bootprotect*
 M.delaySec = function(delay)
   delaySec = delay
   return M
 end
 
--- start the sequence
+---start execution of the sequence
 M.start = function()
   log.info("starting up boot sequence")
   run(1)
 end
 
--- stop the sequence, this can be called manually
--- during troubleshooting actions
+---stop execution the sequence
+---this can be called manually during troubleshooting times
 M.stop = function()
   log.audit("user interrupted boot sequence")
   if tm then

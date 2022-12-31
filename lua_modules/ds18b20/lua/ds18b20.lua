@@ -6,38 +6,42 @@
 --------------------------------------------------------------------------------
 local modname = ...
 
+local ow, node, tmr = require("ow"), require("node"), require("tmr")
+
 -- Used modules and functions
 local type, tostring, pcall, ipairs = type, tostring, pcall, ipairs
 -- Local functions
 local ow_setup,
-  ow_search,
-  ow_select,
-  ow_read,
-  ow_read_bytes,
-  ow_write,
-  ow_crc8,
-  ow_reset,
-  ow_reset_search,
-  ow_skip,
-  ow_depower =
-  ow.setup,
-  ow.search,
-  ow.select,
-  ow.read,
-  ow.read_bytes,
-  ow.write,
-  ow.crc8,
-  ow.reset,
-  ow.reset_search,
-  ow.skip,
-  ow.depower
+ow_search,
+ow_select,
+ow_read,
+ow_read_bytes,
+ow_write,
+ow_crc8,
+ow_reset,
+ow_reset_search,
+ow_skip,
+ow_depower =
+ow.setup,
+    ow.search,
+    ow.select,
+    ow.read,
+    ow.read_bytes,
+    ow.write,
+    ow.crc8,
+    ow.reset,
+    ow.reset_search,
+    ow.skip,
+    ow.depower
 
 local node_task_post, node_task_LOW_PRIORITY = node.task.post, node.task.LOW_PRIORITY
-local string_char, string_dump = string.char, string.dump
-local now, tmr_create, tmr_ALARM_SINGLE = tmr.now, tmr.create, tmr.ALARM_SINGLE
-local table_sort, table_concat = table.sort, table.concat
+local string_char = string.char
+local tmr_create, tmr_ALARM_SINGLE = tmr.create, tmr.ALARM_SINGLE
+local table_sort = table.sort
 local math_floor = math.floor
-local file_open = file.open
+
+---forward declaration
+---@type function
 local conversion
 
 local DS18B20FAMILY = 0x28
@@ -47,7 +51,17 @@ local READ_SCRATCHPAD = 0xBE
 local READ_POWERSUPPLY = 0xB4
 local MODE = 1
 
-local pin, cb, unit = 3
+---pin ow is connected to
+---@type integer
+local pin = 3
+---callback upon successful reading
+---@type function
+local cb = nil
+---meassurement unit to report temperature off
+---@type string
+local unit = nil
+
+---@type integer[]
 local status = {}
 
 local debugPrint = require("log").debug
@@ -56,16 +70,19 @@ local debugPrint = require("log").debug
 -- Implementation
 --------------------------------------------------------------------------------
 
-local function to_string(addr, esc)
+---converts ow sensor addr to string representation
+---@param addr any
+---@return string
+local function to_string(addr)
   if type(addr) == "string" and #addr == 8 then
-    return (esc == true and '"\\%u\\%u\\%u\\%u\\%u\\%u\\%u\\%u"' or "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X "):format(
-      addr:byte(1, 8)
-    )
+    return ("%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X "):format(addr:byte(1, 8))
   else
     return tostring(addr)
   end
 end
 
+---read temperature
+---@param self ds18b20*
 local function readout(self)
   local next = false
   local sens = self.sens
@@ -120,6 +137,8 @@ local function readout(self)
   end
 end
 
+---start ow reading
+---@param self ds18b20*
 conversion = (function(self)
   local sens = self.sens
   local powered_only = true
@@ -163,30 +182,20 @@ conversion = (function(self)
   )
 end)
 
-local function _search(self, lcb, lpin, search)
+---search for all ow devices and read temperature
+---@param self ds18b20*
+---@param lcb function to call after readout
+---@param lpin integer is ow pin
+local function _search(self, lcb, lpin)
   self.temp = {}
-  if search then
-    self.sens = {}
-    status = {}
-  end
+  self.sens = {}
+  status = {}
   local sens = self.sens
   pin = lpin or pin
 
   local addr
-  if not search and #sens == 0 then
-    -- load addreses if available
-    debugPrint("geting addreses from flash")
-    local s, check, a = pcall(dofile, "ds18b20_save.lc")
-    if s and check == "ds18b20" then
-      for i = 1, #a do
-        sens[i] = a[i]
-      end
-    end
-    debugPrint(#sens, "addreses found")
-  end
-
   ow_setup(pin)
-  if search or #sens == 0 then
+  if #sens == 0 then
     ow_reset_search(pin)
     -- ow_target_search(pin,0x28)
     -- search the first device
@@ -224,29 +233,34 @@ local function _search(self, lcb, lpin, search)
       end
     end
   end
+
   cycle()
 end
 
-local function read_temp(self, lcb, lpin, lunit, force_search)
+---Set module name as parameter of require and return module table
+---@class ds18b20*
+local M = {
+  sens = {},
+  temp = {},
+  C = "C",
+  F = "F",
+  K = "K"
+}
+
+---reads sensors and their temps
+---@param self ds18b20* instance
+---@param lcb function to call when reading is finished
+---@param lpin integer is ow pin
+---@param lunit string is meassurement unit
+M.read_temp = function(self, lcb, lpin, lunit)
   cb, unit = lcb, lunit or unit
   _search(
     self,
     function()
       return conversion(self)
     end,
-    lpin,
-    force_search
+    lpin
   )
 end
-
--- Set module name as parameter of require and return module table
-local M = {
-  sens = {},
-  temp = {},
-  C = "C",
-  F = "F",
-  K = "K",
-  read_temp = read_temp
-}
 
 return M

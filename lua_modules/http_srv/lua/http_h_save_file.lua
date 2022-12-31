@@ -5,6 +5,9 @@
 ]]
 local modname = ...
 
+---saves the http stream into a file
+---@param readFn fun():string
+---@param fd table file object
 local function saveContent(readFn, fd)
   while true do
     local buf = readFn()
@@ -19,6 +22,8 @@ local function saveContent(readFn, fd)
   end
 end
 
+---saves file as given url
+---@param conn http_conn*
 local function main(conn)
   package.loaded[modname] = nil
 

@@ -1,6 +1,9 @@
 --[[
   Main entrypoint when booting up the device
 ]]
+
+---device init sequence
+---it initializes LFS and other modules and runs boot sequence
 local function main()
   require("_lfs_init")() -- mandatory first, prepares NodeMCU and LFS
 
@@ -9,7 +12,7 @@ local function main()
   -- device startup sequence
   local b = require("bootprotect")
 
-  b.require("setup device settings", "factory_settings_start")
+  b.require("setup device settings", "device_settings_start")
   b.require("configure logger with stored device settings", "log_start")
   b.require("keep time up to date when connected to network", "sntp_sync_start")
   b.require("configure wifi module", "wifi_apply_config")

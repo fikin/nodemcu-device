@@ -19,8 +19,11 @@ BUILD_REPO     ?= https://github.com/fikin/nodemcu-custom-build
 BUILD_BRANCH   ?= master
 # firmware repo
 X_REPO         ?= https://github.com/nodemcu/nodemcu-firmware
+# Lua mocks used in test target
+MOCKS_REPO			?= https://github.com/fikin/nodemcu-lua-mocks
+MOCKS_BRANCH		?= master
 
-.PHONY: all config clean prepare-firmware build build-firmware
+.PHONY: all config clean prepare-firmware build build-firmware spiffs-image lfs-image test
 
 clean:
 	rm -rf $(MAKEFILE_CONFIG)
@@ -60,4 +63,28 @@ spiffs-image: prepare-firmware
 lfs-image: prepare-firmware
 	$(MAKE) -f Makefile-spiffs.mk lfs-image
 
-all: prepare-firmware build
+all: prepare-firmware build test
+
+vendor/nodemcu-lua-mocks:
+	git clone --branch=${MOCKS_BRANCH} --recursive  ${MOCKS_REPO} vendor/nodemcu-lua-mocks
+
+LUA_PATH 					:= $(shell ./tools/lua_path.sh)
+LUA_TEST_CASES				:= $(wildcard lua_modules/*/test/*est*.lua)
+NODEMCU_MOCKS_SPIFFS_DIR   	:=  vendor/tests-spiffs
+
+$(LUA_TEST_CASES):
+	@echo [INFO] : Running tests in $@ ...
+	export LUA_PATH="$(LUA_PATH)" \
+		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
+		&& lua5.3 $@
+.PHONY: $(LUA_TEST_CASES)
+
+mock_spiffs_dir:
+	@mkdir -p $(NODEMCU_MOCKS_SPIFFS_DIR)
+	@rm -rf $(NODEMCU_MOCKS_SPIFFS_DIR)/*
+	@cp lua_modules/*/lua/* lua_modules/*/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/
+	@rm -f $(NODEMCU_MOCKS_SPIFFS_DIR)/*.lua
+	@rm -f $(NODEMCU_MOCKS_SPIFFS_DIR)/*.lc
+.PHONY: mock_spiffs_dir
+
+test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(LUA_TEST_CASES)

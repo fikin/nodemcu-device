@@ -8,6 +8,8 @@
 ]]
 local modname = ...
 
+---returns HA DataInfo structure
+---@param conn any
 local function getInfo(conn)
   local data = {
     manufacturer = "fikin",
@@ -19,7 +21,11 @@ local function getInfo(conn)
   require("http_h_send_json")(conn, data)
 end
 
-local function sendEntities(conn, entitiesTbl)
+---copy the table.
+---if table key is a function, it evaluates it and includes its result in the copy.
+---@param entitiesTbl any
+---@return table
+local function copyTable(entitiesTbl)
   -- combine all registered entities into single json obj
   local data = {}
   for k, v in pairs(entitiesTbl) do
@@ -28,15 +34,26 @@ local function sendEntities(conn, entitiesTbl)
     end
     data[k] = v
   end
+  return data
+end
+
+---creates table out of all entitiesTbl and sends it via conn
+---@param conn table http_conn* is HA request
+---@param entitiesTbl web_ha_entity*
+local function sendEntities(conn, entitiesTbl)
+  -- combine all registered entities into single json obj
+  local data = copyTable(entitiesTbl)
   require("http_h_send_json")(conn, data)
 end
 
+---returns registered HA Entities
+---@return web_ha_entity*
 local function getHaEntities()
   return require("state")("web_ha_entity")
 end
 
 local function getSpec(conn)
-  sendEntities(conn, getHaEntities().spec)
+  sendEntities(conn, getHaEntities().specTypes)
 end
 
 local function getData(conn)
@@ -59,7 +76,7 @@ local function main()
   package.loaded[modname] = nil
 
   -- credentials
-  local adminCred = require("device_settings", modname)
+  local adminCred = require("device_settings")(modname)
 
   local r = require("http_routes")
 

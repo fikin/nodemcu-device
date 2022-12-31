@@ -12,17 +12,17 @@ local function listenFn(sk)
   require("http_conn")(sk)
 end
 
+---creates tcp server and binds the listener function to it
+---@param port? integer
+---@return table net.tcp.server object
 local function main(port)
   package.loaded[modname] = nil
 
-  local port = port or require("device_settings", "http_srv").port or 80
-  local srv = {
-    routes = {},
-    srv = nil
-  }
-  require("log").info("starting http server on port " .. p)
-  srv.srv = net.createServer(net.TCP, 30)
-  srv.srv:listen(p, listenFn)
+  local port = port or require("device_settings")("http_srv").port or 80
+  require("log").info("starting http server on port " .. port)
+  local net = require("net")
+  local srv = net.createServer(net.TCP, 30)
+  srv:listen(port, listenFn)
   return srv
 end
 

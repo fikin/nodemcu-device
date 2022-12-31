@@ -13,31 +13,40 @@
 ]]
 local modname = ...
 
--- update device settings (i.e. remember the state)
+---update device settings with new directives from HA
+---@param changes table
 local function updateDevSettings(changes)
-  local b = require("factory_settings")
+  local builder = require("factory_settings")
 
   if changes["target_temperature_high"] then
-    local state = require("device_settings")(modname)
-    b.mergeTblInto("%s.modes.%s" % {modname, state.data.preset_mode}, changes)
-  else
-    b.mergeTblInto("%s.data" % modname, changes)
+    -- copy temp range to preset modes structure too
+    local activePresetMode = builder.get("%s.data.preset_mode" % modname)
+    builder.mergeTblInto("%s.modes.%s" % { modname, activePresetMode }, changes)
   end
-  b.done()
+  builder.mergeTblInto("%s.data" % modname, changes)
+  builder.done()
 end
 
+---updates RTE state with new changes
+---@param changes table
+local function updateState(changes)
+  local state = require("state")(modname)
+  require("table_merge")(state.data, changes)
+end
+
+---call thermostat's control loop
 local function applyControlLoop()
   require("thermostat_control")()
 end
 
+---called by web_ha to handle HA commands
+---@param changes table as comming from HA request
 local function setFn(changes)
-  local tm = require("table_merge")
   local log = require("log")
-  local state = require("device_settings")(modname)
 
   log.info("change settings to", log.json, changes)
   if changes["preset_mode"] or changes["hvac_mode"] or changes["target_temperature_high"] then
-    tm(state.data, changes) -- update RTE state
+    updateState(changes)
     updateDevSettings(changes)
     applyControlLoop()
   else
@@ -45,23 +54,16 @@ local function setFn(changes)
   end
 end
 
+---prepare initial RTE state out of device settings
 local function prepareRteState()
   -- read device settings into RTE state variable
   local state = require("device_settings")(modname)
-
-  -- assign supported modes
-  state.data.preset_modes = {}
-  for k, _ in pairs(state.modes) do
-    table.insert(state.data.preset_modes, k)
-  end
-
-  -- copy active mode int data state
-  require("table_merge")(state.data, state.modes[state.data.preset_mode])
 
   -- remember in RTE state
   require("state")(modname, state)
 end
 
+---schedule repeating timer to control the thermostat
 local function scheduleTimerLoop()
   local state = require("state")(modname)
   local tmr = require("tmr")
@@ -72,6 +74,8 @@ local function scheduleTimerLoop()
   end
 end
 
+---prepares RTE state and schedules control loop
+---registers to web_ha as HA climate entity
 local function main()
   package.loaded[modname] = nil
 

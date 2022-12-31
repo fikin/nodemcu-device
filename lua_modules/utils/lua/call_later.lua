@@ -1,5 +1,8 @@
 local modname = ...
 
+---calls a timer (once) with given delay and function
+---@param delay integer in ms
+---@param fnc fun() to call
 local function main(delay, fnc)
   package.loaded[modname] = nil
 

@@ -3,6 +3,10 @@
 ]]
 local modname = ...
 
+---protectects endpoint from concurrent calls
+---@param maxCnt integer
+---@param nextHandler conn_handler_fn
+---@return conn_handler_fn
 local function main(maxCnt, nextHandler)
   package.loaded[modname] = nil
 

@@ -6,9 +6,12 @@
   Usage: 
     require("sntp-sync")()
 ]] --
-
 local modname = ...
 
+---called each time snmp sync fails
+---it logs error if connected to station, otheriwise ignores it
+---@param code integer
+---@param err string error text
 local function errCbFn(code, err)
   local wifi = require("wifi")
   local mode = wifi.getmode()
@@ -21,16 +24,23 @@ local function errCbFn(code, err)
   end
 end
 
+---called each time successfully synced the time
+---@param sec integer
+---@param micro integer
+---@param srv string
+---@param info any
 local function okCbFn(sec, micro, srv, info)
   local log = require("log")
-  log.info(log.json, {sec = sec, micro = micro, srv = srv, info = info})
+  log.info(log.json, { sec = sec, micro = micro, srv = srv, info = info })
 end
 
+---callback called by wifi event
 local function wifiCbFn()
   local srvLst = nil -- TODO use device_settings to get configurable list of servers
-  require("sntp").sync(nil, okCbFn, errCbFn, 1)
+  require("sntp").sync(srvLst, okCbFn, errCbFn, 1)
 end
 
+---register for wifi event when getting ip address, to sync the time
 local function main()
   package.loaded[modname] = nil
 

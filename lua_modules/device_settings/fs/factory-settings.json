@@ -76,32 +76,27 @@
     "tempSensorPin": 5,
     "relayPin": 1,
     "modes": {
-      "eco": {
-        "target_temperature_high": 22,
-        "target_temperature_low": 20
-      },
       "away": {
-        "target_temperature_high": 22,
-        "target_temperature_low": 20
+        "target_temperature_high": 17,
+        "target_temperature_low": 15
       },
-      "comfort": {
-        "target_temperature_high": 22,
-        "target_temperature_low": 20
+      "day": {
+        "target_temperature_high": 21,
+        "target_temperature_low": 19
       },
-      "home": {
-        "target_temperature_high": 22,
-        "target_temperature_low": 20
-      },
-      "sleep": {
+      "night": {
         "target_temperature_high": 22,
         "target_temperature_low": 20
       }
     },
     "data": {
       "temperature_unit": "°C",
+      "target_temperature_high": 17,
+      "target_temperature_low": 15,
       "hvac_mode": "off",
       "hvac_modes": ["off", "heat", "auto"],
-      "preset_mode": "eco",
+      "preset_mode": "away",
+      "preset_modes": ["away", "day", "night"],
       "supported_features": 2
     }
   }

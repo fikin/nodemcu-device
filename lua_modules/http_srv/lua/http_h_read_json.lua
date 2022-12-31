@@ -3,8 +3,11 @@
 ]]
 local modname = ...
 
+---reads readFn as being json and returns resulting table
+---@param readFn function
+---@return table
 local function readAsJson(readFn)
-  local decoder = sjson.decoder()
+  local decoder = require("sjson").decoder()
   while true do
     local buf = readFn()
     if buf then
@@ -16,6 +19,9 @@ local function readAsJson(readFn)
   return decoder:result()
 end
 
+---expects application/json and returns the read object
+---@param conn http_conn*
+---@return table
 local function main(conn)
   package.loaded[modname] = nil
 

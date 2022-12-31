@@ -10,16 +10,19 @@
 ]]
 local modname = ...
 
+---reads sw_version and sends it back to caller
+---@param conn http_conn*
 local function getSwVersion(conn)
-  local data = require("get_sw_version")
+  local data = require("get_sw_version")()
   require("http_h_send_json")(conn, data)
 end
 
-local function main(srv)
+---register OTA rest api http routes
+local function main()
   package.loaded[modname] = nil
 
   -- OTA credentials
-  local adminCred = require("device_settings", modname)
+  local adminCred = require("device_settings")(modname)
 
   local r = require("http_routes")
 
@@ -35,7 +38,8 @@ local function main(srv)
     "POST",
     "/ota?restart",
     function(conn)
-      require("http_h_concurr_protect")(1, require("http_h_auth")(adminCred, require("http_h_restart")()))(conn)
+      require("http_h_concurr_protect")(1,
+        require("http_h_auth")(adminCred, require("http_h_restart")(require("http_h_ok"))))(conn)
     end
   )
   r.setMatchPath(
@@ -44,12 +48,10 @@ local function main(srv)
     function(conn)
       require("http_h_concurr_protect")(
         1,
-        require("http_h_auth")(adminCred, require("http_h_save_file_bak", true)(require("http_h_save_file")))
+        require("http_h_auth")(adminCred, require("http_h_save_file_bak")(true, require("http_h_save_file")))
       )(conn)
     end
   )
-
-  return srv
 end
 
 return main

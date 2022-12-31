@@ -8,6 +8,7 @@ FSSOURCE   			?= $(FWDIR)/local/fs
 LFSSOURCE  			?= $(FWDIR)/local/lua
 
 SPIFFSFILES 		?= $(patsubst $(FSSOURCE)/%,%,$(shell find $(FSSOURCE)/ -name '*' '!' -name .gitignore '!' -name '*.lua' ))
+LSFILES 				?= $(patsubst $(LFSSOURCE)/%,%,$(shell find $(LFSSOURCE)/ -name '*.lua' ))
 
 # determine the luac binary
 LUAC_CROSS 			?= $(shell ls $(FWDIR)/luac.cross*)
@@ -28,14 +29,18 @@ else
 FLASH_FS_LOC := $(shell printf "0x%x" $(FLASH_FS_LOC))
 endif
 
-.PHONY: lfs-lc lfs-image spiffs-lc version-json spiffs-lst spiffs-image
+.PHONY: lfs-lc lfs-image lfs-lst spiffs-lc version-json spiffs-lst spiffs-image
 
 # compile local/lua into local/fs/LFS.img (LFS image)
+lfs-lst:
+	@rm -f ./vendor/lfs.lst
+	@$(foreach f, $(LSFILES), echo "import $(LFSSOURCE)/$(f) $(f)" >> ./vendor/lfs.lst ;)
+
 lfs-lc:
 	@rm -f $(LFSSOURCE)/*.lc
-	@$(foreach f, $(shell ls $(LFSSOURCE)/*.lua), $(LUAC_CROSS) -o $(f:.lua=.lc) $(f) ;)
+	@$(foreach f, $(LSFILES), $(LUAC_CROSS) -o $(LFSSOURCE)/$(f:.lua=.lc) $(LFSSOURCE)/$(f) ;)
 
-lfs-image: lfs-lc
+lfs-image: lfs-lc lfs-lst
 	$(LUAC_CROSS) -f -o $(FSSOURCE)/LFS.img $(LFSSOURCE)/*.lc
 
 # compule local/fs/*.lua to local/fs/*.lc

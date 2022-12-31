@@ -6,7 +6,11 @@
 ]]
 local modname = ...
 
-local function main(nextHandler, noBackup)
+---saves the file first as .tmp, then takes .bak of existing and then places .tmp as requested url.
+---@param noBackup boolean
+---@param nextHandler conn_handler_fn
+---@return conn_handler_fn
+local function main(noBackup, nextHandler)
   package.loaded[modname] = nil
 
   return function(conn)
@@ -28,7 +32,7 @@ local function main(nextHandler, noBackup)
 
     file.remove(fName)
     if not file.rename(fTmp, fName) then
-      error("500: failed to rename file %s to %s" % {fTmp, fName})
+      error("500: failed to rename file %s to %s" % { fTmp, fName })
     end
 
     if noBackup then

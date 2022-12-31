@@ -1,0 +1,43 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lua",
+      "request": "launch",
+      "name": "Nodemcu-device",
+      "stopOnEntry": true,
+      "cwd": "${workspaceFolder}",
+      "program": "${file}",
+      "env": {
+        "NODEMCU_MOCKS_SPIFFS_DIR": "vendor/tests-spiffs"
+      },
+      "path": [
+        "${workspaceFolder}/lua_modules/bootprotect/lua/?.lua",
+        "${workspaceFolder}/lua_modules/device_settings/fs/?.lua",
+        "${workspaceFolder}/lua_modules/device_settings/lua/?.lua",
+        "${workspaceFolder}/lua_modules/ds18b20/lua/?.lua",
+        "${workspaceFolder}/lua_modules/dummy_strings/lua/?.lua",
+        "${workspaceFolder}/lua_modules/http_srv/lua/?.lua",
+        "${workspaceFolder}/lua_modules/init/fs/?.lua",
+        "${workspaceFolder}/lua_modules/lfs_init/fs/?.lua",
+        "${workspaceFolder}/lua_modules/lfs_init/lua/?.lua",
+        "${workspaceFolder}/lua_modules/log/lua/?.lua",
+        "${workspaceFolder}/lua_modules/sntp_sync/lua/?.lua",
+        "${workspaceFolder}/lua_modules/state/lua/?.lua",
+        "${workspaceFolder}/lua_modules/telnet/lua/?.lua",
+        "${workspaceFolder}/lua_modules/thermostat/lua/?.lua",
+        "${workspaceFolder}/lua_modules/utils/lua/?.lua",
+        "${workspaceFolder}/lua_modules/utils/test/?.lua",
+        "${workspaceFolder}/lua_modules/web_ha/lua/?.lua",
+        "${workspaceFolder}/lua_modules/web_ota/lua/?.lua",
+        "${workspaceFolder}/lua_modules/web_portal/fs/?.lua",
+        "${workspaceFolder}/lua_modules/web_portal/lua/?.lua",
+        "${workspaceFolder}/lua_modules/wifimgr/lua/?.lua",
+        "${workspaceFolder}/vendor/nodemcu-lua-mocks/lua/?.lua"
+      ]
+    }
+  ]
+}
