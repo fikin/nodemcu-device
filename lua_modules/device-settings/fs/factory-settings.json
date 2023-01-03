@@ -4,7 +4,7 @@
     "sleepType": 2,
     "config": {
       "save": false,
-      "ssid": "",
+      "ssid": "<STA_SSID>",
       "pwd": "<STA_PWD>",
       "auto": false
     }

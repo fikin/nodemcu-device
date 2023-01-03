@@ -12,7 +12,7 @@ local function main()
   -- portal credentials
   local adminCred = require("device-settings")(modname)
 
-  local r = require("http-routes")
+  local setPath = require("http-routes").setPath
 
   local function returnFile(conn)
     require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, require("http-h-return-file")))(conn)
@@ -30,7 +30,7 @@ local function main()
 
   -- Wifi config portal
 
-  r.setPath(
+  setPath(
     "GET",
     "/",
     function(conn)
@@ -38,10 +38,10 @@ local function main()
       returnFile(conn)
     end
   )
-  r.setPath("GET", "/wifi-portal.js", returnFile)
-  r.setPath("GET", "/wifi-portal.css", returnFile)
-  r.setPath("GET", "/device-settings.json", returnFile)
-  r.setPath("POST", "/device-settings.json", saveFile)
+  setPath("GET", "/wifi-portal.js", returnFile)
+  setPath("GET", "/wifi-portal.css", returnFile)
+  setPath("GET", "/device-settings.json", returnFile)
+  setPath("POST", "/device-settings.json", saveFile)
 end
 
 return main

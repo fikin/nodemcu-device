@@ -81,7 +81,7 @@ end
 ---@return string code
 ---@return string message or error
 local function errToCode(err)
-  local _, _, code, msg = string.find(string(err), ".*%s(%d+): (.*)")
+  local _, _, code, msg = string.find(err, ".*%s(%d+): (.*)")
   if code then
     return code, msg
   end
@@ -127,7 +127,7 @@ local function handleReq(conn)
       ok, err = handleRoute(conn)
     end
     if not ok then
-      conn.resp.code, conn.resp.body = errToCode(string(err))
+      conn.resp.code, conn.resp.body = errToCode(err)
       log.error(logErrMsg(log, conn, "processing request", err))
     end
     log.info(string.format("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code))

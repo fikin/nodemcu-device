@@ -10,7 +10,7 @@ local modname = ...
 ---@return sw_version_json
 local function main()
   package.loaded[modname] = nil
-  return require("read-json-file")("_sw_version.json")
+  return { version = "" .. tostring(require("node").LFS.time) }
 end
 
 return main

@@ -23,7 +23,8 @@ X_REPO         ?= https://github.com/nodemcu/nodemcu-firmware
 MOCKS_REPO			?= https://github.com/fikin/nodemcu-lua-mocks
 MOCKS_BRANCH		?= master
 
-.PHONY: all config clean prepare-firmware build build-firmware spiffs-image lfs-image test
+.PHONY: all config clean prepare-firmware build build-firmware spiffs-image lfs-image 
+.PHONY: test integration-test mock_spiffs_dir flash
 
 clean:
 	rm -rf $(MAKEFILE_CONFIG)
@@ -65,6 +66,10 @@ lfs-image: prepare-firmware
 
 all: prepare-firmware build test
 
+flash:
+	@tools/flash_it.sh vendor/nodemcu-firmware/bin/*.bin vendor/nodemcu-firmware/bin/*.img
+### testing related
+
 vendor/nodemcu-lua-mocks:
 	git clone --branch=${MOCKS_BRANCH} --recursive  ${MOCKS_REPO} vendor/nodemcu-lua-mocks
 
@@ -96,10 +101,11 @@ mock_spiffs_dir:
 	@rm -f $(NODEMCU_MOCKS_SPIFFS_DIR)/*.lua
 	@rm -f $(NODEMCU_MOCKS_SPIFFS_DIR)/*.lc
 	@touch $(NODEMCU_MOCKS_SPIFFS_DIR)/LFS.img
-.PHONY: mock_spiffs_dir
 
 test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES)
-.PHONY: test
+
+
+##################################
 
 $(INTEGRATION_TEST_CASES):
 	@echo [INFO] : Running tests in $@ ...
@@ -110,4 +116,3 @@ $(INTEGRATION_TEST_CASES):
 .PHONY: $(INTEGRATION_TEST_CASES)
 
 integration-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(INTEGRATION_TEST_CASES)
-.PHONY: integration-test

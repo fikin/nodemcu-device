@@ -18,7 +18,7 @@ end
 local function assertWifiPortal()
     local skt = nodemcu.net_tpc_connect_to_listener(80, "0.0.0.0")
     skt:sentByRemote('GET /device-settings.json HTTP/1.0\r\nAuthorization: Basic YWRtaW46YWRtaW4=\r\n\r\n')
-    nodemcu.advanceTime(1000)
+    nodemcu.advanceTime(500)
     local sent = table.concat(skt:receivedByRemoteAll(), "")
     local expected = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
@@ -27,6 +27,54 @@ local function assertWifiPortal()
         '\r\n' ..
         file.getcontents("device-settings.json")
     lu.assertEquals(sent, expected)
+end
+
+local function assertHassInfo()
+    local skt = nodemcu.net_tpc_connect_to_listener(80, "0.0.0.0")
+    skt:sentByRemote('GET /api/ha/info HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n')
+    nodemcu.advanceTime(500)
+    local sent = table.concat(skt:receivedByRemoteAll(), "")
+    local expected = 'HTTP/1.0 200 OK\r\n' ..
+        'Cache-Control: private, no-cache, no-store\r\n' ..
+        'Content-Length: 120\r\n' ..
+        'Content-Type: application/json\r\n' ..
+        '\r\n' ..
+        '{"hwVersion":"1.0.0","manufacturer":"fikin","model":"WeMos D1 mini","name":"nodemcu1234567890","swVersion":"1669271656"}'
+    lu.assertEquals(sent, expected)
+end
+
+local function assertHassSpec()
+    local skt = nodemcu.net_tpc_connect_to_listener(80, "0.0.0.0")
+    skt:sentByRemote('GET /api/ha/spec HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n')
+    nodemcu.advanceTime(500)
+    local sent = table.concat(skt:receivedByRemoteAll(), "")
+    local expected = 'HTTP/1.0 200 OK\r\n' ..
+        'Cache-Control: private, no-cache, no-store\r\n' ..
+        'Content-Length: 54\r\n' ..
+        'Content-Type: application/json\r\n' ..
+        '\r\n' ..
+        '{"climate":[{"key":"thermostat","name":"Thermostat"}]}'
+    lu.assertEquals(sent, expected)
+end
+
+local function assertHassData()
+    local skt = nodemcu.net_tpc_connect_to_listener(80, "0.0.0.0")
+    skt:sentByRemote('GET /api/ha/data HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n')
+    nodemcu.advanceTime(500)
+    local sent = table.concat(skt:receivedByRemoteAll(), "")
+    local expected = 'HTTP/1.0 200 OK\r\n' ..
+        'Cache-Control: private, no-cache, no-store\r\n' ..
+        'Content-Length: 257\r\n' ..
+        'Content-Type: application/json\r\n' ..
+        '\r\n' ..
+        '{"thermostat":{"hvac_action":"heating","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","day","night"],"supported_features":2,"target_temperature_high":17,"target_temperature_low":15,"temperature_unit":"°C"}}'
+    lu.assertEquals(sent, expected)
+end
+
+local function assertHass()
+    assertHassInfo()
+    assertHassSpec()
+    assertHassData()
 end
 
 function testInit()
@@ -42,6 +90,7 @@ function testInit()
     assertLFSFileError()
     assertDeviSettingsFile()
     assertWifiPortal()
+    assertHass()
 end
 
 os.exit(lu.run())

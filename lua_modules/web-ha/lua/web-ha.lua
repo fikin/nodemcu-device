@@ -15,7 +15,7 @@ local function getInfo(conn)
     manufacturer = "fikin",
     name = require("wifi").sta.gethostname(),
     model = "WeMos D1 mini",
-    swVersion = require("get-sw-version").version,
+    swVersion = require("get-sw-version")().version,
     hwVersion = "1.0.0"
   }
   require("http-h-send-json")(conn, data)
@@ -78,31 +78,31 @@ local function main()
   -- credentials
   local adminCred = require("device-settings")(modname)
 
-  local r = require("http-routes")
+  local setPath = require("http-routes").setPath
 
   -- Rest endpoints
-  r.setPath(
+  setPath(
     "GET",
     "/api/ha/info",
     function(conn)
       require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, getInfo))(conn)
     end
   )
-  r.setPath(
+  setPath(
     "GET",
     "/api/ha/spec",
     function(conn)
       require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, getSpec))(conn)
     end
   )
-  r.setPath(
+  setPath(
     "GET",
     "/api/ha/data",
     function(conn)
       require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, getData))(conn)
     end
   )
-  r.setPath(
+  setPath(
     "POST",
     "/api/ha/data",
     function(conn)
