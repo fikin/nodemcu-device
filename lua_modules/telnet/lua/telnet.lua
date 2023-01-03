@@ -16,7 +16,6 @@ local log = require("log")
 ---@class telnet_cfg
 ---@field port integer
 ---@field timeoutSec integer
----@field ip? string
 ---@field usr string
 ---@field pwd string
 local cfg = require("device-settings")(modname)
@@ -137,7 +136,7 @@ local function main(port)
 
   local net = require("net")
   local srv = net.createServer(cfg.timeoutSec)
-  srv:listen(cfg.port, cfg.ip, onNewConnection)
+  srv:listen(cfg.port, onNewConnection)
   log.info(modname, string.format("listening on port %d", cfg.port))
   return srv
 end

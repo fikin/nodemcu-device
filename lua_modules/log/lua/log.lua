@@ -68,7 +68,8 @@ local modname = ...
 ---@return string
 local function getTimestamp()
   local rtctime = require("rtctime")
-  local tm = rtctime.epoch2cal(rtctime.get().sec)
+  local sec, _, _ = rtctime.get()
+  local tm = rtctime.epoch2cal(sec)
   return string.format(
     "%04d/%02d/%02d %02d:%02d:%02d",
     tm.year,

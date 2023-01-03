@@ -12,7 +12,6 @@ local modname = ...
 ---@class http_srv_cfg
 ---@field port integer
 ---@field timeoutSec integer
----@field ip? string
 
 ---listener function
 ---@param sk socket
@@ -29,7 +28,7 @@ local function main()
   require("log").info("starting http server on port " .. cfg.port)
   local net = require("net")
   local srv = net.createServer(cfg.timeoutSec)
-  srv:listen(cfg.port, cfg.ip, listenFn)
+  srv:listen(cfg.port, listenFn)
 end
 
 return main

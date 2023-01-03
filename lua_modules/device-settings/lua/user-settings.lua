@@ -25,7 +25,7 @@ local function main(builder)
 
   -- typically set hostname is based on chipID
   -- until user overwrites it via web-portal for example
-  local hostname = "NodeMCU-" .. require("node").chipid()
+  local hostname = "nodemcu" .. require("node").chipid()
   builder.default("sta.hostname", hostname)
   builder.default("ap.config.ssid", hostname .. "_ap")
 

@@ -190,6 +190,14 @@ local function assignCbs()
   onFnc(modname, wifi.eventmon.AP_STADISCONNECTED, onApDisconnected)
 end
 
+local function hasSSIDDefined(cfg)
+  return cfg
+      and cfg.config
+      and cfg.config.ssid
+      and #cfg.config.ssid > 0
+      and cfg.config.ssid:sub(1, 1) ~= "<"
+end
+
 ---starts wifi management
 ---it tries to connect to sta if it is defined
 ---it starts ap if sta is not defined
@@ -205,9 +213,9 @@ local function main()
   ---@type cfg_ap
   local ap = require("device-settings")("ap")
 
-  if sta and #sta.config.ssid > 0 then
+  if hasSSIDDefined(sta) then
     trySta() -- try to connect to sta
-  elseif ap and #ap.config.ssid > 0 then
+  elseif hasSSIDDefined(ap) then
     setApOn() -- start ap right on
   end
 end

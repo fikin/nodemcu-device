@@ -33,6 +33,8 @@ local log, wifi = require("log"), require("wifi")
 ---configures wifi common settings
 ---@param cfg cfg_wifi
 local function setWifiCfg(cfg)
+  wifi.setmode(wifi.NULLMODE)
+
   log.debug(modname, "setting country", log.json, cfg.country)
   if not wifi.setcountry(cfg.country) then
     log.error(modname, "failed to set country")
@@ -48,8 +50,9 @@ end
 ---configures wifi.sta settings
 ---@param cfg cfg_sta
 local function setSTACfg(cfg)
-  log.debug(modname, "setting hostname", cfg.hostname)
+  wifi.setmode(wifi.STATION)
 
+  log.debug(modname, "setting hostname", cfg.hostname)
   if not wifi.sta.sethostname(cfg.hostname) then
     log.error(modname, "failed to set hostname")
   end
@@ -83,6 +86,8 @@ end
 ---configures wifi.ap settings
 ---@param cfg cfg_ap
 local function setAPCfg(cfg)
+  wifi.setmode(wifi.SOFTAP)
+
   if cfg.mac then
     log.debug(modname, "setting access point mac address", cfg.mac)
     if not wifi.ap.setmac(cfg.mac) then
@@ -111,7 +116,6 @@ local function main()
 
   local cfg = require("device-settings")()
 
-  wifi.setmode(wifi.NULLMODE)
   if cfg.wifi then
     setWifiCfg(cfg.wifi)
   end
@@ -121,6 +125,9 @@ local function main()
   if cfg.ap then
     setAPCfg(cfg.ap)
   end
+
+  -- reset mode so wifimgr can start anew
+  wifi.setmode(wifi.NULLMODE)
 end
 
 return main

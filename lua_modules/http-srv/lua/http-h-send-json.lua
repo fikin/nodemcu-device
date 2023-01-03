@@ -16,6 +16,7 @@ local function main(conn, data)
   conn.resp.code = "200"
   conn.resp.headers["Content-Type"] = "application/json"
   conn.resp.headers["Content-Length"] = #txt
+  conn.resp.headers["Cache-Control"] = "private, no-cache, no-store"
   conn.resp.body = txt
 end
 
