@@ -68,16 +68,26 @@ all: prepare-firmware build test
 vendor/nodemcu-lua-mocks:
 	git clone --branch=${MOCKS_BRANCH} --recursive  ${MOCKS_REPO} vendor/nodemcu-lua-mocks
 
-LUA_PATH 					:= $(shell ./tools/lua_path.sh)
-LUA_TEST_CASES				:= $(wildcard lua_modules/*/test/*est*.lua)
-NODEMCU_MOCKS_SPIFFS_DIR   	:=  vendor/tests-spiffs
+# only SPIFFS lua files are here (lua_moduesl/*/fs/*lua) + external dependencies
+LUA_SPIFFS_PATH				?= $(shell ls -f lua_modules/*/fs/*.lua | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
 
-$(LUA_TEST_CASES):
+LUA_LFS_PATH				?= $(shell ls -f lua_modules/*/lua/*.lua | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
+
+# only LFS lua files are here (lua_modules/*/lua/*.lua)
+NODEMCU_LFS_FILES			?= $(wildcard lua_modules/*/lua/*.lua)
+
+UNIT_TEST_CASES				?= $(wildcard lua_modules/*/test/*est*.lua)
+INTEGRATION_TEST_CASES		?= $(wildcard integration-tests/lua/*est*.lua)
+# dir containing all SPIFFS files except *.lua/lc
+NODEMCU_MOCKS_SPIFFS_DIR   	?=  vendor/tests-spiffs
+
+$(UNIT_TEST_CASES):
 	@echo [INFO] : Running tests in $@ ...
-	export LUA_PATH="$(LUA_PATH)" \
+	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);$(LUA_LFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
 		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
+		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
 		&& lua5.3 $@
-.PHONY: $(LUA_TEST_CASES)
+.PHONY: $(UNIT_TEST_CASES)
 
 mock_spiffs_dir:
 	@mkdir -p $(NODEMCU_MOCKS_SPIFFS_DIR)
@@ -85,6 +95,19 @@ mock_spiffs_dir:
 	@cp lua_modules/*/lua/* lua_modules/*/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/
 	@rm -f $(NODEMCU_MOCKS_SPIFFS_DIR)/*.lua
 	@rm -f $(NODEMCU_MOCKS_SPIFFS_DIR)/*.lc
+	@touch $(NODEMCU_MOCKS_SPIFFS_DIR)/LFS.img
 .PHONY: mock_spiffs_dir
 
-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(LUA_TEST_CASES)
+test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES)
+.PHONY: test
+
+$(INTEGRATION_TEST_CASES):
+	@echo [INFO] : Running tests in $@ ...
+	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
+		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
+		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
+		&& lua5.3 $@
+.PHONY: $(INTEGRATION_TEST_CASES)
+
+integration-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(INTEGRATION_TEST_CASES)
+.PHONY: integration-test

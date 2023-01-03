@@ -5,22 +5,22 @@
 ---device init sequence
 ---it initializes LFS and other modules and runs boot sequence
 local function main()
-  require("_lfs_init")() -- mandatory first, prepares NodeMCU and LFS
+  require("_lfs-init")() -- mandatory first, prepares NodeMCU and LFS
 
   package.loaded["init"] = nil -- this module gc
 
   -- device startup sequence
   local b = require("bootprotect")
 
-  b.require("setup device settings", "device_settings_start")
-  b.require("configure logger with stored device settings", "log_start")
-  b.require("keep time up to date when connected to network", "sntp_sync_start")
-  b.require("configure wifi module", "wifi_apply_config")
-  b.require("start wifi manager", "wifi_mgr")
-  b.require("start http server", "http_srv")
-  b.require("start web admin portal", "web_portal")
-  b.require("start OTA rest api", "web_ota")
-  b.require("start HomeAssistant rest api", "web_ha")
+  b.require("setup device settings", "device-settings-start")
+  b.require("configure logger with stored device settings", "log-start")
+  b.require("keep time up to date when connected to network", "sntp-sync-start")
+  b.require("configure wifi module", "wifi-apply-config")
+  b.require("start wifi manager", "wifi-mgr")
+  b.require("start http server", "http-srv")
+  b.require("start web admin portal", "web-portal")
+  b.require("start OTA rest api", "web-ota")
+  b.require("start HomeAssistant rest api", "web-ha")
   b.require("telnet", "telnet")
   b.require("start thermostat", "thermostat")
   -- b.fnc(

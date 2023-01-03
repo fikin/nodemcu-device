@@ -13,7 +13,13 @@ local modname = ...
 local node = require("node")
 local log = require("log")
 
-local cfg = require("device_settings")(modname)
+---@class telnet_cfg
+---@field port integer
+---@field timeoutSec integer
+---@field ip? string
+---@field usr string
+---@field pwd string
+local cfg = require("device-settings")(modname)
 
 -- pipe provided by node.output
 local stdout = nil
@@ -130,10 +136,9 @@ local function main(port)
   package.loaded[modname] = nil
 
   local net = require("net")
-  port = port or cfg.port
-  local srv = net.createServer(net.TCP, 180)
-  srv:listen(port or 23, onNewConnection)
-  log.info(modname, "listening on port", port)
+  local srv = net.createServer(cfg.timeoutSec)
+  srv:listen(cfg.port, cfg.ip, onNewConnection)
+  log.info(modname, string.format("listening on port %d", cfg.port))
   return srv
 end
 
