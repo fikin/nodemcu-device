@@ -16,7 +16,7 @@ local modname = ...
 ---update device settings with new directives from HA
 ---@param changes table
 local function updateDevSettings(changes)
-  local builder = require("factory_settings")
+  local builder = require("factory-settings")
 
   if changes["target_temperature_high"] then
     -- copy temp range to preset modes structure too
@@ -31,12 +31,12 @@ end
 ---@param changes table
 local function updateState(changes)
   local state = require("state")(modname)
-  require("table_merge")(state.data, changes)
+  require("table-merge")(state.data, changes)
 end
 
 ---call thermostat's control loop
 local function applyControlLoop()
-  require("thermostat_control")()
+  require("thermostat-control")()
 end
 
 ---called by web_ha to handle HA commands
@@ -57,7 +57,7 @@ end
 ---prepare initial RTE state out of device settings
 local function prepareRteState()
   -- read device settings into RTE state variable
-  local state = require("device_settings")(modname)
+  local state = require("device-settings")(modname)
 
   -- remember in RTE state
   require("state")(modname, state)
@@ -90,7 +90,7 @@ local function main()
     name = "Thermostat"
   }
   local ptrToData = require("state")(modname).data
-  require("web_ha_entity")(modname, "climate", spec, ptrToData, setFn)
+  require("web-ha-entity")(modname, "climate", spec, ptrToData, setFn)
 end
 
 return main

@@ -53,7 +53,7 @@
 
   Logging settings can be present in "device_settings" and 
   one has to use bootprotect to assign these to RTE state:
-      require("state").log = require("device_settings").log
+      require("state").log = require("device-settings").log
 ]]
 local modname = ...
 
@@ -206,7 +206,7 @@ end
 M.tbl = function(t)
   local ret = {}
   for k, v in pairs(t) do
-    table.insert(ret, "%s = %s" % { k, v })
+    table.insert(ret, string.format("%s = %s", k, v))
   end
   return ret
 end

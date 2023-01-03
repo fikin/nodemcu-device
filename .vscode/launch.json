@@ -7,12 +7,14 @@
     {
       "type": "lua",
       "request": "launch",
-      "name": "Nodemcu-device",
+      "name": "Nodemcu-device Unit Test",
       "stopOnEntry": true,
       "cwd": "${workspaceFolder}",
       "program": "${file}",
+      "luaVersion": "5.3",
       "env": {
-        "NODEMCU_MOCKS_SPIFFS_DIR": "vendor/tests-spiffs"
+        "NODEMCU_MOCKS_SPIFFS_DIR": "vendor/tests-spiffs",
+        "NODEMCU_LFS_FILES": "lua_modules/bootprotect/lua/bootprotect.lua lua_modules/device_settings/lua/device_settings.lua lua_modules/device_settings/lua/device_settings_start.lua lua_modules/device_settings/lua/factory_settings.lua lua_modules/device_settings/lua/user_settings.lua lua_modules/ds18b20/lua/ds18b20.lua lua_modules/dummy_strings/lua/dummy_strings.lua lua_modules/http_srv/lua/http_conn_gc.lua lua_modules/http_srv/lua/http_conn.lua lua_modules/http_srv/lua/http_conn_req.lua lua_modules/http_srv/lua/http_conn_resp.lua lua_modules/http_srv/lua/http_h_auth.lua lua_modules/http_srv/lua/http_h_concurr_protect.lua lua_modules/http_srv/lua/http_h_ok.lua lua_modules/http_srv/lua/http_h_read_json.lua lua_modules/http_srv/lua/http_h_restart.lua lua_modules/http_srv/lua/http_h_return_file.lua lua_modules/http_srv/lua/http_h_save_file_bak.lua lua_modules/http_srv/lua/http_h_save_file.lua lua_modules/http_srv/lua/http_h_send_json.lua lua_modules/http_srv/lua/http_routes.lua lua_modules/http_srv/lua/http_srv.lua lua_modules/lfs_init/lua/_init.lua lua_modules/log/lua/log.lua lua_modules/log/lua/log_start.lua lua_modules/sntp_sync/lua/sntp_dns_code.lua lua_modules/sntp_sync/lua/sntp_sync_start.lua lua_modules/state/lua/state.lua lua_modules/telnet/lua/telnet.lua lua_modules/thermostat/lua/thermostat_control.lua lua_modules/thermostat/lua/thermostat.lua lua_modules/utils/lua/call_later.lua lua_modules/utils/lua/get_sw_version.lua lua_modules/utils/lua/read_json_file.lua lua_modules/utils/lua/table_merge.lua lua_modules/web_ha/lua/web_ha_entity.lua lua_modules/web_ha/lua/web_ha.lua lua_modules/web_ota/lua/web_ota.lua lua_modules/web_portal/lua/web_portal.lua lua_modules/wifimgr/lua/wifi_apply_config.lua lua_modules/wifimgr/lua/wifi_authmode.lua lua_modules/wifimgr/lua/wifi_event.lua lua_modules/wifimgr/lua/wifi_event_type.lua lua_modules/wifimgr/lua/wifi_mgr.lua lua_modules/wifimgr/lua/wifi_reasons.lua lua_modules/wifimgr/lua/wifi_stastatus.lua lua_modules/wifimgr/lua/wifi_wifimode.lua"
       },
       "path": [
         "${workspaceFolder}/lua_modules/bootprotect/lua/?.lua",
@@ -36,6 +38,24 @@
         "${workspaceFolder}/lua_modules/web_portal/fs/?.lua",
         "${workspaceFolder}/lua_modules/web_portal/lua/?.lua",
         "${workspaceFolder}/lua_modules/wifimgr/lua/?.lua",
+        "${workspaceFolder}/vendor/nodemcu-lua-mocks/lua/?.lua"
+      ]
+    },
+    {
+      "type": "lua",
+      "request": "launch",
+      "name": "Nodemcu-device Integration Test",
+      "stopOnEntry": true,
+      "cwd": "${workspaceFolder}",
+      "program": "${file}",
+      "luaVersion": "5.3",
+      "env": {
+        "NODEMCU_MOCKS_SPIFFS_DIR": "vendor/tests-spiffs",
+        "NODEMCU_LFS_FILES": "lua_modules/bootprotect/lua/bootprotect.lua lua_modules/device_settings/lua/device_settings.lua lua_modules/device_settings/lua/device_settings_start.lua lua_modules/device_settings/lua/factory_settings.lua lua_modules/device_settings/lua/user_settings.lua lua_modules/ds18b20/lua/ds18b20.lua lua_modules/dummy_strings/lua/dummy_strings.lua lua_modules/http_srv/lua/http_conn_gc.lua lua_modules/http_srv/lua/http_conn.lua lua_modules/http_srv/lua/http_conn_req.lua lua_modules/http_srv/lua/http_conn_resp.lua lua_modules/http_srv/lua/http_h_auth.lua lua_modules/http_srv/lua/http_h_concurr_protect.lua lua_modules/http_srv/lua/http_h_ok.lua lua_modules/http_srv/lua/http_h_read_json.lua lua_modules/http_srv/lua/http_h_restart.lua lua_modules/http_srv/lua/http_h_return_file.lua lua_modules/http_srv/lua/http_h_save_file_bak.lua lua_modules/http_srv/lua/http_h_save_file.lua lua_modules/http_srv/lua/http_h_send_json.lua lua_modules/http_srv/lua/http_routes.lua lua_modules/http_srv/lua/http_srv.lua lua_modules/lfs_init/lua/_init.lua lua_modules/log/lua/log.lua lua_modules/log/lua/log_start.lua lua_modules/sntp_sync/lua/sntp_dns_code.lua lua_modules/sntp_sync/lua/sntp_sync_start.lua lua_modules/state/lua/state.lua lua_modules/telnet/lua/telnet.lua lua_modules/thermostat/lua/thermostat_control.lua lua_modules/thermostat/lua/thermostat.lua lua_modules/utils/lua/call_later.lua lua_modules/utils/lua/get_sw_version.lua lua_modules/utils/lua/read_json_file.lua lua_modules/utils/lua/table_merge.lua lua_modules/web_ha/lua/web_ha_entity.lua lua_modules/web_ha/lua/web_ha.lua lua_modules/web_ota/lua/web_ota.lua lua_modules/web_portal/lua/web_portal.lua lua_modules/wifimgr/lua/wifi_apply_config.lua lua_modules/wifimgr/lua/wifi_authmode.lua lua_modules/wifimgr/lua/wifi_event.lua lua_modules/wifimgr/lua/wifi_event_type.lua lua_modules/wifimgr/lua/wifi_mgr.lua lua_modules/wifimgr/lua/wifi_reasons.lua lua_modules/wifimgr/lua/wifi_stastatus.lua lua_modules/wifimgr/lua/wifi_wifimode.lua"
+      },
+      "path": [
+        "${workspaceFolder}/lua_modules/init/fs/?.lua",
+        "${workspaceFolder}/lua_modules/lfs-init/fs/?.lua",
         "${workspaceFolder}/vendor/nodemcu-lua-mocks/lua/?.lua"
       ]
     }
