@@ -45,7 +45,7 @@ end
 
 ---runs sta connection
 local function connectSta()
-  log.info("trying to connect to %s" % wifi.sta.getconfig(true).ssid)
+  log.info("trying to connect to %s", wifi.sta.getconfig(true).ssid)
   wifi.sta.connect()
 end
 
@@ -72,7 +72,7 @@ local function setApOn()
     if status == wifi.STA_GOTIP then
       if mode == wifi.STATIONAP then
         -- stop AP if connected to STA
-        log.info("shutting down ap %s" % wifi.ap.getconfig(true).ssid)
+        log.info("shutting down ap %s", wifi.ap.getconfig(true).ssid)
         wifi.ap.dhcp.stop()
         wifi.setmode(wifi.STATION)
       end
@@ -81,7 +81,7 @@ local function setApOn()
   end
   -- start AP if not connected to STA
   if mode == wifi.NULLMODE or mode == wifi.STATION then
-    log.info(string.format("starting up ap %s", wifi.ap.getconfig(true).ssid))
+    log.info("starting up ap %s", wifi.ap.getconfig(true).ssid)
     wifi.setmode(mode == wifi.NULLMODE and wifi.SOFTAP or wifi.STATIONAP)
     if not wifi.ap.dhcp.start() then
       log.debug("starting up AP dhcp server failed")
@@ -112,7 +112,7 @@ end
 local function onStaDisconnect(T)
   local reason = tonumber(T.reason) or 0
   T.reason = require("wifi-reasons")(reason)
-  log.info("disconnected from", log.json, T)
+  log.info("disconnected from %s", log.json, T)
 
   ---a wrapper to afterDisconnect
   local fn = function()
@@ -124,7 +124,7 @@ end
 ---called on sta connected to ssid, logs it
 ---@param T table as provided by wifi.event
 local function onStaConnect(T)
-  log.info("connected to", log.json, T)
+  log.info("connected to %s", log.json, T)
 end
 
 ---called on wifi sta auth mode change, logs it
@@ -133,7 +133,7 @@ local function onStaAuthModeChange(T)
   local d = require("wifi-authmode")
   T.new_auth_mode = d(tonumber(T.new_auth_mode) or 0)
   T.old_auth_mode = d(tonumber(T.old_auth_mode) or 0)
-  log.info("authorization mode changed", log.json, T)
+  log.info("authorization mode changed %s", log.json, T)
 end
 
 ---called on sta dhcp timeout, logs it only
@@ -146,7 +146,7 @@ end
 ---shutdowns ap if still connected after 1min
 ---@param T table as provided by wifi.event
 local function onStaGotIp(T)
-  log.info("got ip", log.json, T)
+  log.info("got ip %s", log.json, T)
 
   -- switch off AP if ok
   local fn = function()
@@ -161,19 +161,19 @@ local function onWifiModeChanged(T)
   local d = require("wifi-wifimode")
   T.new_mode = d(tonumber(T.new_mode) or 0)
   T.old_mode = d(tonumber(T.old_mode) or 0)
-  log.info("wifi mode changed", log.json, T)
+  log.info("wifi mode changed %s", log.json, T)
 end
 
 ---called on ap-connected, audits the client
 ---@param T table as provided by wifi.event
 local function onApConnected(T)
-  log.audit("accepted connection from", log.json, T)
+  log.audit("accepted connection from %s", log.json, T)
 end
 
 ---called on ap-disconnect, audits the client
 ---@param T table as provided by wifi.event
 local function onApDisconnected(T)
-  log.audit("connection closed from", log.json, T)
+  log.audit("connection closed from %s", log.json, T)
 end
 
 ---assign wifi.event callbacks via which the orchestration

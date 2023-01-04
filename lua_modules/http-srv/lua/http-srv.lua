@@ -25,7 +25,7 @@ local function main()
 
   ---@type http_srv_cfg
   local cfg = require("device-settings")(modname)
-  require("log").info("starting http server on port " .. cfg.port)
+  require("log").info("starting http server on port %d", cfg.port)
   local net = require("net")
   local srv = net.createServer(cfg.timeoutSec)
   srv:listen(cfg.port, listenFn)

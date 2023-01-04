@@ -10,6 +10,7 @@ local function main()
   package.loaded[modname] = nil
 
   -- portal credentials
+  ---@type http_h_auth
   local adminCred = require("device-settings")(modname)
 
   local setPath = require("http-routes").setPath

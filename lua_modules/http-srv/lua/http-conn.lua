@@ -13,8 +13,8 @@ local modname = ...
 ---@return socket_fn function bound to the connection
 local function auditConnFn()
   return function(sk)
-    local remoteIp, remotePort = sk:getpeer()
-    require("log").audit("accepted connection from", remoteIp, remotePort)
+    local remotePort, remoteIp = sk:getpeer()
+    require("log").audit("accepted connection from %s:%d", remoteIp, remotePort)
   end
 end
 
@@ -22,8 +22,8 @@ end
 ---@return socket_fn function bound to the connection
 local function traceReconnFn()
   return function(sk, err)
-    local remoteIp, remotePort = sk:getpeer()
-    require("log").debug("reconnection from", remoteIp, remotePort, err)
+    local remotePort, remoteIp = sk:getpeer()
+    require("log").debug("reconnection from %s:%d %s", remoteIp, remotePort, err)
   end
 end
 
@@ -32,7 +32,7 @@ end
 ---@return socket_fn function bound to the connection
 local function disconnectedConnFn(conn)
   return function(sk, err)
-    require("log").audit("client disconnected", err)
+    require("log").audit("client disconnected %s", err)
     require("http-conn-gc")(conn, err ~= nil)
   end
 end
@@ -130,7 +130,7 @@ local function handleReq(conn)
       conn.resp.code, conn.resp.body = errToCode(err)
       log.error(logErrMsg(log, conn, "processing request", err))
     end
-    log.info(string.format("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code))
+    log.info("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code)
     ok, err = pcall(require("http-conn-resp"), conn)
     if not ok then
       log.error(logErrMsg(log, conn, "writing response", err))

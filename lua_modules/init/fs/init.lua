@@ -22,6 +22,8 @@ local function main()
   b.require("start OTA rest api", "web-ota")
   b.require("start HomeAssistant rest api", "web-ha")
   b.require("telnet", "telnet")
+  b.require("start temp sensor", "temp-sensor")
+  b.require("start relay switch", "relay-switch")
   b.require("start thermostat", "thermostat")
   -- b.fnc(
   --   "gc at the end",

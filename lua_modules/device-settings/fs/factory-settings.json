@@ -73,10 +73,15 @@
     "usr": "telnet",
     "pwd": "admin"
   },
+  "temp-sensor": {
+    "periodMs": 19000,
+    "pin": 5
+  },
+  "relay-switch": {
+    "pin": 1
+  },
   "thermostat": {
     "periodMs": 60000,
-    "tempSensorPin": 5,
-    "relayPin": 1,
     "modes": {
       "away": {
         "target_temperature_high": 17,

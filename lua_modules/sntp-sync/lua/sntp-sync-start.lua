@@ -19,7 +19,7 @@ local function errCbFn(code, err)
     if wifi.sta.status() == wifi.STA_GOTIP then
       -- report error only if wifi is connected
       -- all other cases likely error is due to missing connectivity
-      require("log").error(require("sntp-dns-code")(code), err)
+      require("log").error("%s: %s",require("sntp-dns-code")(code), err)
     end
   end
 end
@@ -31,7 +31,7 @@ end
 ---@param info any
 local function okCbFn(sec, micro, srv, info)
   local log = require("log")
-  log.info(log.json, { sec = sec, micro = micro, srv = srv, info = info })
+  log.info("%s", log.json, { sec = sec, micro = micro, srv = srv, info = info })
 end
 
 ---callback called by wifi event

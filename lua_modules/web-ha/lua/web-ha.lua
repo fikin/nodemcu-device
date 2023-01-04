@@ -9,7 +9,7 @@
 local modname = ...
 
 ---returns HA DataInfo structure
----@param conn any
+---@param conn http_conn*
 local function getInfo(conn)
   local data = {
     manufacturer = "fikin",
@@ -24,7 +24,7 @@ end
 ---copy the table.
 ---if table key is a function, it evaluates it and includes its result in the copy.
 ---@param entitiesTbl any
----@return table
+---@return {[string]:any}
 local function copyTable(entitiesTbl)
   -- combine all registered entities into single json obj
   local data = {}
@@ -38,7 +38,7 @@ local function copyTable(entitiesTbl)
 end
 
 ---creates table out of all entitiesTbl and sends it via conn
----@param conn table http_conn* is HA request
+---@param conn http_conn* http_conn* is HA request
 ---@param entitiesTbl web_ha_entity*
 local function sendEntities(conn, entitiesTbl)
   -- combine all registered entities into single json obj
@@ -49,17 +49,23 @@ end
 ---returns registered HA Entities
 ---@return web_ha_entity*
 local function getHaEntities()
-  return require("state")("web-ha-entity")
+  return require("state")(modname .. "-entity")
 end
 
+---return HA entity specifications
+---@param conn http_conn*
 local function getSpec(conn)
   sendEntities(conn, getHaEntities().specTypes)
 end
 
+---return HA entities data
+---@param conn http_conn*
 local function getData(conn)
   sendEntities(conn, getHaEntities().data)
 end
 
+---set data for some HA entity
+---@param conn http_conn*
 local function setData(conn)
   local data = require("http-h-read-json")(conn)
   for k, v in pairs(data) do
@@ -67,15 +73,18 @@ local function setData(conn)
     if fn and type(fn) == "function" then
       fn(v)
     else
-      error("setting %s is not possible, there is no handler for it" % k)
+      error(string.format("400: setting %s is not possible, there is no handler for it", k))
     end
   end
 end
 
+---register HTTP routes for Home Assistant
+---serves all registered HA entities
 local function main()
   package.loaded[modname] = nil
 
   -- credentials
+  ---@type http_h_auth
   local adminCred = require("device-settings")(modname)
 
   local setPath = require("http-routes").setPath
