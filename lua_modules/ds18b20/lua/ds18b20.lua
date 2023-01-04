@@ -108,7 +108,7 @@ local function readout(self)
         elseif unit == "K" then
           t = t + 27315 / 100
         end
-        debugPrint(to_string(addr), t, crc, b9)
+        debugPrint("%s %d %d %d", to_string(addr), t, crc, b9)
         if crc == b9 then
           temp[addr] = t
         end
@@ -161,7 +161,7 @@ conversion = (function(self)
         if parasite and started then
           break
         end -- do not start concurrent conversion of powered and parasite
-        debugPrint("starting conversion:", to_string(addr), parasite and "parasite" or "")
+        debugPrint("starting conversion: %s %s", to_string(addr), parasite and "parasite" or "")
         ow_reset(pin)
         ow_select(pin, addr) -- select the sensor
         ow_write(pin, CONVERT_T, MODE) -- and start conversion
@@ -215,7 +215,7 @@ local function _search(self, lcb, lpin)
         local parasite = (ow_read(pin) == 0 and 1 or 0)
         sens[#sens + 1] = addr .. string_char(parasite)
         status[#sens] = 0
-        debugPrint("contact: ", to_string(addr), parasite == 1 and "parasite" or "")
+        debugPrint("contact: %s %s", to_string(addr), parasite == 1 and "parasite" or "")
       end
       addr = ow_search(pin)
       node_task_post(node_task_LOW_PRIORITY, cycle)

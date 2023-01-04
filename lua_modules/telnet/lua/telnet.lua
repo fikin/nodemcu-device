@@ -67,7 +67,7 @@ local function openNodeSession(skt)
   skt:on("receive", onReceiving)
   skt:on("sent", readAndSendOnce)
   skt:on("disconnection", onDisconnect)
-  log.info(("Welcome to NodeMCU world (%d mem free)"):format(node.heap()))
+  log.info("Welcome to NodeMCU world (%d mem free)", node.heap())
 end
 
 ---asks user name and password from the telnet client
@@ -78,7 +78,7 @@ local function authenticate(skt)
     if state == 2 then
       skt:send("Enter password:")
     elseif state == 3 then
-      log.audit("telnet session open for user %s" % cfg.usr)
+      log.audit("telnet session open for user %s", cfg.usr)
       openNodeSession(skt)
     else
       skt:send("Enter username:")
@@ -137,7 +137,7 @@ local function main(port)
   local net = require("net")
   local srv = net.createServer(cfg.timeoutSec)
   srv:listen(cfg.port, onNewConnection)
-  log.info(modname, string.format("listening on port %d", cfg.port))
+  log.info("listening on port %d", cfg.port)
   return srv
 end
 

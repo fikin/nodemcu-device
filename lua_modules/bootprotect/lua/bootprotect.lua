@@ -65,7 +65,7 @@ local rtcW, rtcR = rtcmem.write32, rtcmem.read32
 local function getLastFailedNbr()
   local nbr = rtcR(rtcSlot) -- survived from previous reboot env
   local rawcode, reason = require("node").bootreason()
-  log.debug("rtcmem slot=", rtcSlot, " value=", nbr, "boot rawcode=", rawcode, "boot reason=", reason)
+  log.debug("rtcmem slot=%d  value=%d boot rawcode=%d boot reason=%d", rtcSlot, nbr, rawcode, reason)
   if nbr > 0 and nbr < 100 and rawcode == 2 and reason == 4 then
     return nbr
   end
@@ -123,7 +123,7 @@ doRun = function(nbr)
     run(nbr + 1)
   else
     -- on new failure, repeat via timer with delay
-    log.error(string.format("function failed (%d): %s", nbr, err))
+    log.error("function #%d failed: %s", nbr, err)
     if onErrFnc then onErrFnc(); end
     delayBeforeRun(nbr)
   end
@@ -132,7 +132,7 @@ end
 ---schedules a timer to run given step using doRun
 ---@param nbr integer step to run
 delayBeforeRun = function(nbr)
-  log.error(string.format("waiting for %d sec. before calling function (%d) : %s", delaySec, nbr, funcs[nbr][1]))
+  log.error("waiting for %d sec. before calling function (%d) : %s", delaySec, nbr, funcs[nbr][1])
   log.info('call `require("bootprotect").stop()` before that to interrupt the sequence.')
   local tmrFnc = function()
     tm = nil
@@ -154,7 +154,7 @@ run = function(nbr)
     rtcW(rtcSlot, nbr) -- store current nbr in case we fail unexpectedly
     if lastFailedNbr == nbr then
       -- previous boot failed, continue via timer with delay
-      log.error("function failed previous boot (%d): %s" % { nbr, funcs[nbr][1] })
+      log.error("function failed previous boot (%d): %s", nbr, funcs[nbr][1])
       delayBeforeRun(nbr)
     else
       doRun(nbr)

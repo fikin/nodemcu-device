@@ -41,7 +41,7 @@ end
 ---flash the image file
 ---node will auto-reboot at end of this function
 local function imgDoReload()
-  log.info(modname, string.format("reloading %s ...", lfsImgFName))
+  log.info("reloading %s ...", lfsImgFName)
   file.remove(panicFName)
   rtcmem.write32(rtcMem, 1)
   local err = node.LFS.reload(lfsImgFName)
@@ -60,7 +60,7 @@ end
 
 ---executed at reboot after flash reload to clear files
 local function postReloadActions()
-  log.info(modname, "post reboot actions ...")
+  log.info("post reboot actions ...")
   local _, _, exccause = node.bootreason()
   if exccause then
     imgSaveErr(table.concat({ node.bootreason() }, ", "))
@@ -77,7 +77,7 @@ local function main()
       imgDoReload()
     end
   else
-    log.info(modname, string.format("nothing to do, %s is missing", lfsImgFName))
+    log.info("nothing to do, %s is missing", lfsImgFName)
   end
   package.loaded[modname] = nil -- gc
 end

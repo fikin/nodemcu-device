@@ -50,10 +50,10 @@ local function assertHassSpec()
     local sent = table.concat(skt:receivedByRemoteAll(), "")
     local expected = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: 54\r\n' ..
+        'Content-Length: 273\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
-        '{"climate":[{"key":"thermostat","name":"Thermostat"}]}'
+        '{"climate":[{"key":"thermostat","name":"Thermostat"}],"sensor":[{"device_class":"temperature","key":"temp-sensor","name":"Temperature","native_unit_of_measurement":"°C","state_class":"measurement"}],"switch":[{"device_class":"switch","key":"relay-switch","name":"Relay"}]}'
     lu.assertEquals(sent, expected)
 end
 
@@ -64,10 +64,10 @@ local function assertHassData()
     local sent = table.concat(skt:receivedByRemoteAll(), "")
     local expected = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: 257\r\n' ..
+        'Content-Length: 343\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
-        '{"thermostat":{"hvac_action":"heating","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","day","night"],"supported_features":2,"target_temperature_high":17,"target_temperature_low":15,"temperature_unit":"°C"}}'
+        '{"relay-switch":{"is_on":false},"temp-sensor":{"native_value":22},"thermostat":{"current_temperature":22,"hvac_action":"off","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","day","night"],"supported_features":2,"target_temperature_high":17,"target_temperature_low":15,"temperature_unit":"°C"}}'
     lu.assertEquals(sent, expected)
 end
 

@@ -35,15 +35,15 @@ local log, wifi = require("log"), require("wifi")
 local function setWifiCfg(cfg)
   wifi.setmode(wifi.NULLMODE)
 
-  log.debug(modname, "setting country", log.json, cfg.country)
+  log.debug("setting country %s", log.json, cfg.country)
   if not wifi.setcountry(cfg.country) then
-    log.error(modname, "failed to set country")
+    log.error("failed to set country")
   end
 
-  log.debug(modname, "setting max tx power to", cfg.maxtxpower)
+  log.debug("setting max tx power to %d", cfg.maxtxpower)
   wifi.setmaxtxpower(cfg.maxtxpower)
 
-  log.debug(modname, "setting protocol to", cfg.phymode)
+  log.debug("setting protocol to %d", cfg.phymode)
   wifi.setphymode(cfg.phymode)
 end
 
@@ -52,32 +52,32 @@ end
 local function setSTACfg(cfg)
   wifi.setmode(wifi.STATION)
 
-  log.debug(modname, "setting hostname", cfg.hostname)
+  log.debug( "setting hostname %s", cfg.hostname)
   if not wifi.sta.sethostname(cfg.hostname) then
-    log.error(modname, "failed to set hostname")
+    log.error( "failed to set hostname")
   end
   if cfg.mac then
-    log.debug(modname, "setting station mac address", cfg.mac)
+    log.debug( "setting station mac address %s", cfg.mac)
     if not wifi.sta.setmac(cfg.mac) then
-      log.error(modname, "failed to set station mac address")
+      log.error( "failed to set station mac address")
     end
   end
 
   if cfg.staticIp then
-    log.debug(modname, "setting station static ip address", log.json, cfg.staticIp)
+    log.debug( "setting station static ip address %s", log.json, cfg.staticIp)
     if not wifi.sta.setip(cfg.staticIp) then
-      log.error(modname, "failed to set station static ip address")
+      log.error("failed to set station static ip address")
     end
   end
 
-  log.debug(modname, "setting station sleep type", cfg.sleepType)
+  log.debug("setting station sleep type %d", cfg.sleepType)
   if not wifi.sta.sleeptype(cfg.sleepType) then
-    log.error(modname, "failed to set station sleep type")
+    log.error("failed to set station sleep type")
   end
 
-  log.debug(modname, "setting station config", log.json, cfg.config)
+  log.debug("setting station config %s", log.json, cfg.config)
   if not wifi.sta.config(cfg.config) then
-    log.error(modname, "failed to set station config")
+    log.error( "failed to set station config")
   end
 
   wifi.sta.autoconnect(cfg.config.auto and 1 or 0)
@@ -89,24 +89,24 @@ local function setAPCfg(cfg)
   wifi.setmode(wifi.SOFTAP)
 
   if cfg.mac then
-    log.debug(modname, "setting access point mac address", cfg.mac)
+    log.debug( "setting access point mac address %s", cfg.mac)
     if not wifi.ap.setmac(cfg.mac) then
-      log.error(modname, "failed to set access point mac address")
+      log.error( "failed to set access point mac address")
     end
   end
 
-  log.debug(modname, "setting access point dhcp config", log.json, cfg.dhcpConfig)
+  log.debug( "setting access point dhcp config %s", log.json, cfg.dhcpConfig)
   local pool_startip, pool_endip = wifi.ap.dhcp.config(cfg.dhcpConfig)
-  log.debug(modname, string.format("dhcp pool startip=%s, endip=%s", pool_startip, pool_endip))
+  log.debug("dhcp pool startip=%s, endip=%s", pool_startip, pool_endip)
 
-  log.debug(modname, "setting access point ip address", log.json, cfg.staticIp)
+  log.debug("setting access point ip address %s", log.json, cfg.staticIp)
   if not wifi.ap.setip(cfg.staticIp) then
-    log.error(modname, "failed to set access point ip address")
+    log.error("failed to set access point ip address")
   end
 
-  log.debug(modname, "setting access point config", log.json, cfg.config)
+  log.debug("setting access point config %s", log.json, cfg.config)
   if not wifi.ap.config(cfg.config) then
-    log.error(modname, "failed to set access point config")
+    log.error( "failed to set access point config")
   end
 end
 

@@ -81,22 +81,6 @@ local function getTimestamp()
   )
 end
 
----formats arguments into logging string
----@param ... unknown
----@return string
-local function toStrArgs(...)
-  local t = {}
-  for i = 1, select("#", ...) do
-    local v = select(i, ...)
-    if type(v) == "function" then
-      t[#t + 1] = tostring(v(select(i + 1, ...)))
-      break
-    end
-    t[#t + 1] = tostring(v)
-  end
-  return table.concat(t, " ")
-end
-
 ---saves the log message to a file
 ---@param state logger_state
 ---@param str string
@@ -139,10 +123,27 @@ local function readState()
   return state
 end
 
+---scan args and if there is a function, execute it with remainder of arguments
+---@param ... unknown
+---@return ... input arguments until with first function but its result instead
+local function expandArgs(...)
+  local t = {}
+  for i = 1, select("#", ...) do
+    local v = select(i, ...)
+    if type(v) == "function" then
+      t[#t + 1] = v(select(i + 1, ...))
+      break
+    end
+    t[#t + 1] = v
+  end
+  return table.unpack(t)
+end
+
 ---logs an entry for given log level
 ---@param lvl logger_level
+---@param txt string
 ---@param ... unknown
-local function logEntry(lvl, ...)
+local function logEntry(lvl, txt, ...)
   local state = readState()
 
   -- Return early if we're below the log level
@@ -154,13 +155,13 @@ local function logEntry(lvl, ...)
   local lineinfo = info.short_src .. ":" .. info.currentline
   local str =
   string.format(
-    "%s[%-6s%s]%s %s: %s",
+    "%s[%-6s%s]%s %s: " .. txt,
     state.usecolor and lvl.c or "",
     lvl.n,
     getTimestamp(),
     state.usecolor and "\27[0m" or "",
     lineinfo,
-    toStrArgs(...)
+    expandArgs(...)
   )
 
   -- Output to console
@@ -177,17 +178,21 @@ end
 local M = {}
 
 ---debug message
+---@param format  string
 ---@param ... unknown
-M.debug = function(...) logEntry(levels.debug, ...); end
+M.debug = function(format,...) logEntry(levels.debug,format, ...); end
 ---info message
+---@param format  string
 ---@param ... unknown
-M.info = function(...) logEntry(levels.info, ...); end
+M.info = function(format,...) logEntry(levels.info,format, ...); end
 ---error message
+---@param format  string
 ---@param ... unknown
-M.error = function(...) logEntry(levels.error, ...); end
+M.error = function(format,...) logEntry(levels.error,format, ...); end
 ---audit message
+---@param format  string
 ---@param ... unknown
-M.audit = function(...) logEntry(levels.audit, ...); end
+M.audit = function(format,...) logEntry(levels.audit,format, ...); end
 
 ---print to stdout given data
 ---@param t any

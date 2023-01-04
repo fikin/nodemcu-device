@@ -15,14 +15,14 @@ local function main()
 
   -- a simpleton logger, until real implementation comes via LSF
   local log = {}
-  log.info = function(...)
-    print("[INFO]", ...)
+  log.info = function(format, ...)
+    print(string.format("[INFO]: " .. format, ...))
   end
-  log.error = function(...)
-    print("[ERROR]", ...)
+  log.error = function(format, ...)
+    print(string.format("[ERROR]: " .. format, ...))
   end
-  log.audit = function(...)
-    print("[AUDIT]", ...)
+  log.audit = function(format, ...)
+    print(string.format("[AUDIT]: " .. format, ...))
   end
   log.json = function(...)
     print(...)
@@ -41,15 +41,15 @@ local function main()
   -- print partitions table (spiffs, lfs)
   do
     local tbl = node.getpartitiontable()
-    log.info("The LFS addr is " .. tbl.lfs_addr)
-    log.info("The LFS size is " .. tbl.lfs_size)
-    log.info("The SPIFFS addr is " .. tbl.spiffs_addr)
-    log.info("The SPIFFS size is " .. tbl.spiffs_size)
+    log.info("The LFS addr is %d", tbl.lfs_addr)
+    log.info("The LFS size is %d", tbl.lfs_size)
+    log.info("The SPIFFS addr is %d", tbl.spiffs_addr)
+    log.info("The SPIFFS size is %d", tbl.spiffs_size)
     local s, p = {}, tbl
     for _, k in ipairs { "lfs_addr", "lfs_size", "spiffs_addr", "spiffs_size" } do
       s[#s + 1] = string.format("%s = 0x%06x", k, p[k])
     end
-    log.info(string.format("{ %s }", table.concat(s, ", ")))
+    log.info("{ %s }", table.concat(s, ", "))
   end
 
   do
@@ -66,7 +66,7 @@ local function main()
       log.info("  <LFS not loaded yet>")
     else
       for k, v in pairs(tbl) do
-        log.info("  ", k, v)
+        log.info("  %s %s", k, v)
       end
     end
   end
@@ -81,7 +81,7 @@ local function main()
       log.info("<No LFS _init function defined>")
     end
   end
-  
+
   -- clear the simpleton "logger", next user will load it from LFS
   package.loaded["log"] = nil
 

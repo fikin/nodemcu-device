@@ -64,7 +64,7 @@ local function cbFnc(eT, eventType, T)
   for k, v in pairs(state[eT]) do
     local ok, err = pcall(v, T)
     if not ok then
-      require("log").error("failure inside %s: %s" % { k, err })
+      require("log").error("failure inside %s: %s", k, err)
     end
     collectgarbage()
   end
