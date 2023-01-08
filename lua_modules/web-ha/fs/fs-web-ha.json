@@ -1,0 +1,8 @@
+{
+  "credentials": {
+    "realm": "HomeAssistant API",
+    "usr": "hass",
+    "pwd": "admin"
+  },
+  "entities": ["thermostat", "temp-sensor", "relay-switch", "system-hass"]
+}

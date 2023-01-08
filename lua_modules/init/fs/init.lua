@@ -12,35 +12,15 @@ local function main()
   -- device startup sequence
   local b = require("bootprotect")
 
-  b.require("setup device settings", "device-settings-start")
+  b.require("setup device settings", "user-settings")
   b.require("configure logger with stored device settings", "log-start")
-  b.require("keep time up to date when connected to network", "sntp-sync-start")
   b.require("configure wifi module", "wifi-apply-config")
   b.require("start wifi manager", "wifi-mgr")
   b.require("start http server", "http-srv")
-  b.require("start web admin portal", "web-portal")
-  b.require("start OTA rest api", "web-ota")
-  b.require("start HomeAssistant rest api", "web-ha")
   b.require("telnet", "telnet")
-  b.require("start temp sensor", "temp-sensor")
-  b.require("start relay switch", "relay-switch")
-  b.require("start thermostat", "thermostat")
-  -- b.fnc(
-  --   "gc at the end",
-  --   function()
-  --     function dumpLoaded()
-  --       local log = require("log")
-  --       log.print(package.loaded)
-  --     end
-
-  --     function heap()
-  --       print(node.heap())
-  --     end
-
-  --     collectgarbage()
-  --     collectgarbage()
-  --   end
-  -- )
+  b.require("start temp sensor", "temp-sensor-start")
+  b.require("start relay switch", "relay-switch-start")
+  b.require("start thermostat", "thermostat-start")
 
   -- TODO add here more startup functions
 

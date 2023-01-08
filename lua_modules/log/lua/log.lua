@@ -50,10 +50,6 @@
 
   Logging settings at RTE are maintained in:
     require("state")("log")
-
-  Logging settings can be present in "device_settings" and 
-  one has to use bootprotect to assign these to RTE state:
-      require("state").log = require("device-settings").log
 ]]
 local modname = ...
 

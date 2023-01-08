@@ -10,48 +10,69 @@
 ]]
 local modname = ...
 
+---@param conn http_conn*
+---@param method string
+---@param pathPattern string
+---@return boolean match
+local function isPathMatch(conn, method, pathPattern)
+  return string.find(conn.req.url, pathPattern) ~= nil
+end
+
+---@param conn http_conn*
+---@param method string
+---@param path string
+---@return boolean
+local function isPath(conn, method, path)
+  return method == conn.req.method and path == conn.req.url
+end
+
+---checks the authentication and if ok handles it in nextFn
+---@param nextFn conn_handler_fn
+---@param conn http_conn*
+---@return boolean
+local function checkAuth(nextFn, conn)
+  -- portal credentials
+  ---@type http_h_auth
+  local adminCred = require("device-settings")(modname)
+
+  if require("http-authorize")(conn, adminCred) then
+    nextFn(conn)
+  end
+  return true
+end
+
 ---reads sw_version and sends it back to caller
 ---@param conn http_conn*
-local function getSwVersion(conn)
+local function handleSwVersion(conn)
   local data = require("get-sw-version")()
   require("http-h-send-json")(conn, data)
 end
 
----register OTA rest api http routes
-local function main()
+---@param conn http_conn*
+local function handleRestart(conn)
+  require("http-h-restart")(require("http-h-ok"))(conn)
+end
+
+---@param conn http_conn*
+local function handleSaveFile(conn)
+  require("http-h-save-file-bak")(true, require("http-h-save-file"))(conn)
+end
+
+---handle http request if it is OTA rest apis related
+---@param conn http_conn*
+---@return boolean
+local function main(conn)
   package.loaded[modname] = nil
 
-  -- OTA credentials
-  local adminCred = require("device-settings")(modname)
-
-  local r = require("http-routes")
-
-  -- OTA portal
-  r.setPath(
-    "GET",
-    "/ota?version",
-    function(conn)
-      require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, getSwVersion))(conn)
-    end
-  )
-  r.setPath(
-    "POST",
-    "/ota?restart",
-    function(conn)
-      require("http-h-concurr-protect")(1,
-        require("http-h-auth")(adminCred, require("http-h-restart")(require("http-h-ok"))))(conn)
-    end
-  )
-  r.setMatchPath(
-    "POST",
-    "/ota/.+",
-    function(conn)
-      require("http-h-concurr-protect")(
-        1,
-        require("http-h-auth")(adminCred, require("http-h-save-file-bak")(true, require("http-h-save-file")))
-      )(conn)
-    end
-  )
+  if isPath(conn, "GET", "/ota?version") then
+    return checkAuth(handleSwVersion, conn)
+  elseif isPath(conn, "POST", "/ota?restart") then
+    return checkAuth(handleRestart, conn)
+  elseif isPathMatch(conn, "POST", "/ota/.+") then
+    return checkAuth(handleSaveFile, conn)
+  else
+    return false
+  end
 end
 
 return main

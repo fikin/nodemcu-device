@@ -1,0 +1,4 @@
+{
+  "staRetryPeriod": 300000,
+  "apStartDelay": 600000
+}

@@ -1,0 +1,10 @@
+{
+  "maxtxpower": 41,
+  "country": {
+    "policy": 0,
+    "country": "AQ",
+    "end_ch": 13,
+    "start_ch": 1
+  },
+  "phymode": 3
+}

@@ -29,6 +29,7 @@ local modname = ...
 ---@field mac string
 
 local log, wifi = require("log"), require("wifi")
+local tblClone = require("table-clone")
 
 ---configures wifi common settings
 ---@param cfg cfg_wifi
@@ -52,19 +53,19 @@ end
 local function setSTACfg(cfg)
   wifi.setmode(wifi.STATION)
 
-  log.debug( "setting hostname %s", cfg.hostname)
+  log.debug("setting hostname %s", cfg.hostname)
   if not wifi.sta.sethostname(cfg.hostname) then
-    log.error( "failed to set hostname")
+    log.error("failed to set hostname")
   end
   if cfg.mac then
-    log.debug( "setting station mac address %s", cfg.mac)
+    log.debug("setting station mac address %s", cfg.mac)
     if not wifi.sta.setmac(cfg.mac) then
-      log.error( "failed to set station mac address")
+      log.error("failed to set station mac address")
     end
   end
 
   if cfg.staticIp then
-    log.debug( "setting station static ip address %s", log.json, cfg.staticIp)
+    log.debug("setting station static ip address %s", log.json, cfg.staticIp)
     if not wifi.sta.setip(cfg.staticIp) then
       log.error("failed to set station static ip address")
     end
@@ -76,8 +77,8 @@ local function setSTACfg(cfg)
   end
 
   log.debug("setting station config %s", log.json, cfg.config)
-  if not wifi.sta.config(cfg.config) then
-    log.error( "failed to set station config")
+  if not wifi.sta.config(tblClone(cfg.config)) then
+    log.error("failed to set station config")
   end
 
   wifi.sta.autoconnect(cfg.config.auto and 1 or 0)
@@ -89,13 +90,13 @@ local function setAPCfg(cfg)
   wifi.setmode(wifi.SOFTAP)
 
   if cfg.mac then
-    log.debug( "setting access point mac address %s", cfg.mac)
+    log.debug("setting access point mac address %s", cfg.mac)
     if not wifi.ap.setmac(cfg.mac) then
-      log.error( "failed to set access point mac address")
+      log.error("failed to set access point mac address")
     end
   end
 
-  log.debug( "setting access point dhcp config %s", log.json, cfg.dhcpConfig)
+  log.debug("setting access point dhcp config %s", log.json, cfg.dhcpConfig)
   local pool_startip, pool_endip = wifi.ap.dhcp.config(cfg.dhcpConfig)
   log.debug("dhcp pool startip=%s, endip=%s", pool_startip, pool_endip)
 
@@ -105,8 +106,8 @@ local function setAPCfg(cfg)
   end
 
   log.debug("setting access point config %s", log.json, cfg.config)
-  if not wifi.ap.config(cfg.config) then
-    log.error( "failed to set access point config")
+  if not wifi.ap.config(tblClone(cfg.config)) then
+    log.error("failed to set access point config")
   end
 end
 
@@ -114,17 +115,11 @@ end
 local function main()
   package.loaded[modname] = nil
 
-  local cfg = require("device-settings")()
+  local ds = require("device-settings")
 
-  if cfg.wifi then
-    setWifiCfg(cfg.wifi)
-  end
-  if cfg.sta then
-    setSTACfg(cfg.sta)
-  end
-  if cfg.ap then
-    setAPCfg(cfg.ap)
-  end
+  setWifiCfg(ds("wifi"))
+  setSTACfg(ds("wifi-sta"))
+  setAPCfg(ds("wifi-ap"))
 
   -- reset mode so wifimgr can start anew
   wifi.setmode(wifi.NULLMODE)

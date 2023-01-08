@@ -30,7 +30,7 @@ local function main(conn)
     conn.resp.code = "200"
     return readAsJson(conn.req.body)
   else
-    error("expected Content-Type: application/json but got %s" % ct)
+    error(string.format("expected Content-Type: application/json but got %s", ct))
   end
 end
 

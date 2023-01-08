@@ -1,0 +1,27 @@
+{
+  "periodMs": 60000,
+  "modes": {
+    "away": {
+      "target_temperature_high": 17,
+      "target_temperature_low": 15
+    },
+    "day": {
+      "target_temperature_high": 21,
+      "target_temperature_low": 19
+    },
+    "night": {
+      "target_temperature_high": 22,
+      "target_temperature_low": 20
+    }
+  },
+  "data": {
+    "temperature_unit": "°C",
+    "target_temperature_high": 17,
+    "target_temperature_low": 15,
+    "hvac_mode": "off",
+    "hvac_modes": ["off", "heat", "auto"],
+    "preset_mode": "away",
+    "preset_modes": ["away", "day", "night"],
+    "supported_features": 2
+  }
+}

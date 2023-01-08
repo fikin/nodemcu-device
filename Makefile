@@ -48,6 +48,8 @@ vendor/nodemcu-firmware:
 
 # patch firmware files with build.config settings
 prepare-firmware: vendor/nodemcu-firmware
+	@rm -rf ./vendor/nodemcu-firmware/local/fs/*
+	@rm -rf ./vendor/nodemcu-firmware/local/lua/*
 	cd ./vendor && ./nodemcu-custom-build/run.sh -before
 
 # build images
@@ -94,13 +96,10 @@ $(UNIT_TEST_CASES):
 		&& lua5.3 $@
 .PHONY: $(UNIT_TEST_CASES)
 
-mock_spiffs_dir:
+mock_spiffs_dir: spiffs-image
 	@mkdir -p $(NODEMCU_MOCKS_SPIFFS_DIR)
 	@rm -rf $(NODEMCU_MOCKS_SPIFFS_DIR)/*
-	@cp lua_modules/*/lua/* lua_modules/*/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/
-	@rm -f $(NODEMCU_MOCKS_SPIFFS_DIR)/*.lua
-	@rm -f $(NODEMCU_MOCKS_SPIFFS_DIR)/*.lc
-	@touch $(NODEMCU_MOCKS_SPIFFS_DIR)/LFS.img
+	@cp ./vendor/nodemcu-firmware/local/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/
 
 test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES)
 
