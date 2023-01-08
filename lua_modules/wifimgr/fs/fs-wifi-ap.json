@@ -1,0 +1,20 @@
+{
+  "staticIp": {
+    "ip": "192.168.1.1",
+    "gateway": "192.168.1.1",
+    "netmask": "255.255.255.0"
+  },
+  "config": {
+    "beacon": 1000,
+    "ssid": "<AP_SSID>",
+    "pwd": "1234567890",
+    "save": false,
+    "max": 1,
+    "auth": 3,
+    "hidden": false,
+    "channel": 6
+  },
+  "dhcpConfig": {
+    "start": "192.168.1.100"
+  }
+}

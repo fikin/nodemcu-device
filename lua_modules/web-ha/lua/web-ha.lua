@@ -8,6 +8,16 @@
 ]]
 local modname = ...
 
+---@class web_ha_entity_spec
+---@field type string HASS entity type like "climate" or "sensor"
+---@field spec table HASS entity specification
+
+---set of entity specs
+---@alias web_ha_entity_specs web_ha_entity_spec[]
+
+---set of entity data, keys must be globally unique!
+---@alias web_ha_entity_data {[string]:any}
+
 ---returns HA DataInfo structure
 ---@param conn http_conn*
 local function getInfo(conn)
@@ -21,55 +31,47 @@ local function getInfo(conn)
   require("http-h-send-json")(conn, data)
 end
 
----copy the table.
----if table key is a function, it evaluates it and includes its result in the copy.
----@param entitiesTbl any
----@return {[string]:any}
-local function copyTable(entitiesTbl)
-  -- combine all registered entities into single json obj
-  local data = {}
-  for k, v in pairs(entitiesTbl) do
-    if type(v) == "function" then
-      v = v()
-    end
-    data[k] = v
-  end
-  return data
-end
-
----creates table out of all entitiesTbl and sends it via conn
----@param conn http_conn* http_conn* is HA request
----@param entitiesTbl web_ha_entity*
-local function sendEntities(conn, entitiesTbl)
-  -- combine all registered entities into single json obj
-  local data = copyTable(entitiesTbl)
-  require("http-h-send-json")(conn, data)
-end
-
----returns registered HA Entities
----@return web_ha_entity*
-local function getHaEntities()
-  return require("state")(modname .. "-entity")
-end
-
 ---return HA entity specifications
 ---@param conn http_conn*
-local function getSpec(conn)
-  sendEntities(conn, getHaEntities().specTypes)
+---@param entities string[] list with entities defined in device settings
+local function getSpec(conn, entities)
+  local data = {}
+  for _, key in ipairs(entities) do
+    ---@type fun():web_ha_entity_specs
+    local fn = require(key .. "-ha-spec")
+    if fn and type(fn) == "function" then
+      for _, spec in ipairs(fn()) do
+        ---@cast spec web_ha_entity_spec
+        data[spec.type] = data[spec.type] or {}
+        table.insert(data[spec.type], spec.spec)
+      end
+    else
+      error("500: missing HASS entity spec for " .. key)
+    end
+  end
+  require("http-h-send-json")(conn, data)
 end
 
 ---return HA entities data
 ---@param conn http_conn*
-local function getData(conn)
-  sendEntities(conn, getHaEntities().data)
+---@param entities string[] list with entities defined in device settings
+local function getData(conn, entities)
+  local data = {}
+  for _, key in ipairs(entities) do
+    ---@type fun():web_ha_entity_data
+    local fn = require(key .. "-ha-data")
+    if fn and type(fn) == "function" then
+      for k, v in pairs(fn()) do
+        data[k] = v
+      end
+    end
+  end
+  require("http-h-send-json")(conn, data)
 end
 
----set data for some HA entity
----@param conn http_conn*
-local function setData(conn)
-  local data = require("http-h-read-json")(conn)
+local function updateEntities(data)
   for k, v in pairs(data) do
-    local fn = getHaEntities().set[k]
+    local fn = require(k .. "-ha-set")
     if fn and type(fn) == "function" then
       fn(v)
     else
@@ -78,46 +80,52 @@ local function setData(conn)
   end
 end
 
----register HTTP routes for Home Assistant
----serves all registered HA entities
-local function main()
+---set data for some HA entity
+---@param conn http_conn*
+---@param entities string[] list with entities defined in device settings
+local function setData(conn, entities)
+  local data = require("http-h-read-json")(conn)
+  updateEntities(data)
+  conn.resp.code = "200"
+end
+
+---@param conn http_conn*
+---@param method string
+---@param path string
+---@return boolean
+local function isPath(conn, method, path)
+  return method == conn.req.method and path == conn.req.url
+end
+
+---checks the authentication and if ok handles it in nextFn
+---@param nextFn fun(conn: http_conn*,entities:string[])
+---@param conn http_conn*
+---@return boolean
+local function checkAuth(nextFn, conn)
+  local cfg = require("device-settings")(modname)
+  if require("http-authorize")(conn, cfg.credentials) then
+    nextFn(conn, cfg.entities)
+  end
+  return true
+end
+
+---handle http request if it is Home Assistant rest apis related
+---@param conn http_conn*
+---@return boolean
+local function main(conn)
   package.loaded[modname] = nil
 
-  -- credentials
-  ---@type http_h_auth
-  local adminCred = require("device-settings")(modname)
-
-  local setPath = require("http-routes").setPath
-
-  -- Rest endpoints
-  setPath(
-    "GET",
-    "/api/ha/info",
-    function(conn)
-      require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, getInfo))(conn)
-    end
-  )
-  setPath(
-    "GET",
-    "/api/ha/spec",
-    function(conn)
-      require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, getSpec))(conn)
-    end
-  )
-  setPath(
-    "GET",
-    "/api/ha/data",
-    function(conn)
-      require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, getData))(conn)
-    end
-  )
-  setPath(
-    "POST",
-    "/api/ha/data",
-    function(conn)
-      require("http-h-concurr-protect")(1, require("http-h-auth")(adminCred, setData))(conn)
-    end
-  )
+  if isPath(conn, "GET", "/api/ha/info") then
+    return checkAuth(getInfo, conn)
+  elseif isPath(conn, "GET", "/api/ha/spec") then
+    return checkAuth(getSpec, conn)
+  elseif isPath(conn, "GET", "/api/ha/data") then
+    return checkAuth(getData, conn)
+  elseif isPath(conn, "POST", "/api/ha/data") then
+    return checkAuth(setData, conn)
+  else
+    return false
+  end
 end
 
 return main

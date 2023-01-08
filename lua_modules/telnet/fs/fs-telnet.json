@@ -1,0 +1,6 @@
+{
+  "port": 23,
+  "timeoutSec": 60,
+  "usr": "telnet",
+  "pwd": "admin"
+}

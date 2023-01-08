@@ -82,17 +82,18 @@ end
 ---parses all headers as one text blob
 ---@param conn http_conn*
 local function parseHeaders(conn)
-  conn.req.headers = readUntilPattern(conn, "\r\n\r\n", 1024, "431")
+  local txt = readUntilPattern(conn, "\r\n\r\n", 1024, "431")
+  conn.req.headers = require("http-parse-headers")(txt)
 end
 
 ---assign conn.req.body reading function based on content-length header
 ---@param conn http_conn*
 local function setBodyReader(conn)
-  local _, _, val = string.find(conn.req.headers, "Content%-Length: (%d+)\r\n")
+  local val = conn.req.headers["Content-Length"]
   if val then
-    val = tonumber(val) or 0
-    conn.req.bodyLen = val
-    conn.req.body = readBodyFn(conn, val)
+    local vv = tonumber(val) or 0
+    conn.req.bodyLen = vv
+    conn.req.body = readBodyFn(conn, vv)
   else
     conn.req.bodyLen = 0
     conn.req.body = function()
@@ -100,6 +101,7 @@ local function setBodyReader(conn)
     end
   end
 end
+
 
 ---parses request header into http_req*
 ---@param conn http_conn*

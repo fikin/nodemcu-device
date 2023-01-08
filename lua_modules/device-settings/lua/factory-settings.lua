@@ -1,73 +1,42 @@
 --[[
-  Builder of "device-settings.json" during factory settings.
+  Builder of device settings.
+
+  Stores the modified settings in ds-module.json file.
 
   Usage:
-    local builder = require("factory-settings")
+    local builder = require("factory-settings")("wifi-sta")
 
-    builder.set("sta.hostname","telnet").set("sta.config.ssid","myHotSpot")
-
-    if #builder.cfg.ap.ssid == 0 then builder.cfg.ap.ssid = "NodeMCU" end
+    builder.set("hostname","telnet").set("config.ssid","myHotSpot")
 
     builder.done()
 
   Use this module to assign device settings programmatically.
-
-  If "device-settings.json" contains values in the form "<some name>" 
-    can be set intially via "builder.set(key,value)".
-    Once set, these values can be modified by web-portal 
-    but not changed by factory settings code.
-
-  One can assign values directly to settings via "builder.cfg.<field> = value".
-    Such assignment is absolute i.e. changes via web-portal would be reverted back.
 ]]
 local modname = ...
 
----checks if the config differs form the one in the file and saves it if so.
----@param cfg table to save if differing from fName content
----@param fName string of the file name with persisted content
-local function saveCfgIfChanged(cfg, fName)
-  local file, sjson, crypto, encoder = require("file"), require("sjson"), require("crypto"), require("encoder")
-  local txt = sjson.encode(cfg)
-  local txtMD5 = encoder.toHex(crypto.hash("MD5", txt))
-  local fMD5 = encoder.toHex(crypto.fhash("MD5", fName))
-  if txtMD5 ~= fMD5 then
-    require("log").info("updating device settings")
-    -- saving is using .tmp and .bak
-    local fTmp, fBak = fName .. ".tmp", fName .. ".bak"
-    file.remove(fTmp)
-    if not file.putcontents(fTmp, txt) then
-      error("failed saving %s" % fTmp)
-    end
-    file.remove(fBak)
-    if not file.rename(fName, fBak) then
-      error("failed renaming %s to %s" % { fName, fBak })
-    end
-    if not file.rename(fTmp, fName) then
-      error("failed renaming %s to %s" % { fTmp, fName })
-    end
-    file.remove(fBak)
-  end
-end
+local file = require("file")
+local sjson = require("sjson")
 
--- local function set(cfg, field, setValFn, fullpath)
---   local sP, eP = string.find(field, "%.")
---   if sP then
---     local key = string.sub(field, 1, eP - 1)
---     local nextKey = string.sub(field, eP + 1)
---     local v = cfg[key]
---     if type(v) == "table" then
---       set(v, nextKey, setValFn, fullpath or field) -- drill down the structure
---     elseif v then
---       error("can't set value to %s because field %s is atomic and not a table" % { fullpath, key })
---     else -- create new table and continue drilling down the structure
---       cfg[key] = {}
---       set(cfg[key], nextKey, setValFn, fullpath or field)
---     end
---   else
---     -- found the leaf field
---     cfg[field] = setValFn(cfg[field])
---   end
--- end
+---saves text into file using intermediate fName.bak file
+---@param txt string
+---@param fName string
+local function safeSaveJsonFile(txt, fName)
+  require("log").info("updating device settings %s", fName)
+  -- saving is using .tmp and .bak
+  local fTmp, fBak = fName .. ".tmp", fName .. ".bak"
+  file.remove(fTmp)
+  if not file.putcontents(fTmp, txt) then
+    error("failed saving %s" % fTmp)
+  end
+  file.remove(fBak)
+  if file.exists(fName) and not file.rename(fName, fBak) then
+    error(string.format("failed renaming %s to %s", fName, fBak))
+  end
+  if not file.rename(fTmp, fName) then
+    error(string.format("failed renaming %s to %s", fTmp, fName))
+  end
+  file.remove(fBak)
+end
 
 ---checks the given existingValue and decides if to return that or defValue
 ---decision is based on existingValue being empty, nil or in template form "<..>".
@@ -117,59 +86,68 @@ local function get(parent, child, fullpath)
   end
 end
 
----the file name containing device settings.
----at device initialization phase i.e. firmware flash,
----the content is copied as-is from factory-settings.json.
----after that moment, it is maintained continuously.
----@type string
-local fName = "device-settings.json"
-
----factory settings file, shipped with sw package
----@type string
-local fNameFactory = "factory-settings.json"
-
----reads device-settings.json
----if it does not exists, it copies factory-settings.json
----@return table
-local function loadSettingsFile()
-  local file = require("file")
-  if file.exists(fName) then
-    return require("read-json-file")(fName)
+---checks if cfg is empty and if so saves nothing.
+---@param cfg table
+---@param fName string
+local function saveDeviceSettings(cfg, fName)
+  local txt = assert(sjson.encode(cfg))
+  if txt == "[]" then
+    file.remove(fName) -- empty device settings, no need to save them
   else
-    if file.putcontents(fName, file.getcontents(fNameFactory)) then
-      return loadSettingsFile()
-    else
-      error("failed to create " .. fName)
+    if file.exists(fName) then
+      local txt2 = file.getcontents(fName)
+      if txt == txt2 then return; end -- same files, no need to write
     end
+    safeSaveJsonFile(txt, fName)
   end
+end
+
+---compares cfg against factory settings
+---@param cfg table
+---@param moduleName string
+local function saveCfgIfChanged(cfg, moduleName)
+  local cfgFS = require("device-settings")(moduleName, true)
+  require("table-substract")(cfg, cfgFS)
+  saveDeviceSettings(cfg, string.format("ds-%s.json", moduleName))
 end
 
 ---Builder interface towards factory settings.
 ---@class factory_settings*
 local M = {
-  ---@type table factory settings
-  cfg = loadSettingsFile()
+  ---module name
+  ---@private
+  moduleName = "",
+  ---module's factory settings configuration
+  cfg = {}
 }
+M.__index = M
 
--- saves settings if any value was changed
-M.done = function()
-  saveCfgIfChanged(M.cfg, fName)
-  package.loaded[modname] = nil -- gc
+---instantiate new factory settings builder instance
+---@param moduleName string
+---@return factory_settings*
+local function newM(moduleName)
+  local o = setmetatable({
+    moduleName = moduleName,
+    cfg = require("device-settings")(moduleName),
+  }, M)
+  return o
 end
 
----loads factory-settings.json
----this is called typically as part of sw upgrade sequence only
-M.loadFactorySettings = function()
-  local tbl = require("read-json-file")(fNameFactory)
-  require("table-merge")(M.cfg, tbl)
+-- saves settings if any value was changed
+---@param self factory_settings*
+M.done = function(self)
+  saveCfgIfChanged(self.cfg, self.moduleName)
 end
 
 ---sets the field to given value, unconditionally.
+---@param self factory_settings*
 ---@param field any to assign value to. it can be hierarchical path i.e. attr.attr...
 ---@param value any value to assign to the field.
-M.set = function(field, value)
-  local _, parent, child = get(M.cfg, field)
+---@return factory_settings*
+M.set = function(self, field, value)
+  local _, parent, child = get(self.cfg, field)
   parent[child] = value
+  return self
 end
 
 -- sets the field to given value only if settings value is:
@@ -177,37 +155,56 @@ end
 ---   not set or
 ---   string in the form "<[%w_]+>"
 ---assignment is unconditional, like if involked by set()
+---@param self factory_settings*
 ---@param field any to assign value to. it can be hierarchical path i.e. attr.attr...
 ---@param value any value to assign to the field.
-M.default = function(field, value)
-  local v, parent, child = get(M.cfg, field)
+---@return factory_settings*
+M.default = function(self, field, value)
+  local v, parent, child = get(self.cfg, field)
   parent[child] = getDefaultValue(v, value)
+  return self
 end
 
 -- sets the field to nil
+---@param self factory_settings*
 ---@param field any to assign value to. it can be hierarchical path i.e. attr.attr...
-M.unset = function(field)
-  local _, parent, child = get(M.cfg, field)
+---@return factory_settings*
+M.unset = function(self, field)
+  local _, parent, child = get(self.cfg, field)
   parent[child] = nil
+  return self
 end
 
 -- gets the field value or nil if not defined
+---@param self factory_settings*
 ---@param field any to get the value of. it can be hierarchical path i.e. attr.attr...
 ---@return table|string|number|boolean|nil
-M.get = function(field)
-  local ret, _, _ = get(M.cfg, field)
+M.get = function(self, field)
+  local ret, _, _ = get(self.cfg, field)
   return ret
 end
 
 -- sets the field to given tbl
 -- it merges the content, any other data if field is preserved
 -- it scans tbl recursively i.e. deep merge
+---@param self factory_settings*
 ---@param field any to get the value of. it can be hierarchical path i.e. attr.attr...
 ---@param tbl any to assign the the field. internally it is using table_merge().
-M.mergeTblInto = function(field, tbl)
-  local _, parent, child = get(M.cfg, field)
+---@return factory_settings*
+M.mergeTblInto = function(self, field, tbl)
+  local _, parent, child = get(self.cfg, field)
   parent[child] = parent[child] or {}
   require("table-merge")(parent[child], tbl)
+  return self
 end
 
-return M
+---instantiate new factory settings builder
+---@param moduleName string
+---@return factory_settings*
+local function main(moduleName)
+  package.loaded[modname] = nil -- gc
+
+  return newM(moduleName)
+end
+
+return main

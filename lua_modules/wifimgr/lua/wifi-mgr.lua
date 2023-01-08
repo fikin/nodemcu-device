@@ -148,6 +148,9 @@ end
 local function onStaGotIp(T)
   log.info("got ip %s", log.json, T)
 
+  -- do sntp sync if present, we do not care if missing
+  pcall(require("sntp-sync-start"))
+
   -- switch off AP if ok
   local fn = function()
     require("call-later")(1000 * 60, setApOn)
@@ -179,7 +182,9 @@ end
 ---assign wifi.event callbacks via which the orchestration
 ---of sta/ap modes is happening
 local function assignCbs()
-  local onFnc = require("wifi-event")
+  local onFnc = function(_, eventType, fnc)
+    wifi.eventmon.register(eventType, fnc)
+  end
   onFnc(modname, wifi.eventmon.STA_DISCONNECTED, onStaDisconnect)
   onFnc(modname, wifi.eventmon.STA_CONNECTED, onStaConnect)
   onFnc(modname, wifi.eventmon.STA_AUTHMODE_CHANGE, onStaAuthModeChange)
@@ -190,7 +195,8 @@ local function assignCbs()
   onFnc(modname, wifi.eventmon.AP_STADISCONNECTED, onApDisconnected)
 end
 
-local function hasSSIDDefined(cfg)
+local function hasSSIDDefined(moduleName)
+  local cfg = require("device-settings")(moduleName)
   return cfg
       and cfg.config
       and cfg.config.ssid
@@ -208,14 +214,9 @@ local function main()
 
   assignCbs()
 
-  ---@type cfg_sta
-  local sta = require("device-settings")("sta")
-  ---@type cfg_ap
-  local ap = require("device-settings")("ap")
-
-  if hasSSIDDefined(sta) then
+  if hasSSIDDefined("wifi-sta") then
     trySta() -- try to connect to sta
-  elseif hasSSIDDefined(ap) then
+  elseif hasSSIDDefined("wifi-ap") then
     setApOn() -- start ap right on
   end
 end

@@ -9,8 +9,7 @@ local modname = ...
 ---@param newVal table to merge the data from
 local function mergeTbls(into, newVal)
   for k, v in pairs(newVal) do
-    if type(v) == table then
-      -- recursive navigation of tables
+    if type(v) == "table" then
       into[k] = into[k] or {}
       mergeTbls(into[k], v)
     else

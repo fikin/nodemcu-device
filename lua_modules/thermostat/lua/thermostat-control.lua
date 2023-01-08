@@ -66,7 +66,7 @@ end
 local function main()
   package.loaded[modname] = nil
 
-  state.data.current_temperature = require("temp-sensor-control")()
+  state.data.current_temperature = require("temp-sensor-get")()
   handleHvacMode()
 end
 

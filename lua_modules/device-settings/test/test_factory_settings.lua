@@ -1,35 +1,27 @@
 local lu = require("luaunit")
 local nodemcu = require("nodemcu")
+local file = require("file")
+
+local fn = require("factory-settings")
 
 function testOk()
   nodemcu.reset()
 
-  local fn = require("factory-settings")
+  local b = fn("dummy")
 
-  lu.assertNotIsNil(fn.cfg)
-  lu.assertNotIsNil(fn.cfg.sta.hostname)
+  lu.assertNotIsNil(b.cfg)
 
-  fn.set("sta.hostname", "aa")
-  lu.assertEquals(fn.cfg.sta.hostname, "aa")
+  b:set("a.b", "cc")
+  lu.assertEquals(b.cfg.a.b, "cc")
 
-  fn.set("sta.sleepType", 33)
-  lu.assertEquals(fn.cfg.sta.sleepType, 33)
+  b:set("d", "dd")
+  lu.assertEquals(b.cfg.d, "dd")
 
-  local o = { a = 1 }
-  fn.set("dummy.one", o)
-  lu.assertEquals(fn.cfg.dummy.one, o)
+  b:unset("d")
+  lu.assertIsNil(b.cfg.d)
 
-  fn.default("sta.sleepType", 44)
-  lu.assertEquals(fn.cfg.sta.sleepType, 33)
-  fn.default("sta.hostname", "44")
-  lu.assertEquals(fn.cfg.sta.hostname, "aa")
-  fn.default("sta.config.pwd", "ppp")
-  lu.assertEquals(fn.get("sta.config.pwd"), "ppp")
-
-  lu.assertIsNil(fn.cfg.dummy.two)
-  lu.assertIsNil(fn.get("dummy.two.b"))
-  lu.assertEquals(fn.get("dummy.two"), {})
-
+  b:done()
+  lu.assertIsTrue(file.exists("ds-dummy.json"))
 end
 
 os.exit(lu.run())

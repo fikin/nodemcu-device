@@ -1,0 +1,10 @@
+{
+  "hostname": "<HOSTNAME>",
+  "sleepType": 2,
+  "config": {
+    "save": false,
+    "ssid": "<STA_SSID>",
+    "pwd": "<STA_PWD>",
+    "auto": false
+  }
+}

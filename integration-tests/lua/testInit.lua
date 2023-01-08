@@ -2,6 +2,7 @@ local lu = require("luaunit")
 local nodemcu = require("nodemcu")
 
 local file = require("file")
+local sjson = require("sjson")
 
 ---test that LFS.img is LFS.reload() and error is captured.
 ---as node.LFS.reload() is not possible to implement currently.
@@ -11,70 +12,124 @@ local function assertLFSFileError()
 end
 
 local function assertDeviSettingsFile()
-    lu.assertIsTrue(file.exists("device-settings.json"))
-    lu.assertIsFalse(file.exists("device-settings.json.bak"))
+    lu.assertIsTrue(file.exists("fs-wifi.json"))
+    lu.assertIsFalse(file.exists("ds-wifi.json"))
+    lu.assertIsFalse(file.exists("ds-wifi.json.bak"))
 end
 
-local function assertWifiPortal()
+local function assert200HttpRequest(request, expected)
     local skt = nodemcu.net_tpc_connect_to_listener(80, "0.0.0.0")
-    skt:sentByRemote('GET /device-settings.json HTTP/1.0\r\nAuthorization: Basic YWRtaW46YWRtaW4=\r\n\r\n')
+    skt:sentByRemote(request)
     nodemcu.advanceTime(500)
     local sent = table.concat(skt:receivedByRemoteAll(), "")
-    local expected = 'HTTP/1.0 200 OK\r\n' ..
-        'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: ' .. file.stat("device-settings.json").size .. '\r\n' ..
-        'Content-Type: application/json\r\n' ..
-        '\r\n' ..
-        file.getcontents("device-settings.json")
     lu.assertEquals(sent, expected)
 end
 
+local function assertWifiPortal()
+    local cfg = require("device-settings")("wifi")
+    local cfgTxt = require("sjson").encode(cfg)
+    local r = 'GET /wifi-portal-ds/wifi HTTP/1.0\r\nAuthorization: Basic YWRtaW46YWRtaW4=\r\n\r\n'
+    local e = 'HTTP/1.0 200 OK\r\n' ..
+        'Cache-Control: private, no-cache, no-store\r\n' ..
+        'Content-Length: ' .. #cfgTxt .. '\r\n' ..
+        'Content-Type: application/json\r\n' ..
+        '\r\n' ..
+        cfgTxt
+    assert200HttpRequest(r, e)
+end
+
 local function assertHassInfo()
-    local skt = nodemcu.net_tpc_connect_to_listener(80, "0.0.0.0")
-    skt:sentByRemote('GET /api/ha/info HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n')
-    nodemcu.advanceTime(500)
-    local sent = table.concat(skt:receivedByRemoteAll(), "")
-    local expected = 'HTTP/1.0 200 OK\r\n' ..
+    local r = 'GET /api/ha/info HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n'
+    local e = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
         'Content-Length: 120\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
         '{"hwVersion":"1.0.0","manufacturer":"fikin","model":"WeMos D1 mini","name":"nodemcu1234567890","swVersion":"1669271656"}'
-    lu.assertEquals(sent, expected)
+    assert200HttpRequest(r, e)
 end
 
 local function assertHassSpec()
-    local skt = nodemcu.net_tpc_connect_to_listener(80, "0.0.0.0")
-    skt:sentByRemote('GET /api/ha/spec HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n')
-    nodemcu.advanceTime(500)
-    local sent = table.concat(skt:receivedByRemoteAll(), "")
-    local expected = 'HTTP/1.0 200 OK\r\n' ..
+    local r = 'GET /api/ha/spec HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n'
+    local e = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: 273\r\n' ..
+        'Content-Length: 489\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
-        '{"climate":[{"key":"thermostat","name":"Thermostat"}],"sensor":[{"device_class":"temperature","key":"temp-sensor","name":"Temperature","native_unit_of_measurement":"°C","state_class":"measurement"}],"switch":[{"device_class":"switch","key":"relay-switch","name":"Relay"}]}'
-    lu.assertEquals(sent, expected)
+        '{"button":[{"device_class":"restart","key":"system-restart-button","name":"Restart"}],"climate":[{"key":"thermostat","name":"Thermostat"}],"sensor":[{"device_class":"temperature","key":"temp-sensor","name":"Temperature","native_unit_of_measurement":"°C","state_class":"measurement"},{"device_class":"data_size","key":"system-heap-sensor","name":"Heap","native_unit_of_measurement":"B","state_class":"measurement"}],"switch":[{"device_class":"switch","key":"relay-switch","name":"Relay"}]}'
+    assert200HttpRequest(r, e)
 end
 
 local function assertHassData()
-    local skt = nodemcu.net_tpc_connect_to_listener(80, "0.0.0.0")
-    skt:sentByRemote('GET /api/ha/data HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n')
-    nodemcu.advanceTime(500)
-    local sent = table.concat(skt:receivedByRemoteAll(), "")
-    local expected = 'HTTP/1.0 200 OK\r\n' ..
+    local r = 'GET /api/ha/data HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n'
+    local e = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: 343\r\n' ..
+        'Content-Length: 387\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
-        '{"relay-switch":{"is_on":false},"temp-sensor":{"native_value":22},"thermostat":{"current_temperature":22,"hvac_action":"off","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","day","night"],"supported_features":2,"target_temperature_high":17,"target_temperature_low":15,"temperature_unit":"°C"}}'
-    lu.assertEquals(sent, expected)
+        '{"relay-switch":{"is_on":false},"system-heap-sensor":{"native_value":32096},"temp-sensor":{"native_value":22},"thermostat":{"current_temperature":22,"hvac_action":"off","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","day","night"],"supported_features":2,"target_temperature_high":17,"target_temperature_low":15,"temperature_unit":"°C"}}'
+    assert200HttpRequest(r, e)
+end
+
+local function assertThermostatMode()
+    ---@type thermostat_cfg
+    local stS = require("state")("thermostat")
+
+    local function assertValues(v1, v2, tgt)
+        lu.assertEquals(v1, tgt)
+        lu.assertEquals(v2, tgt)
+    end
+
+    assertValues(stS.data.hvac_mode, require("device-settings")("thermostat").data.hvac_mode, "off")
+
+    local txt = sjson.encode({ thermostat = { hvac_mode = "auto" } })
+    local r = 'POST /api/ha/data HTTP/1.0\r\n' ..
+        'Authorization: Basic aGFzczphZG1pbg==\r\n' ..
+        'Content-Type: application/json\r\n' ..
+        'Content-Length: ' .. tostring(#txt) .. '\r\n' ..
+        '\r\n' ..
+        txt
+    local e = 'HTTP/1.0 200 OK\r\n' .. '\r\n'
+    assert200HttpRequest(r, e)
+
+    assertValues(stS.data.hvac_mode, require("device-settings")("thermostat").data.hvac_mode, "auto")
+end
+
+local function assertThermostatPresetRanges()
+    ---@type thermostat_cfg
+    local stS = require("state")("thermostat")
+
+    local function assertValues(v1, tgt1, tgt2)
+        lu.assertEquals(v1.target_temperature_high, tgt1)
+        lu.assertEquals(v1.target_temperature_low, tgt2)
+    end
+
+    assertValues(stS.data, 17, 15)
+    local devSet = require("device-settings")("thermostat")
+    assertValues(devSet.data, 17, 15)
+
+    local txt = sjson.encode({ thermostat = { target_temperature_high = 33, target_temperature_low = 11 } })
+    local r = 'POST /api/ha/data HTTP/1.0\r\n' ..
+        'Authorization: Basic aGFzczphZG1pbg==\r\n' ..
+        'Content-Type: application/json\r\n' ..
+        'Content-Length: ' .. tostring(#txt) .. '\r\n' ..
+        '\r\n' ..
+        txt
+    local e = 'HTTP/1.0 200 OK\r\n' .. '\r\n'
+    assert200HttpRequest(r, e)
+
+    assertValues(stS.data, 33, 11)
+    local devS = require("device-settings")("thermostat")
+    assertValues(devS.data, 33, 11)
+    assertValues(devS.modes[devS.data.preset_mode], 33, 11)
 end
 
 local function assertHass()
     assertHassInfo()
     assertHassSpec()
     assertHassData()
+    assertThermostatMode()
+    assertThermostatPresetRanges()
 end
 
 function testInit()
@@ -82,7 +137,8 @@ function testInit()
 
     lu.assertIsTrue(file.exists("LFS.img"))
     lu.assertIsFalse(file.exists("LFS.img.PANIC.txt"))
-    lu.assertIsFalse(file.exists("device-settings.json"))
+    lu.assertIsTrue(file.exists("fs-wifi.json"))
+    lu.assertIsFalse(file.exists("ds-wifi.json"))
 
     require("init")
     nodemcu.advanceTime(2000)
