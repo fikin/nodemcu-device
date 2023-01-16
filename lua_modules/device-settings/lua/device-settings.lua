@@ -23,18 +23,14 @@ end
 ---@param moduleName string
 ---@return table
 local function loadFactorySettings(moduleName)
-  local o = loadJsonFile(string.format("fs-%s.json", moduleName))
-  o.__mode = "k"
-  return o
+  return loadJsonFile(string.format("fs-%s.json", moduleName))
 end
 
 ---reads ds-modulename.json
 ---@param moduleName string
 ---@return table
 local function loadDeviceSettings(moduleName)
-  local o = loadJsonFile(string.format("ds-%s.json", moduleName))
-  o.__mode = "k"
-  return o
+  return loadJsonFile(string.format("ds-%s.json", moduleName))
 end
 
 ---loads factort settings json and then merges device settings on top.

@@ -1,5 +1,5 @@
 {
   "port": 80,
-  "timeoutSec": 20,
+  "timeoutSec": 10,
   "webModules": ["web-portal", "web-ota", "web-ha"]
 }

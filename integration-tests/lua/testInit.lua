@@ -25,7 +25,7 @@ local function assert200HttpRequest(request, expected)
     lu.assertEquals(sent, expected)
 end
 
-local function assertWifiPortal()
+local function assertWifiPortalGetCfgWifi()
     local cfg = require("device-settings")("wifi")
     local cfgTxt = require("sjson").encode(cfg)
     local r = 'GET /wifi-portal-ds/wifi HTTP/1.0\r\nAuthorization: Basic YWRtaW46YWRtaW4=\r\n\r\n'
@@ -36,6 +36,19 @@ local function assertWifiPortal()
         '\r\n' ..
         cfgTxt
     assert200HttpRequest(r, e)
+end
+
+local function assertWifiPortalRestart()
+    local r = 'POST /wifi-portal-ds/.restart HTTP/1.0\r\nAuthorization: Basic YWRtaW46YWRtaW4=\r\n\r\n'
+    local e = 'HTTP/1.0 200 OK\r\n' ..
+        '\r\n'
+    assert200HttpRequest(r, e)
+    lu.assertIsTrue(nodemcu.node.restartRequested)
+end
+
+local function assertWifiPortal()
+    assertWifiPortalGetCfgWifi()
+    assertWifiPortalRestart()
 end
 
 local function assertHassInfo()

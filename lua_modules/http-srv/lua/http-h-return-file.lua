@@ -71,7 +71,7 @@ local function main(conn)
     -- just in case if remote would close the connection before reading is over
     table.insert(conn.onGcFn, closeFileFn(fd))
   else
-    error("404: file to read not found %s" % fName)
+    error(string.format("404: file to read not found %s", fName))
   end
 end
 

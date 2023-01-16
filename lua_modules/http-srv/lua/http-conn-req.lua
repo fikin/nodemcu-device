@@ -74,7 +74,7 @@ local function parseReqLine(conn)
   local line = readUntilPattern(conn, "\r\n", 512, "414")
   local _, _, method, url = string.find(line, "^([A-Z]+) (.-) HTTP/1.%d\r\n")
   if not isValidMethod(method) or #url == 0 then
-    error("405: not an http request %s %s" % { method, url })
+    error(string.format("405: not an http request %s %s", method, url))
   end
   conn.req.method, conn.req.url = method, url
 end
@@ -101,7 +101,6 @@ local function setBodyReader(conn)
     end
   end
 end
-
 
 ---parses request header into http_req*
 ---@param conn http_conn*

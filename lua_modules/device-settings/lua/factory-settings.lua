@@ -26,7 +26,7 @@ local function safeSaveJsonFile(txt, fName)
   local fTmp, fBak = fName .. ".tmp", fName .. ".bak"
   file.remove(fTmp)
   if not file.putcontents(fTmp, txt) then
-    error("failed saving %s" % fTmp)
+    error(string.format("failed saving %s", fTmp))
   end
   file.remove(fBak)
   if file.exists(fName) and not file.rename(fName, fBak) then
@@ -74,7 +74,7 @@ local function get(parent, child, fullpath)
       -- drill down the hierarchy of the search path
       return get(v, nextKey, fullpath)
     elseif v then
-      error("can't get %s because field %s is atomic and not a table" % { fullpath, key })
+      error(string.format("can't get %s because field %s is atomic and not a table", fullpath, key))
     else
       -- create new table and continue drilling down the structure
       parent[key] = {}
@@ -188,13 +188,17 @@ end
 -- it merges the content, any other data if field is preserved
 -- it scans tbl recursively i.e. deep merge
 ---@param self factory_settings*
----@param field any to get the value of. it can be hierarchical path i.e. attr.attr...
----@param tbl any to assign the the field. internally it is using table_merge().
+---@param field? string to get the value of. it can be hierarchical path i.e. attr.attr...
+---@param tbl table to assign the the field. internally it is using table_merge().
 ---@return factory_settings*
 M.mergeTblInto = function(self, field, tbl)
-  local _, parent, child = get(self.cfg, field)
-  parent[child] = parent[child] or {}
-  require("table-merge")(parent[child], tbl)
+  if field then
+    local _, parent, child = get(self.cfg, field)
+    parent[child] = parent[child] or {}
+    require("table-merge")(parent[child], tbl)
+  else
+    require("table-merge")(self.cfg, tbl)
+  end
   return self
 end
 

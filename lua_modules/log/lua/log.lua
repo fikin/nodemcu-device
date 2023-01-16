@@ -130,6 +130,7 @@ local function expandArgs(...)
       t[#t + 1] = v(select(i + 1, ...))
       break
     end
+    if v == nil then v = "nil" end
     t[#t + 1] = v
   end
   return table.unpack(t)
@@ -147,18 +148,23 @@ local function logEntry(lvl, txt, ...)
     return
   end
 
+  local tail
+  local ok, subTxt = pcall(string.format, txt, expandArgs(...))
+  if ok then tail = subTxt
+  else tail = "ERR: format string failed :" .. subTxt end
+
   local info = debug.getinfo(3, "Sl")
   local lineinfo = info.short_src .. ":" .. info.currentline
-  local str =
-  string.format(
-    "%s[%-6s%s]%s %s: " .. txt,
+  local header = string.format(
+    "%s[%-6s%s]%s %s: ",
     state.usecolor and lvl.c or "",
     lvl.n,
     getTimestamp(),
     state.usecolor and "\27[0m" or "",
-    lineinfo,
-    expandArgs(...)
+    lineinfo
   )
+
+  local str = header .. tail
 
   -- Output to console
   print(str)
@@ -176,19 +182,19 @@ local M = {}
 ---debug message
 ---@param format  string
 ---@param ... unknown
-M.debug = function(format,...) logEntry(levels.debug,format, ...); end
+M.debug = function(format, ...) logEntry(levels.debug, format, ...); end
 ---info message
 ---@param format  string
 ---@param ... unknown
-M.info = function(format,...) logEntry(levels.info,format, ...); end
+M.info = function(format, ...) logEntry(levels.info, format, ...); end
 ---error message
 ---@param format  string
 ---@param ... unknown
-M.error = function(format,...) logEntry(levels.error,format, ...); end
+M.error = function(format, ...) logEntry(levels.error, format, ...); end
 ---audit message
 ---@param format  string
 ---@param ... unknown
-M.audit = function(format,...) logEntry(levels.audit,format, ...); end
+M.audit = function(format, ...) logEntry(levels.audit, format, ...); end
 
 ---print to stdout given data
 ---@param t any

@@ -95,7 +95,8 @@ end
 ---and starting ap if long enough did not succeeded to connect to sta
 ---@param reason number
 local function afterDisconnect(reason)
-  if reason == wifi.eventmon.reason.AUTH_EXPIRE then
+  if reason == wifi.eventmon.reason.AUTH_EXPIRE or
+      reason == wifi.eventmon.reason.ASSOC_EXPIRE then
     -- try again directly, this seems related to ESP itself ...
     trySta()
   else

@@ -17,20 +17,30 @@ local function handleRoot(conn)
 end
 
 ---@param conn http_conn*
+---@return string
+local function urlToModuleName(conn)
+  return string.sub(conn.req.url, #"/wifi-portal-ds/" + 1)
+end
+
+---@param conn http_conn*
 local function returnDeviceSettings(conn)
-  local moduleName = string.sub(conn.req.url, #"/wifi-portal-ds/" + 1)
-  local cfg = require("device-settings")(moduleName)
+  local cfg = require("device-settings")(urlToModuleName(conn))
   require("http-h-send-json")(conn, cfg)
 end
 
 ---@param conn http_conn*
 local function saveDeviceSettings(conn)
   local cfg = require("http-h-read-json")(conn)
-  local moduleName = string.sub(conn.req.url, #"/wifi-portal-ds/")
-  local builder = require("factory-settings")(moduleName)
-  builder:mergeTblInto("", cfg)
+  local builder = require("factory-settings")(urlToModuleName(conn))
+  builder:mergeTblInto(nil, cfg)
   builder:done()
   conn.resp.code = "200"
+end
+
+---@param conn http_conn*
+local function restartDevice(conn)
+  require("log").info("user asked to restart the device")
+  require("http-h-restart")()(conn)
 end
 
 ---@param conn http_conn*
@@ -38,7 +48,7 @@ end
 ---@param pathPattern string
 ---@return boolean match
 local function isPathMatch(conn, method, pathPattern)
-  return string.find(conn.req.url, pathPattern) ~= nil
+  return method == conn.req.method and string.find(conn.req.url, pathPattern) ~= nil
 end
 
 ---@param conn http_conn*
@@ -78,6 +88,8 @@ local function main(conn)
     return checkAuth(returnFile, conn)
   elseif isPathMatch(conn, "GET", "/wifi%-portal%-ds/.*") then
     return checkAuth(returnDeviceSettings, conn)
+  elseif isPath(conn, "POST", "/wifi-portal-ds/.restart") then
+    return checkAuth(restartDevice, conn)
   elseif isPathMatch(conn, "POST", "/wifi%-portal%-ds/.*") then
     return checkAuth(saveDeviceSettings, conn)
   else

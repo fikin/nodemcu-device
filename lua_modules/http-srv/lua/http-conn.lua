@@ -2,9 +2,6 @@
   Process a new http connection
 ]]
 
---- global counter for open connections
-OpenConnectionsCnt = 0
-
 ---@alias str_fn fun():string|nil
 ---@alias conn_gc_fn fun(wasOk: boolean)
 
@@ -14,6 +11,7 @@ OpenConnectionsCnt = 0
 local modname = ...
 
 local log = require("log")
+local tmr = require("tmr")
 
 local function pcallgc(fnc, ...)
   local ok, err = pcall(fnc, ...)
@@ -36,7 +34,7 @@ end
 local function traceReconnFn()
   return function(sk, err)
     local remotePort, remoteIp = sk:getpeer()
-    log.debug("reconnection from %s:%d %s", remoteIp, remotePort, err)
+    log.debug("reconnection from %s:%d %s", remoteIp, remotePort or 0, err)
   end
 end
 
@@ -46,7 +44,7 @@ end
 local function disconnectedConnFn(conn)
   return function(sk, err)
     local p, i = sk:getpeer()
-    log.audit("client disconnected %s:%d : %s", i, p, err)
+    log.audit("client disconnected %s:%d : %s", i, p or 0, err)
     require("http-conn-gc")(conn, err ~= nil)
   end
 end
@@ -82,7 +80,7 @@ end
 ---@return string code
 ---@return string message or error
 local function errToCode(err)
-  local _, _, code, msg = string.find(err, ".*%s(%d+): (.*)")
+  local _, _, code, msg = string.find(err, "(%d+): (.*)")
   if code then
     return code, msg
   end
@@ -118,27 +116,31 @@ local function handleRoute(conn, webModules)
   error("404: no router defind handling %s" % conn.req.url)
 end
 
----called at connection GC to decrease global open connections counter
----@param isOk any
-local function decConnCnt(isOk)
-  if OpenConnectionsCnt > 0 then
-    OpenConnectionsCnt = OpenConnectionsCnt - 1
-  end
-end
+-- ---called at connection GC to decrease global open connections counter
+-- ---@param isOk boolean
+-- local function decConnCnt(isOk)
+--   local state = require("state")(modname)
+--   if state.OpenConnectionsCnt > 0 then
+--     state.OpenConnectionsCnt = state.OpenConnectionsCnt - 1
+--   end
+-- end
 
 ---@param conn http_conn*
 local function concurrent(conn)
-  if OpenConnectionsCnt > 0 then
-    return false, "429: too many connections"
-  end
-  OpenConnectionsCnt = OpenConnectionsCnt + 1
-  table.insert(conn.onGcFn, decConnCnt)
+  -- local state = require("state")(modname)
+  -- state.OpenConnectionsCnt = state.OpenConnectionsCnt or 0
+  -- if state.OpenConnectionsCnt > 0 then
+  --   return false, "429: too many connections"
+  -- end
+  -- state.OpenConnectionsCnt = state.OpenConnectionsCnt + 1
+  -- table.insert(conn.onGcFn, decConnCnt)
   return true, nil
 end
 
 ---@param conn http_conn*
 ---@param err string
 local function closeConn(conn, err)
+  conn.state = { 7, tmr.now() }
   local p, i = conn.sk:getpeer()
   log.audit("closing client %s:%d", i, p)
   conn.sk:close()
@@ -152,19 +154,25 @@ end
 ---@return fun() coroutine function to call
 local function handleReq(conn, webModules)
   return function()
+    conn.state = { 1, tmr.now() }
     local ok, err = concurrent(conn)
     if ok then
+      conn.state = { 2, tmr.now() }
       ok, err = pcallgc(require("http-conn-req"), conn)
     end
     if ok then
+      conn.state = { 3, tmr.now() }
       ok, err = pcallgc(handleRoute, conn, webModules)
     end
     if not ok then
+      conn.state = { 4, tmr.now() }
       conn.resp.code, conn.resp.body = errToCode(err)
       log.error(logErrMsg(log, conn, "processing request", err))
     end
+    conn.state = { 5, tmr.now() }
     log.info("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code)
     ok, err = pcallgc(require("http-conn-resp"), conn)
+    conn.state = { 6, tmr.now() }
     if not ok then
       log.error(logErrMsg(log, conn, "writing response", err))
     end
@@ -178,6 +186,7 @@ end
 local function defaultConn(sk)
   ---@class http_conn*
   local o = {
+    state = { 0, tmr.now() },
     ---@type socket
     sk = sk,
     ---@type thread
@@ -209,6 +218,25 @@ local function defaultConn(sk)
   return o
 end
 
+local function untrackConn(conn)
+  return function()
+    local state = require("state")(modname)
+    for i, v in ipairs(state.OpenConn) do
+      if v == conn then
+        table.remove(state.OpenConn, i)
+        return
+      end
+    end
+  end
+end
+
+local function trackConn(conn)
+  local state = require("state")(modname)
+  state.OpenConn = state.OpenConn or {}
+  table.insert(state.OpenConn, conn)
+  table.insert(conn.onGcFn, untrackConn(conn))
+end
+
 ---handles a net connection
 ---@param sk socket
 ---@param webModules string[] list of web modules serving http routes
@@ -217,6 +245,7 @@ local function main(sk, webModules)
 
   local conn = defaultConn(sk)
 
+  trackConn(conn)
   conn.co = coroutine.create(handleReq(conn, webModules))
   sk:on("connection", auditConnFn())
   sk:on("reconnection", traceReconnFn())

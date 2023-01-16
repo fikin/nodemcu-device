@@ -32,7 +32,7 @@ local function main(noBackup, nextHandler)
 
     file.remove(fName)
     if not file.rename(fTmp, fName) then
-      error("500: failed to rename file %s to %s" % { fTmp, fName })
+      error(string.format("500: failed to rename file %s to %s", fTmp, fName))
     end
 
     if noBackup then
