@@ -45,6 +45,8 @@ local function main(conn, hasErr)
     conn.onGcFn = nil
   end
 
+  conn.state = nil
+
   collectgarbage()
   collectgarbage()
 end

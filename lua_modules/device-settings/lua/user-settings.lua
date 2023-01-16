@@ -25,9 +25,10 @@ local function main()
   -- typically set hostname is based on chipID
   -- until user overwrites it via web-portal for example
   local hostname = "nodemcu" .. require("node").chipid()
+  local mac = require("wifi").ap.getmac()
 
-  fs("wifi-sta"):default("hostname", hostname):done()
-  fs("wifi-ap"):default("config.ssid", hostname .. "_ap"):done()
+  fs("wifi-sta"):default("hostname", hostname):default("mac", mac):done()
+  fs("wifi-ap"):default("config.ssid", hostname .. "_ap"):default("mac", mac):done()
 
 
   -- TODO add here your other hardcoded settings if you want to

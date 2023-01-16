@@ -1,44 +1,344 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Device Admin</title>
+    <link rel="stylesheet" type="text/css" href="wifi-portal.css" />
+  </head>
 
-<head>
-  <meta charset="utf-8">
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>Device Admin</title>
-  <link rel="stylesheet" type="text/css" href="wifi-portal.css" />
-</head>
-
-<body>
-  <div id="content">
-    <fieldset>
-      <h3>Connect the device to Wi-Fi</h3>
-      <input id="ssid" type="text" autocorrect="off" autocapitalize="none" placeholder="Wi-Fi Name/SSID" />
+  <body>
+    <div id="content">
+      <fieldset>
+        <h3 class="collapsible">Connect the device to Wi-Fi</h3>
+        <div class="collapsible-content grid-container">
+          <label for="wifiSta_config_ssid" class="grid-item"
+            >Wi-Fi Name/SSID:</label
+          >
+          <input
+            id="wifiSta_config_ssid"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            placeholder=""
+          />
+          <label for="wifiSta_config_pwd" class="grid-item">Password:</label>
+          <input
+            id="wifiSta_config_pwd"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder=""
+          />
+        </div>
+      </fieldset>
       <br />
-      <input id="pwd" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" placeholder="Password" />
-    </fieldset>
-    <br />
-    <fieldset>
-      <h3>Device settings</h3>
-      <input id="hostname" type="text" autocorrect="off" autocapitalize="none"
-        placeholder="Hostname i.e. door-lights" />
+      <fieldset>
+        <h3 class="collapsible">Device settings</h3>
+        <div class="collapsible-content grid-container">
+          <label for="wifiSta_hostname" class="grid-item">Hostname:</label>
+          <input
+            id="wifiSta_hostname"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            placeholder="i.e. door-lights"
+          />
+          <label for="wifi_country_country" class="grid-item"
+            >Country code<br />(2 chars):</label
+          >
+          <input
+            id="wifi_country_country"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. AQ"
+          />
+          <label for="wifiAp_config_pwd" class="grid-item"
+            >Device AP<br />(WPA2 PSK) pwd:</label
+          >
+          <input
+            id="wifiAp_config_pwd"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder=""
+          />
+        </div>
+      </fieldset>
       <br />
-      <input id="country" type="text" autocorrect="off" autocapitalize="none" autocomplete="off"
-        placeholder="Country i.e. AQ" />
-      <input id="ap_pwd" type="text" autocorrect="off" autocapitalize="none" autocomplete="off"
-        placeholder="Device AP password (WPA2 PSK)" />
-    </fieldset>
-    <br />
-    <fieldset>
-      <h3>Device admin</h3>
-      <input id="admin_usr" type="text" autocorrect="off" autocapitalize="none" placeholder="Username i.e. admin" />
+      <fieldset>
+        <h3 class="collapsible">Device admin</h3>
+        <div class="collapsible-content grid-container">
+          <label for="webPortal_usr" class="grid-item">Username:</label>
+          <input
+            id="webPortal_usr"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            placeholder="i.e. admin"
+          />
+          <label for="webPortal_pwd" class="grid-item">Password:</label>
+          <input
+            id="webPortal_pwd"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. hard-password"
+          />
+        </div>
+      </fieldset>
       <br />
-      <input id="admin_pwd" type="text" autocorrect="off" autocapitalize="none" autocomplete="off"
-        placeholder="Password i.e. hard password" />
-    </fieldset>
-    <br />
-    <button id="save" type="button" class="utility">Save & restart</button>
-  </div>
-  <script src="wifi-portal.js"></script>
-</body>
-
+      <fieldset>
+        <h3 class="collapsible">Wifi Modem</h3>
+        <div class="collapsible-content grid-container">
+          <label for="wifi_maxtxpower" class="grid-item">Max TX Power:</label>
+          <input
+            id="wifi_maxtxpower"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="255"
+            step="1"
+          />
+          <label for="wifi_phymode" class="grid-item"
+            >Physical mode<br />(802.11b=1, 802.11g=2,<br />802.11n=3):</label
+          >
+          <input
+            id="wifi_phymode"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="3"
+            step="1"
+          />
+          <label for="wifi_country_policy" class="grid-item"
+            >Country policy<br />(Auto=0, Manual=1):</label
+          >
+          <input
+            id="wifi_country_policy"
+            class="cfgValue grid-item"
+            type="number"
+            min="0"
+            max="1"
+            step="1"
+          />
+          <label for="wifi_country_start#ch" class="grid-item"
+            >Start channel:</label
+          >
+          <input
+            id="wifi_country_start#ch"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="14"
+            step="1"
+          />
+          <label for="wifi_country_endt#ch" class="grid-item"
+            >Start channel:</label
+          >
+          <input
+            id="wifi_country_end#ch"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="14"
+            step="1"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Wifi Station mode</h3>
+        <div class="collapsible-content grid-container">
+          <label for="wifiSta_bssid" class="grid-item">BSSID:</label>
+          <input
+            id="wifiSta_bssid"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. XX:XX:XX:XX"
+          />
+          <label for="wifiSta_sleepType" class="grid-item"
+            >Sleep type<br />(NONE=0,Light=1,<br />Modem=2):</label
+          >
+          <input
+            id="wifiSta_sleepType"
+            class="cfgValue grid-item"
+            type="number"
+            min="0"
+            max="2"
+            step="1"
+          />
+          <label for="wifiSta_mac" class="grid-item">MAC address:</label>
+          <input
+            id="wifiSta_mac"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. XX:XX:XX:XX"
+          />
+          <label for="wifiSta_staticIp_ip" class="grid-item"
+            >Static IP address:</label
+          >
+          <input
+            id="wifiSta_staticIp_ip"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. XXX.XXX.XXX.XXX"
+          />
+          <label for="wifiSta_staticIp_netmask" class="grid-item"
+            >Static IP netmask:</label
+          >
+          <input
+            id="wifiSta_staticIp_netmask"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. 255.255.255.0"
+          />
+          <label for="wifiSta_staticIp_gateway" class="grid-item"
+            >Static IP gateway:</label
+          >
+          <input
+            id="wifiSta_staticIp_gateway"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. XXX.XXX.XXX.0"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Wifi AP mode</h3>
+        <div class="collapsible-content grid-container">
+          <label for="wifiAp_config_auth" class="grid-item"
+            >Authentication method<br />(Open=0,WPA PSK=2,<br />WPA2 PSK=3,<br />WPA_WPA2
+            PSK=4):</label
+          >
+          <input
+            id="wifiAp_config_auth"
+            class="cfgValue grid-item"
+            type="number"
+            min="1000"
+            max="60000"
+            step="1"
+          />
+          <label for="wifiAp_config_channel" class="grid-item">Channel:</label>
+          <input
+            id="wifiAp_config_channel"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="14"
+            step="1"
+          />
+          <label for="wifiAp_config_hidden" class="grid-item"
+            >Hidden<br />(open=0,hidden=1):</label
+          >
+          <input
+            id="wifiAp_config_hidden"
+            class="cfgValue grid-item"
+            type="number"
+            min="0"
+            max="1"
+            step="1"
+          />
+          <label for="wifiAp_config_beacon" class="grid-item">Beacon:</label>
+          <input
+            id="wifiAp_config_beacon"
+            class="cfgValue grid-item"
+            type="number"
+            min="1000"
+            max="60000"
+            step="1"
+          />
+          <label for="wifiAp_mac" class="grid-item">MAC address:</label>
+          <input
+            id="wifiAp_mac"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. XX:XX:XX:XX"
+          />
+          <label for="wifiAp_staticIp_ip" class="grid-item"
+            >Static IP address:</label
+          >
+          <input
+            id="wifiAp_staticIp_ip"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. XXX.XXX.XXX.XXX"
+          />
+          <label for="wifiAp_staticIp_netmask" class="grid-item"
+            >Static IP netmask:</label
+          >
+          <input
+            id="wifiAp_staticIp_netmask"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. 255.255.255.0"
+          />
+          <label for="wifiAp_staticIp_gateway" class="grid-item"
+            >Static IP gateway:</label
+          >
+          <input
+            id="wifiAp_staticIp_gateway"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. XXX.XXX.XXX.0"
+          />
+          <label for="wifiAp_dhcpConfig_start" class="grid-item"
+            >DHCP start address:</label
+          >
+          <input
+            id="wifiAp_dhcpConfig_start"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. XXX.XXX.XXX.XXX"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <button id="save" type="button" class="utility">Save & restart</button>
+    </div>
+    <script src="wifi-portal.js"></script>
+  </body>
 </html>

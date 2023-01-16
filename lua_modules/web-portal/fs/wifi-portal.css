@@ -13,13 +13,25 @@ body {
 
 #content {
   position: absolute;
-  top: 0;
+  top: 30px;
   right: 0;
   bottom: 0;
   left: 0;
-  width: 320px;
-  height: 480px;
+  width: 480px;
   margin: auto;
+}
+
+.active,
+.collapsible:hover {
+  background-color: #d4d3d3;
+}
+
+.collapsible-content {
+  cursor: pointer;
+  padding: 0px;
+  width: 100%;
+  border: none;
+  outline: none;
 }
 
 input,
@@ -31,7 +43,7 @@ select {
 
 fieldset {
   border: 0;
-  box-shadow: 0 0 15px 1px rgba(0, 0, 0, .4);
+  box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.4);
   box-sizing: border-box;
   padding: 20px 30px;
   background: #fff;
@@ -70,4 +82,14 @@ h3 {
   font-size: 16px;
   color: #666;
   margin-bottom: 20px;
+}
+
+.grid-container {
+  display: none;
+  grid-template-columns: auto auto;
+}
+
+label.grid-item {
+  text-align: right;
+  padding: 15px;
 }
