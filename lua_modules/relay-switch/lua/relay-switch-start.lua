@@ -1,5 +1,5 @@
 --[[
-    Temperature sensor.
+    Relay switch
 ]]
 local modname = ...
 
@@ -10,26 +10,13 @@ local modname = ...
 ---@field pin integer
 ---@field data relay_switch_cfg_data
 
----prepare initial RTE state out of device settings
-local function prepareRteState()
-    -- read device settings into RTE state variable
-    ---@type relay_switch_cfg
-    local state = require("device-settings")("relay-switch")
-    state.data = { is_on = false }
-
-    -- remember in RTE state
-    require("state")("relay-switch", state)
-end
-
 local function main()
     package.loaded[modname] = nil
 
     local log = require("log")
     log.debug("starting up ...")
 
-    prepareRteState()
-
-    require("relay-switch-control")(false)
+    require("relay-switch-ha-set")({ is_on = false })
 end
 
 return main

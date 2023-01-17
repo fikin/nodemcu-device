@@ -20,7 +20,7 @@ end
 
 ---call thermostat's control loop
 local function applyControlLoop()
-    require("temp-sensor-control")
+    require("temp-sensor-control")()
 end
 
 ---prepare initial RTE state out of device settings

@@ -33,7 +33,7 @@ end
 ---create flash error text file
 ---@param errMsg string
 local function imgSaveErr(errMsg)
-  log.error(modname, string.format("reloading failed : %s : %s", lfsImgFName, errMsg))
+  log.error("reloading failed : %s : %s", lfsImgFName, errMsg)
   file.remove(panicFName)
   file.putcontents(panicFName, errMsg)
 end
