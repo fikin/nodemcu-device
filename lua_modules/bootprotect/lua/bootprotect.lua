@@ -94,7 +94,7 @@ end
 local function runFncOk(nbr)
   local msg = funcs[nbr][1]
   local fnc = funcs[nbr][2]
-  log.info(string.format("(%d) (heap: %d) %s", nbr, require("node").heap(), msg))
+  log.info("(%d) (heap: %d) %s", nbr, require("node").heap(), msg)
   local ok, err = pcall(fnc)
   collectgarbage()
   collectgarbage()

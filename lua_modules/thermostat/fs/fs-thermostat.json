@@ -1,5 +1,6 @@
 {
   "periodMs": 60000,
+  "relayPin": 1,
   "modes": {
     "away": {
       "target_temperature_high": 17,

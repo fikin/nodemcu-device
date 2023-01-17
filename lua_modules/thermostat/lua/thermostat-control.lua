@@ -24,8 +24,10 @@ end
 ---assign gpio pin level and hvac_action
 ---@param isOn boolean
 local function setRealy(isOn)
-  state.data.hvac_action = determineHvacAction(isOn)
-  require("relay-switch-control")(isOn)
+  local action = determineHvacAction(isOn)
+  state.data.hvac_action = action
+  log.info("setting hvac action to %s, mode is %s", action, state.data.hvac_mode)
+  require("gpio-set-pin")(state.relayPin, isOn)
 end
 
 ---turns heating on
@@ -40,9 +42,9 @@ end
 
 ---turns heating on if temp is below LOW and off if temp is above HIGH
 local function ensureIsAuto()
-  if state.data.current_temperature > state.data.target_temperature_high then
+  if state.data.current_temperature >= state.data.target_temperature_high then
     ensureIsOff()
-  elseif state.data.current_temperature < state.data.target_temperature_low then
+  elseif state.data.current_temperature <= state.data.target_temperature_low then
     ensureIsOn()
   end
 end
@@ -62,11 +64,15 @@ local function handleHvacMode()
   end
 end
 
+local function readLatestTemp()
+  state.data.current_temperature = require("temp-sensor-get")()
+end
+
 ---starts a temp reading and on its success it triggers a control loop
 local function main()
   package.loaded[modname] = nil
 
-  state.data.current_temperature = require("temp-sensor-get")()
+  readLatestTemp()
   handleHvacMode()
 end
 
