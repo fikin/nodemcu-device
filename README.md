@@ -9,7 +9,6 @@
   - [How to use it this repo?](#-how-to-use-it-this-repo)
   - [Image building instructions](#-image-building-instructions)
     - [Additional details](#-additional-details)
-  - [Some background](#-some-background)
 
 <!-- /code_chunk_output -->
 
@@ -83,28 +82,3 @@ Internally build would:
   - it is used to modify the firmware files prior to image building
   - one can pre-clone different source tree if there is a need.
 - clone [nodemcu-lua-mocks](https://github.com/fikin/nodemcu-lua-mocks) to run tests
-
-## Some background
-
-Traditionally, programming for [NodeMCU](https://en.wikipedia.org/wiki/NodeMCU) has been rather constrained given the limited space of RAM (up to ~44kB for heap space for data and code).
-
-But with introduction of [LFS](https://nodemcu.readthedocs.io/en/release/lfs/) support, code and constants can live now in flash ROM. And available heap would remain for computation data only.
-
-This allow us to pack just about enough functionality to make NodeMCU behave like a real internet device.
-
-This repository contains collection of Lua modules and build scripts to prepare firmware, LFS and SPIFFS images for NodeMCU.
-
-Provided so far are (check [lua_modules dir](lua_modules) for up to date list):
-
-- boot manager with restart protection
-- wifi connectivity manager with captive portal
-- logger
-- programmable web REST server
-- OTA (LFS and parts of SPIFFS upgrade Over The Air)
-- programmable HomeAssistant integration
-- telnet
-- ...
-
-_Some of the modules were created by other authors, here they are included for convenience during packaging._
-
-Note: I'm testing these with ESP8266, for ESP32 I haven't had time to check yet.
