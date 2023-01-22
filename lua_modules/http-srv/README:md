@@ -1,0 +1,11 @@
+# HTTP Server
+
+This is rather elaborate (number of files) http file server.
+
+It is not *true* http server and it does not have complete `Content-Length` support except for exact size.
+
+It is designed to delegate request processing to a *web module*.
+
+List of modules is defined in device settings.
+
+It is implemented using coroutines to deal with async nature of IO communication.
