@@ -4,5 +4,11 @@
     "usr": "hass",
     "pwd": "admin"
   },
-  "entities": ["thermostat", "temp-sensor", "relay-switch", "system-hass"]
+  "entities": [
+    "thermostat",
+    "temp-sensor",
+    "relay-switch",
+    "lights-switch",
+    "system-hass"
+  ]
 }

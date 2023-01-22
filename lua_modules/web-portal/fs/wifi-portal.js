@@ -9,7 +9,7 @@ function camelCaseToDashed(cc) {
 }
 
 function dashToUnderscore(str) {
-  return str.replace("#", "_")
+  return str.replaceAll("#", "_")
 }
 
 class MissingDSFile extends Error { }
@@ -28,11 +28,22 @@ function getCfgValue(cfgTbl, keysArr, indx) {
   else { return val; }
 }
 
+function updateElemValueType(elem, val) {
+  if (typeof val === "boolean") {
+    elem.value = val;
+  } else if (Array.isArray(val)) {
+    val.forEach(e => {
+      Array.from(elem.options).filter(opt => opt.value == e).map(opt => opt.selected = true)
+    })
+  } else {
+    elem.value = val;
+  }
+}
+
 function updateElemValue(elem) {
   try {
     const val = getCfgValue(cfg, elem.id.split("_"), 0);
-    if (typeof val === "boolean") elem.value = (val) ? 1 : 0;
-    else elem.value = val;
+    updateElemValueType(elem, val)
   } catch (e) {
     if (e instanceof MissingDSFile);
     else if (e instanceof MissingDSField) console.warn(e)
@@ -40,25 +51,37 @@ function updateElemValue(elem) {
   }
 }
 
-function setCfgValue(cfgTbl, keysArr, value) {
+function getCfgValueElem(cfgVal, elem) {
+  if (typeof cfgVal === "number") {
+    return parseInt(elem.value)
+  } else if (Array.isArray(cfgVal)) {
+    return Array.from(elem.options)
+      .filter(opt => opt.selected)
+      .filter(opt => opt.value !== String.fromCharCode(160))
+      .map(opt => opt.value)
+  } else if (typeof cfgVal === "boolean") {
+    return elem.value === "true"
+  } else {
+    return elem.value
+  };
+}
+
+function setCfgValue(cfgTbl, keysArr, elem) {
   const key = dashToUnderscore(keysArr[0]);
   const val = cfgTbl[key];
   if (typeof val === "undefined") {
     console.warn("missing key " + key);
     cfgTbl[key] = {};
-    setCfgValue(cfgTbl, keysArr, value) // repeat
-  }
-  else if (keysArr.length > 1) {
-    setCfgValue(val, keysArr.slice(1), value)
+    setCfgValue(cfgTbl, keysArr, elem) // repeat
+  } else if (keysArr.length > 1) {
+    setCfgValue(val, keysArr.slice(1), elem)
   } else {
-    if (typeof val === "number") cfgTbl[key] = parseInt(value)
-    else if (typeof val === "boolean") cfgTbl[key] = (1 == parseInt(value));
-    else cfgTbl[key] = value;
+    cfgTbl[key] = getCfgValueElem(val, elem)
   }
 }
 
 function updateCfgValue(elem) {
-  setCfgValue(cfg, elem.id.split("_"), elem.value);
+  setCfgValue(cfg, elem.id.split("_"), elem);
 }
 
 function configureInputEvents() {
@@ -86,6 +109,7 @@ function updateElementValues(cfgModule) {
 }
 
 function postDeviceSettings(cfgName) {
+  document.body.style.cursor = 'wait'
   return fetch(getDeviceSettingsFor(camelCaseToDashed(cfgName)), {
     method: 'POST', // or 'PUT'
     headers: {
@@ -100,11 +124,11 @@ function postDeviceSettings(cfgName) {
       return Promise.reject(response);
     })
     .then((data) => {
-      console.log('Success:', data);
+      console.log('Success:', data)
     })
     .catch((error) => {
       console.error('Error:', error, cfgName);
-    });
+    }).then(() => document.body.style.cursor = 'default');
 }
 
 function askDeviceRestart() {
@@ -141,6 +165,7 @@ function configureSaveData() {
 }
 
 function fetchDeviceSettings(cfgName, cb) {
+  document.body.style.cursor = 'wait'
   fetch(getDeviceSettingsFor(camelCaseToDashed(cfgName)), {
     method: 'GET',
     headers: {
@@ -156,7 +181,7 @@ function fetchDeviceSettings(cfgName, cb) {
     .then(cb)
     .catch((error) => {
       console.error('Error:', error, cfgName);
-    });
+    }).then(() => document.body.style.cursor = 'default');
 }
 
 function loadCfgData(cfgName, data) {

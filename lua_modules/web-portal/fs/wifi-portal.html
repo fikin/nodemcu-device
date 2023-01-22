@@ -10,7 +10,7 @@
   <body>
     <div id="content">
       <fieldset>
-        <h3 class="collapsible">Connect the device to Wi-Fi</h3>
+        <h3 class="collapsible">Connect the device to Wi-Fi (wifi-sta)</h3>
         <div class="collapsible-content grid-container">
           <label for="wifiSta_config_ssid" class="grid-item"
             >Wi-Fi Name/SSID:</label
@@ -37,7 +37,7 @@
       </fieldset>
       <br />
       <fieldset>
-        <h3 class="collapsible">Device settings</h3>
+        <h3 class="collapsible">Device settings (wifi)</h3>
         <div class="collapsible-content grid-container">
           <label for="wifiSta_hostname" class="grid-item">Hostname:</label>
           <input
@@ -61,7 +61,7 @@
             placeholder="i.e. AQ"
           />
           <label for="wifiAp_config_pwd" class="grid-item"
-            >Device AP<br />(WPA2 PSK) pwd:</label
+            >Device AP<br />(when WPA2 PSK) pwd:</label
           >
           <input
             id="wifiAp_config_pwd"
@@ -76,8 +76,15 @@
       </fieldset>
       <br />
       <fieldset>
-        <h3 class="collapsible">Device admin</h3>
+        <h3 class="collapsible">Device admin (web-portal)</h3>
         <div class="collapsible-content grid-container">
+          <label for="webPortal_realm" class="grid-item">Realm:</label>
+          <input
+            id="webPortal_realm"
+            class="cfgValue grid-item"
+            type="text"
+            readonly
+          />
           <label for="webPortal_usr" class="grid-item">Username:</label>
           <input
             id="webPortal_usr"
@@ -101,7 +108,7 @@
       </fieldset>
       <br />
       <fieldset>
-        <h3 class="collapsible">Wifi Modem</h3>
+        <h3 class="collapsible">Wifi Modem (wifi)</h3>
         <div class="collapsible-content grid-container">
           <label for="wifi_maxtxpower" class="grid-item">Max TX Power:</label>
           <input
@@ -112,28 +119,19 @@
             max="255"
             step="1"
           />
-          <label for="wifi_phymode" class="grid-item"
-            >Physical mode<br />(802.11b=1, 802.11g=2,<br />802.11n=3):</label
-          >
-          <input
-            id="wifi_phymode"
-            class="cfgValue grid-item"
-            type="number"
-            min="1"
-            max="3"
-            step="1"
-          />
+          <label for="wifi_phymode" class="grid-item">Physical mode:</label>
+          <select id="wifi_phymode" class="cfgValue grid-item">
+            <option value="1">802.11b</option>
+            <option value="2">802.11g</option>
+            <option value="3">802.11n</option>
+          </select>
           <label for="wifi_country_policy" class="grid-item"
-            >Country policy<br />(Auto=0, Manual=1):</label
+            >Country policy:</label
           >
-          <input
-            id="wifi_country_policy"
-            class="cfgValue grid-item"
-            type="number"
-            min="0"
-            max="1"
-            step="1"
-          />
+          <select id="wifi_country_policy" class="cfgValue grid-item">
+            <option value="0">Auto</option>
+            <option value="1">Manual</option>
+          </select>
           <label for="wifi_country_start#ch" class="grid-item"
             >Start channel:</label
           >
@@ -160,7 +158,7 @@
       </fieldset>
       <br />
       <fieldset>
-        <h3 class="collapsible">Wifi Station mode</h3>
+        <h3 class="collapsible">Wifi Station mode (wifi-sta)</h3>
         <div class="collapsible-content grid-container">
           <label for="wifiSta_bssid" class="grid-item">BSSID:</label>
           <input
@@ -172,17 +170,12 @@
             autocomplete="off"
             placeholder="i.e. XX:XX:XX:XX"
           />
-          <label for="wifiSta_sleepType" class="grid-item"
-            >Sleep type<br />(NONE=0,Light=1,<br />Modem=2):</label
-          >
-          <input
-            id="wifiSta_sleepType"
-            class="cfgValue grid-item"
-            type="number"
-            min="0"
-            max="2"
-            step="1"
-          />
+          <label for="wifiSta_sleepType" class="grid-item">Sleep type:</label>
+          <select id="wifiSta_sleepType" class="cfgValue grid-item">
+            <option value="0">None</option>
+            <option value="1">Light</option>
+            <option value="2">Modem</option>
+          </select>
           <label for="wifiSta_mac" class="grid-item">MAC address:</label>
           <input
             id="wifiSta_mac"
@@ -233,20 +226,17 @@
       </fieldset>
       <br />
       <fieldset>
-        <h3 class="collapsible">Wifi AP mode</h3>
+        <h3 class="collapsible">Wifi AP mode (wifi-ap)</h3>
         <div class="collapsible-content grid-container">
           <label for="wifiAp_config_auth" class="grid-item"
-            >Authentication method<br />(Open=0,WPA PSK=2,<br />WPA2 PSK=3,<br />WPA_WPA2
-            PSK=4):</label
+            >Authentication method:</label
           >
-          <input
-            id="wifiAp_config_auth"
-            class="cfgValue grid-item"
-            type="number"
-            min="1000"
-            max="60000"
-            step="1"
-          />
+          <select id="wifiAp_config_auth" class="cfgValue grid-item">
+            <option value="0">Open</option>
+            <option value="2">WPA PSK</option>
+            <option value="3">WPA2 PSK</option>
+            <option value="4">WPA WPA2 PSK</option>
+          </select>
           <label for="wifiAp_config_channel" class="grid-item">Channel:</label>
           <input
             id="wifiAp_config_channel"
@@ -256,17 +246,11 @@
             max="14"
             step="1"
           />
-          <label for="wifiAp_config_hidden" class="grid-item"
-            >Hidden<br />(open=0,hidden=1):</label
-          >
-          <input
-            id="wifiAp_config_hidden"
-            class="cfgValue grid-item"
-            type="number"
-            min="0"
-            max="1"
-            step="1"
-          />
+          <label for="wifiAp_config_hidden" class="grid-item">Hidden:</label>
+          <select id="wifiAp_config_hidden" class="cfgValue grid-item">
+            <option value="true">hidden</option>
+            <option value="false">open</option>
+          </select>
           <label for="wifiAp_config_beacon" class="grid-item">Beacon:</label>
           <input
             id="wifiAp_config_beacon"
@@ -334,6 +318,348 @@
             autocomplete="off"
             placeholder="i.e. XXX.XXX.XXX.XXX"
           />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Log</h3>
+        <div class="collapsible-content grid-container">
+          <label for="log_level" class="grid-item">Log level:</label>
+          <select id="log_level" class="cfgValue grid-item">
+            <option value="debug">debug</option>
+            <option value="info">info</option>
+            <option value="error">error</option>
+            <option value="audit">audit</option>
+          </select>
+          <label for="log_usecolor" class="grid-item">Use color:</label>
+          <select id="log_usecolor" class="cfgValue grid-item">
+            <option>true</option>
+            <option>false</option>
+          </select>
+          <label for="log_outfile" class="grid-item">Log file:</label>
+          <input
+            id="log_outfile"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. syslog.log"
+          />
+          <label for="log_logrotate" class="grid-item"
+            >Log file rotate (bytes):</label
+          >
+          <input
+            id="log_logrotate"
+            class="cfgValue grid-item"
+            type="number"
+            min="512"
+            max="4086"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Telnet</h3>
+        <div class="collapsible-content grid-container">
+          <label for="telnet_port" class="grid-item">Port:</label>
+          <input
+            id="telnet_port"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="65535"
+          />
+          <label for="telnet_timeoutSec" class="grid-item"
+            >Connection timeout (sec):</label
+          >
+          <input
+            id="telnet_timeoutSec"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="65535"
+          />
+          <label for="telnet_usr" class="grid-item">Username:</label>
+          <input
+            id="telnet_usr"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            placeholder="i.e. admin"
+          />
+          <label for="telnet_pwd" class="grid-item">Password:</label>
+          <input
+            id="telnet_pwd"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. hard-password"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">HTTP Server</h3>
+        <div class="collapsible-content grid-container">
+          <label for="httpSrv_port" class="grid-item">Port:</label>
+          <input
+            id="httpSrv_port"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="65535"
+          />
+          <label for="httpSrv_timeoutSec" class="grid-item"
+            >Connection timeout (sec):</label
+          >
+          <input
+            id="httpSrv_timeoutSec"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="65535"
+          />
+          <label for="httpSrv_webModules" class="grid-item">Web modules:</label>
+          <select id="httpSrv_webModules" class="cfgValue grid-item" multiple>
+            <option>&#160;</option>
+            <option>web-portal</option>
+            <option>web-ota</option>
+            <option>web-ha</option>
+          </select>
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Relay Switch (hass)</h3>
+        <div class="collapsible-content grid-container">
+          <label for="relaySwitch_pin" class="grid-item">Port:</label>
+          <input
+            id="relaySwitch_pin"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="13"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Temp Sensor (hass)</h3>
+        <div class="collapsible-content grid-container">
+          <label for="tempSensor_pin" class="grid-item">Pin:</label>
+          <input
+            id="tempSensor_pin"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="13"
+          />
+          <label for="tempSensor_periodMs" class="grid-item"
+            >Read period (ms):</label
+          >
+          <input
+            id="tempSensor_periodMs"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="3600000"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Thermostat (hass)</h3>
+        <div class="collapsible-content grid-container">
+          <label for="thermostat_relayPin" class="grid-item">Relay Pin:</label>
+          <input
+            id="thermostat_relayPin"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="13"
+          />
+          <label for="thermostat_periodMs" class="grid-item"
+            >Read period (ms):</label
+          >
+          <input
+            id="thermostat_periodMs"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="3600000"
+          />
+          <label for="thermostat_data_hvac#mode" class="grid-item"
+            >HVAC Mode:</label
+          >
+          <select id="thermostat_data_hvac#mode" class="cfgValue grid-item">
+            <option>off</option>
+            <option>heat</option>
+            <option>auto</option>
+          </select>
+          <label for="thermostat_data_preset#mode" class="grid-item"
+            >HVAC Mode:</label
+          >
+          <select id="thermostat_data_preset#mode" class="cfgValue grid-item">
+            <option>away</option>
+            <option>home</option>
+            <option>sleep</option>
+          </select>
+          <label
+            for="thermostat_modes_away_target#temperature#low"
+            class="grid-item"
+            >Target temp "away" low (C):</label
+          >
+          <input
+            id="thermostat_modes_away_target#temperature#low"
+            class="cfgValue grid-item"
+            type="number"
+          />
+          <label
+            for="thermostat_modes_away_target#temperature#high"
+            class="grid-item"
+            >Target temp "away" high (C):</label
+          >
+          <input
+            id="thermostat_modes_away_target#temperature#high"
+            class="cfgValue grid-item"
+            type="number"
+          />
+          <label
+            for="thermostat_modes_home_target#temperature#low"
+            class="grid-item"
+            >Target temp "home" low (C):</label
+          >
+          <input
+            id="thermostat_modes_home_target#temperature#low"
+            class="cfgValue grid-item"
+            type="number"
+          />
+          <label
+            for="thermostat_modes_home_target#temperature#high"
+            class="grid-item"
+            >Target temp "home" high (C):</label
+          >
+          <input
+            id="thermostat_modes_home_target#temperature#high"
+            class="cfgValue grid-item"
+            type="number"
+          />
+          <label
+            for="thermostat_modes_sleep_target#temperature#low"
+            class="grid-item"
+            >Target temp "sleep" low (C):</label
+          >
+          <input
+            id="thermostat_modes_sleep_target#temperature#low"
+            class="cfgValue grid-item"
+            type="number"
+          />
+          <label
+            for="thermostat_modes_sleep_target#temperature#high"
+            class="grid-item"
+            >Target temp "sleep" high (C):</label
+          >
+          <input
+            id="thermostat_modes_sleep_target#temperature#high"
+            class="cfgValue grid-item"
+            type="number"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Home Assistant (web-ha)</h3>
+        <div class="collapsible-content grid-container">
+          <label for="webHa_credentials_realm" class="grid-item">Realm:</label>
+          <input
+            id="webHa_credentials_realm"
+            class="cfgValue grid-item"
+            type="text"
+            readonly
+          />
+          <label for="webHa_credentials_usr" class="grid-item">Username:</label>
+          <input
+            id="webHa_credentials_usr"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            placeholder="i.e. admin"
+          />
+          <label for="webHa_credentials_pwd" class="grid-item">Password:</label>
+          <input
+            id="webHa_credentials_pwd"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. hard-password"
+          />
+          <label for="webHa_entities" class="grid-item">Entities:</label>
+          <select id="webHa_entities" class="cfgValue grid-item" multiple>
+            <option>&#160;</option>
+            <option>thermostat</option>
+            <option>temp-sensor</option>
+            <option>relay-switch</option>
+            <option>system-hass</option>
+          </select>
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Web OTA (web-ota)</h3>
+        <div class="collapsible-content grid-container">
+          <label for="webOta_realm" class="grid-item">Realm:</label>
+          <input
+            id="webOta_realm"
+            class="cfgValue grid-item"
+            type="text"
+            readonly
+          />
+          <label for="webOta_usr" class="grid-item">Username:</label>
+          <input
+            id="webOta_usr"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            placeholder="i.e. admin"
+          />
+          <label for="webOta_pwd" class="grid-item">Password:</label>
+          <input
+            id="webOta_pwd"
+            class="cfgValue grid-item"
+            type="text"
+            autocorrect="off"
+            autocapitalize="none"
+            autocomplete="off"
+            placeholder="i.e. hard-password"
+          />
+        </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Init sequence (services)</h3>
+        <div class="collapsible-content grid-container">
+          <label for="initSeq_bootsequence" class="grid-item">Boot sequence:</label>
+          <select id="initSeq_bootsequence" class="cfgValue grid-item" multiple>
+            <option>&#160;</option>
+            <option>user-settings</option>
+            <option>log-start</option>
+            <option>wifi-apply-config</option>
+            <option>wifi-mgr</option>
+            <option>http-srv</option>
+            <option>telnet</option>
+            <option>temp-sensor-start</option>
+            <option>relay-switch-start</option>
+            <option>lights-switch-start</option>
+            <option>thermostat-start</option>
+          </select>
         </div>
       </fieldset>
       <br />
