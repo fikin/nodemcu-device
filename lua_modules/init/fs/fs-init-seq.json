@@ -1,0 +1,14 @@
+{
+  "bootsequence": [
+    "user-settings",
+    "log-start",
+    "wifi-apply-config",
+    "wifi-mgr",
+    "http-srv",
+    "telnet",
+    "temp-sensor-start",
+    "relay-switch-start",
+    "lights-switch-start",
+    "thermostat-start"
+  ]
+}

@@ -4,11 +4,87 @@
 
 <!-- code_chunk_output -->
 
-- [NodeMCU Device](#nodemcu-device)
-  - [Building instructions](#building-instructions)
-  - [Some build setup explanations](#some-build-setup-explanations)
+- [NodeMCU Device](#-nodemcu-device)
+  - [What is possible?](#-what-is-possible)
+  - [How to use it this repo?](#-how-to-use-it-this-repo)
+  - [Image building instructions](#-image-building-instructions)
+    - [Additional details](#-additional-details)
+  - [Some background](#-some-background)
 
 <!-- /code_chunk_output -->
+
+This is a repository of [NodeMCU](https://en.wikipedia.org/wiki/NodeMCU) **Lua** modules.
+
+These modules can be built into [SPIFFS](https://nodemcu.readthedocs.io/en/release/spiffs/) and [LFS](https://nodemcu.readthedocs.io/en/release/lfs/) images.
+
+There are unit and even integration tests but coverage is on the lower ends.
+
+## What is possible?
+
+Using WeMos D1 Mini, one can run following and still have about 30kB free RAM:
+
+- Wifi manager
+- Http server with Captive portal, OTA and Home Assistant integration
+- Telnet
+- Thermostat control loop
+
+Example booting sequence is listed [docs/boot-log.txt](docs/boot-log.txt).
+
+Captive portal web page looks like this ![portal](docs/portal.png)
+
+Integration with Home Assistant looks like this ![hass](docs/2023-01-22_22-46.png) ![hass2](docs/2023-01-22_22-47.png)
+
+## How to use it this repo?
+
+Build an image and flash the device. Image content (list of needed C and Lua modules) is defined in `build.config` file. See [building instructions](#image-building-instructions).
+
+hack `lua_modules` to add/remove/modify whatever functionality is needed and build new images.
+
+## Image building instructions
+
+Prerequisites:
+
+internally the build is using [nodemcu-firmware](https://github.com/nodemcu/nodemcu-firmware) to create actual images (firmware, SPFFS and LFS).
+Make sure your env can compile it [locally](https://nodemcu.readthedocs.io/en/latest/build/#linux-build-environment)!
+
+Build steps:
+
+- Clone _this_ repo.
+- Modify `build.config` (if you find a need).
+  - `modules` and `lua-modules` list modules which will be packaged in the images.
+    - Make sure you account for all module dependencies, there is no automatic tracking!
+  - Other settings are not recommended to change, do so on your own discretion.
+- `make config` to generate the build config input.
+  - The file is stored under `vendor` folder.
+- `make prepare-firmware` to patch firmware headers with needed into:
+  - And to prepare `nodemcu-firmware/local` folder content.
+- `make build` to build the images.
+  - In `vendor/nodemcu-firmware/bin` folder:
+    - `0x*.bin` are NodeMCU firmware images.
+    - `0x*.img` is the SPIFFS image, packaging also `LFS.img`.
+  - In `vendor/nodemcu-firmware/local/fs` are located all files included in SPIFFS image.
+    - Any of the files, including actual `LFS.img`, can also be uploaded to the device manually.
+- Flash the images to NodeMCU device.
+  - `make flash` would flash firmware and SPIFFS (including prepackaged LFS) to ttyUSB device.
+- On **first boot**, the device will auto-flash `LFS.img`, packaged inside SPIFFS and reboot again.
+  - This is facilitated by `bootprotect`, `init` and `lfs-init` modules.
+- After that, on second boot, the device will run its normal boot init sequence.
+
+### Additional details
+
+Internally build would:
+
+- use `vendor` folder as working location for data cloning and output generation
+- clone [nodemcu-firmware](https://github.com/nodemcu/nodemcu-firmware):_dev_ branch under `vendor/nodemcu-firmware`.
+  - it is used to generate all images
+  - one can pre-clone different source tree there manually!
+  - _Beware_ that build process modifies files in this source tree (`user_modules.h`, `user_config.h`)!
+- clone [nodemcu-custom-build](https://github.com/fikin/nodemcu-custom-build) under `vendor/nodemcu-custom-build`
+  - it is used to modify the firmware files prior to image building
+  - one can pre-clone different source tree if there is a need.
+- clone [nodemcu-lua-mocks](https://github.com/fikin/nodemcu-lua-mocks) to run tests
+
+## Some background
 
 Traditionally, programming for [NodeMCU](https://en.wikipedia.org/wiki/NodeMCU) has been rather constrained given the limited space of RAM (up to ~44kB for heap space for data and code).
 
@@ -29,34 +105,6 @@ Provided so far are (check [lua_modules dir](lua_modules) for up to date list):
 - telnet
 - ...
 
-*Some of the modules were created by other authors, here they are included for convenience during packaging.*
+_Some of the modules were created by other authors, here they are included for convenience during packaging._
 
 Note: I'm testing these with ESP8266, for ESP32 I haven't had time to check yet.
-
-## Building instructions
-
-1. Clone this repo
-2. Tune `build.config` if you find a need. Specifically the included `modules`.
-3. `make config` to generate the build config input.
-4. `make prepare-firmware` to patch firmware headers with needed into. And to prepare `nodemcu-firmware/local` folder content.
-*4.1. Make sure you can compile firmware [locally](https://nodemcu.readthedocs.io/en/latest/build/#linux-build-environment).*
-5. `make build` to produce images in `nodemcu-firmware/bin` folder.
-6. Flash the images to NodeMCU device
-
-On first boot, the device will flash `LFS.img`, packaged inside SPIFFS and reboot again.
-
-After that second reboot, the device will run its defined boot init sequence.
-
-## Some build setup explanations
-
-Build is using [nodemcu-custom-build](https://github.com/fikin/nodemcu-custom-build) to patch `nodemcu-firmware` header files. This choice is long term bet into getting this functionality to NodeMCU cloud building support.
-
-Build is cloning `nodemcu-custom-build` and `nodemcu-firmware` repos in respective subdirs. One can symlink them if more advanced use is needed.
-
-Images are built using `nodemcu-firmware` tools and default setup. This means that:
-
-- all `local/lua` files are packaged into `local/fs/LFS.img`
-- all `local/fs` files are packages into SPIFFS image `bin/0x100000-0x40000.img` (subject to address and size settings in `build.config`).
-- actual firmware is built into `bin/{0x00000.bin,0x10000.bin}`.
-
-All Lua modules are structured in [lua_modules](lua_modules) subdir. Subfolder structure follows same notation: `<module>/lua` files will end up in LFS image, `<module>/fs` files will end up in SPIFFS.

@@ -1,0 +1,139 @@
+NodeMCU 3.0.0.0 'built locally'
+        branch: dev
+        commit: 193fe3593eb1537667179089535cdb7457327887
+        release: 
+        release DTS: 202207101501
+        SSL: false
+        build type: float
+        LFS: 0x40000 bytes total capacity
+        modules: adc,bit,crypto,encoder,file,gpio,i2c,mdns,net,node,ow,rtcmem,rtctime,sjson,sntp,spi,tmr,uart,wifi
+ build 2023-01-22 22:01 powered by Lua 5.3.5 on SDK 3.0.1-dev(fce080e)
+> #####         _lfs-init       START
+[INFO]: RTC time set to Unix epoc start
+[INFO]: The LFS addr is 540672
+[INFO]: The LFS size is 262144
+[INFO]: The SPIFFS addr is 1048576
+[INFO]: The SPIFFS size is 1048576
+[INFO]: { lfs_addr = 0x084000, lfs_size = 0x040000, spiffs_addr = 0x100000, spiffs_size = 0x100000 }
+[INFO]: post reboot actions ...
+[INFO]: LFS modules are:
+[INFO]:   1 _init
+[INFO]:   2 bootprotect
+[INFO]:   3 call-later
+[INFO]:   4 device-settings
+[INFO]:   5 ds18b20
+[INFO]:   6 dummy-strings
+[INFO]:   7 factory-settings
+[INFO]:   8 get-sw-version
+[INFO]:   9 gpio-set-pin
+[INFO]:   10 http-authorize
+[INFO]:   11 http-conn
+[INFO]:   12 http-conn-gc
+[INFO]:   13 http-conn-req
+[INFO]:   14 http-conn-resp
+[INFO]:   15 http-h-ok
+[INFO]:   16 http-h-read-json
+[INFO]:   17 http-h-restart
+[INFO]:   18 http-h-return-file
+[INFO]:   19 http-h-save-file
+[INFO]:   20 http-h-save-file-bak
+[INFO]:   21 http-h-send-json
+[INFO]:   22 http-parse-headers
+[INFO]:   23 http-srv
+[INFO]:   24 lights-switch-ha-data
+[INFO]:   25 lights-switch-ha-set
+[INFO]:   26 lights-switch-ha-spec
+[INFO]:   27 lights-switch-start
+[INFO]:   28 log
+[INFO]:   29 log-start
+[INFO]:   30 read-json-file
+[INFO]:   31 relay-switch-ha-data
+[INFO]:   32 relay-switch-ha-set
+[INFO]:   33 relay-switch-ha-spec
+[INFO]:   34 relay-switch-start
+[INFO]:   35 sntp-dns-code
+[INFO]:   36 sntp-sync-start
+[INFO]:   37 state
+[INFO]:   38 str-split
+[INFO]:   39 str-to-json
+[INFO]:   40 system-hass-ha-data
+[INFO]:   41 system-hass-ha-spec
+[INFO]:   42 system-restart-button-ha-set
+[INFO]:   43 table-clone
+[INFO]:   44 table-merge
+[INFO]:   45 table-substract
+[INFO]:   46 telnet
+[INFO]:   47 temp-sensor-control
+[INFO]:   48 temp-sensor-get
+[INFO]:   49 temp-sensor-ha-data
+[INFO]:   50 temp-sensor-ha-spec
+[INFO]:   51 temp-sensor-start
+[INFO]:   52 thermostat-control
+[INFO]:   53 thermostat-ha-data
+[INFO]:   54 thermostat-ha-set
+[INFO]:   55 thermostat-ha-spec
+[INFO]:   56 thermostat-start
+[INFO]:   57 user-settings
+[INFO]:   58 web-ha
+[INFO]:   59 web-ota
+[INFO]:   60 web-portal
+[INFO]:   61 wifi-apply-config
+[INFO]:   62 wifi-authmode
+[INFO]:   63 wifi-event-type
+[INFO]:   64 wifi-mgr
+[INFO]:   65 wifi-reasons
+[INFO]:   66 wifi-stastatus
+[INFO]:   67 wifi-wifimode
+[INFO]: LFS._init loading ...
+#####   _lfs-init       END
+[INFO  1970/01/01 00:00:00] bootprotect.lua:205: starting up boot sequence
+[INFO  1970/01/01 00:00:00] bootprotect.lua:97: (1) (heap: 33592) user-settings
+[INFO  1970/01/01 00:00:01] factory-settings.lua:24: updating device settings ds-wifi-sta.json
+[INFO  1970/01/01 00:00:02] factory-settings.lua:24: updating device settings ds-wifi-ap.json
+[INFO  1970/01/01 00:00:02] bootprotect.lua:101: (1) heap: 39536
+INFO  1970/01/01 00:00:02 bootprotect.lua:97: (3) (heap: 37848) wifi-apply-config
+DEBUG 1970/01/01 00:00:03 wifi-apply-config.lua:39: setting country {"country":"AQ","policy":0,"end_ch":13,"start_ch":1}
+DEBUG 1970/01/01 00:00:03 wifi-apply-config.lua:44: setting max tx power to 41
+DEBUG 1970/01/01 00:00:03 wifi-apply-config.lua:47: setting protocol to 3
+DEBUG 1970/01/01 00:00:03 wifi-apply-config.lua:56: setting hostname nodemcu16449049
+DEBUG 1970/01/01 00:00:03 wifi-apply-config.lua:61: setting station mac address 9a:f4:ab:fa:fe:19
+ERROR 1970/01/01 00:00:03 wifi-apply-config.lua:63: failed to set station mac address
+DEBUG 1970/01/01 00:00:03 wifi-apply-config.lua:74: setting station sleep type 2
+DEBUG 1970/01/01 00:00:03 wifi-apply-config.lua:79: setting station config {"ssid":"<STA_SSID>","save":false,"auto":false,"pwd":"<STA_PWD>"}
+DEBUG 1970/01/01 00:00:04 wifi-apply-config.lua:93: setting access point mac address 9a:f4:ab:fa:fe:19
+DEBUG 1970/01/01 00:00:04 wifi-apply-config.lua:99: setting access point dhcp config {"start":"192.168.1.100"}
+DEBUG 1970/01/01 00:00:04 wifi-apply-config.lua:101: dhcp pool startip=192.168.1.100, endip=192.168.1.103
+DEBUG 1970/01/01 00:00:04 wifi-apply-config.lua:103: setting access point ip address {"ip":"192.168.1.1","gateway":"192.168.1.1","netmask":"255.255.255.0"}
+DEBUG 1970/01/01 00:00:04 wifi-apply-config.lua:108: setting access point config {"ssid":"nodemcu16449049_ap","pwd":"1234567890","max":1,"hidden":false,"auth":3,"save":false,"beacon":1000,"channel":6}
+INFO  1970/01/01 00:00:05 bootprotect.lua:101: (3) heap: 38688
+INFO  1970/01/01 00:00:05 bootprotect.lua:97: (4) (heap: 37176) wifi-mgr
+INFO  1970/01/01 00:00:06 wifi-mgr.lua:84: starting up ap nodemcu16449049_ap
+INFO  1970/01/01 00:00:06 bootprotect.lua:101: (4) heap: 35216
+INFO  1970/01/01 00:00:06 bootprotect.lua:97: (5) (heap: 33616) http-srv
+INFO  1970/01/01 00:00:06 http-srv.lua:31: starting http server on port 80
+INFO  1970/01/01 00:00:06 bootprotect.lua:101: (5) heap: 34704
+INFO  1970/01/01 00:00:06 bootprotect.lua:97: (6) (heap: 32992) telnet
+INFO  1970/01/01 00:00:07 telnet.lua:140: listening on port 23
+INFO  1970/01/01 00:00:07 bootprotect.lua:101: (6) heap: 33480
+INFO  1970/01/01 00:00:07 bootprotect.lua:97: (7) (heap: 31672) temp-sensor-start
+DEBUG 1970/01/01 00:00:07 temp-sensor-start.lua:53: starting up ...
+DEBUG 1970/01/01 00:00:07 temp-sensor-start.lua:40: scheduling control loop
+INFO  1970/01/01 00:00:07 bootprotect.lua:101: (7) heap: 30488
+INFO  1970/01/01 00:00:07 bootprotect.lua:97: (8) (heap: 28656) relay-switch-start
+DEBUG 1970/01/01 00:00:07 relay-switch-start.lua:17: starting up ...
+INFO  1970/01/01 00:00:07 relay-switch-ha-set.lua:26: change settings to {"is_on":false}
+INFO  1970/01/01 00:00:08 gpio-set-pin.lua:14: set gpio pin 1 to LOW
+INFO  1970/01/01 00:00:08 bootprotect.lua:101: (8) heap: 29984
+ERROR 1970/01/01 00:00:08 bootprotect.lua:158: function failed previous boot (9): lights-switch-start
+ERROR 1970/01/01 00:00:08 bootprotect.lua:136: waiting for 30 sec. before calling function (9) : lights-switch-start
+INFO  1970/01/01 00:00:08 bootprotect.lua:137: call `require("bootprotect").stop()` before that to interrupt the sequence.
+INFO  1970/01/01 00:00:08 wifi-mgr.lua:168: wifi mode changed {"old_mode":"SOFTAP","new_mode":"NULLMODE"}
+INFO  1970/01/01 00:00:08 wifi-mgr.lua:168: wifi mode changed {"old_mode":"NULLMODE","new_mode":"STATION"}
+INFO  1970/01/01 00:00:08 wifi-mgr.lua:168: wifi mode changed {"old_mode":"STATION","new_mode":"SOFTAP"}
+INFO  1970/01/01 00:00:08 wifi-mgr.lua:168: wifi mode changed {"old_mode":"SOFTAP","new_mode":"NULLMODE"}
+INFO  1970/01/01 00:00:08 wifi-mgr.lua:168: wifi mode changed {"old_mode":"NULLMODE","new_mode":"NULLMODE"}
+INFO  1970/01/01 00:00:08 wifi-mgr.lua:168: wifi mode changed {"old_mode":"NULLMODE","new_mode":"SOFTAP"}
+
+> collectgarbage();collectgarbage();print(node.heap())
+
+33280

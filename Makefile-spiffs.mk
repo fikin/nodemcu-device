@@ -27,7 +27,10 @@ else
 FLASH_FS_LOC 		:= $(shell printf "0x%x" $(FLASH_FS_LOC))
 endif
 
-.PHONY: lfs-lc lfs-image lfs-lst spiffs-lc spiffs-md5 spiffs-lst spiffs-image
+.PHONY: docker-deps lfs-lc lfs-image lfs-lst spiffs-lc spiffs-md5 spiffs-lst spiffs-minify spiffs-image
+
+docker-deps:
+	docker pull tdewolff/minify
 
 # compile local/lua into local/fs/LFS.img (LFS image)
 lfs-lst:
@@ -49,12 +52,20 @@ spiffs-lc:
 	@rm -f $(FS_DIR)/*.lua
 
 spiffs-md5:
-	@rm -f $(FS_DIR)release
+	@rm -f $(FS_DIR)/release
 	@$(foreach f, $(FS_FILES), (cd $(FS_DIR) && md5sum $(f) >> release) ;)
 
 spiffs-lst: spiffs-lc lfs-image spiffs-md5
 	@rm -f ./vendor/spiffs.lst
 	@$(foreach f, $(FS_FILES), echo "import $(FS_DIR)/$(f) $(f)" >> ./vendor/spiffs.lst ;)
 
-spiffs-image: spiffs-lst
+spiffs-minify: spiffs-lst
+	@docker run -it --rm \
+		-v $(PWD)/vendor/minify:/to \
+		-v $(PWD)/$(FS_DIR):/from \
+		-u $(id -u ${USER}):$(id -g ${USER}) \
+		tdewolff/minify -rv -o /to /from
+	@cp vendor/minify/*/* $(FS_DIR)/
+
+spiffs-image: spiffs-minify
 	$(SPIFFSIMG) -f $(FWDIR)/bin/0x%x-$(FLASHSIZE).img -c $(FLASHSIZE) -U $(FLASH_FS_LOC) -r ./vendor/spiffs.lst -d
