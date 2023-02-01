@@ -29,6 +29,7 @@ endif
 
 .PHONY: docker-deps lfs-lc lfs-image lfs-lst spiffs-lc spiffs-md5 spiffs-lst spiffs-minify spiffs-image
 
+# minifies static files in SPIFFS
 docker-deps:
 	docker pull tdewolff/minify
 

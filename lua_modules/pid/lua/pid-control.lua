@@ -10,7 +10,7 @@ local modname = ...
 ---@field ki number
 ---@field kd number
 ---@field sampleTimeMs integer
----@field Setpoint number
+---@field setpoint number
 ---@field outMax number
 ---@field outMin number
 ---@field reverseDirection boolean
@@ -20,59 +20,39 @@ local modname = ...
 ---@field cfg pid_cfg
 ---@field Input number
 ---@field Output number
----@field lastInput number
----@field lastTime number
----@field outputSum number
+---@field _lastInput number
+---@field _integralI number
 
----@return pid_state
-local function getState()
-    return require("state")("pid")
-end
-
-local state = getState()
-local tmr = require("tmr")
+---@type pid_state
+local state = require("state")("pid")
 
 ---@param val number
 ---@return number
 local function adjustMinMax(val)
-    if val > state.cfg.outMax then
-        return state.cfg.outMax
-    elseif val < state.cfg.outMin then
-        return state.cfg.outMin
-    else
-        return val
-    end
+    return math.min(math.max(val, state.cfg.outMin), state.cfg.outMax)
 end
 
 local function doCompute()
-    local error = state.cfg.Setpoint - state.Input
-    local dInput = state.Input - state.lastInput
+    local error = state.cfg.setpoint - state.Input
+    local dInput = state.Input - state._lastInput
 
-    state.outputSum = (state.outputSum) + (state.cfg.ki * error)
-    if state.cfg.noOvershoot then
-        state.outputSum = (state.outputSum) - (state.cfg.kp * dInput)
-    end
-    state.outputSum = adjustMinMax(state.outputSum)
+    local p = (state.cfg.noOvershoot) and 0 or (state.cfg.kp * error)
 
-    local outVal = 0
-    if not state.cfg.noOvershoot then
-        outVal = (state.cfg.kp * error)
-    end
-    outVal = (outVal) + (state.outputSum) - (state.cfg.kd * dInput)
-    state.Output = adjustMinMax(outVal)
+    local i = state.cfg.ki * error
+    local ip = (state.cfg.noOvershoot) and (state.cfg.kp * dInput) or 0
+    state._integralI = adjustMinMax(state._integralI + i - ip)
 
-    state.lastInput = state.Input
+    local d = state.cfg.kd * dInput
+
+    state.Output = adjustMinMax(p + state._integralI - d)
+
+    state._lastInput = state.Input
 end
 
 local function main()
     package.loaded[modname] = nil
 
-    local now = tmr.now()
-    local timeChange = now - state.lastTime
-    if timeChange >= state.cfg.sampleTimeMs then
-        doCompute()
-        state.lastTime = now;
-    end
+    doCompute()
 end
 
 return main
