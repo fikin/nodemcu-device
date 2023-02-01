@@ -60,6 +60,22 @@
         "${workspaceFolder}/lua_modules/lfs-init/fs/?.lua",
         "${workspaceFolder}/vendor/nodemcu-lua-mocks/lua/?.lua"
       ]
+    },
+    {
+      "type": "lua",
+      "request": "launch",
+      "name": "Nodemcu-device PID Simulator",
+      "stopOnEntry": true,
+      "cwd": "${workspaceFolder}",
+      "program": "${file}",
+      "luaVersion": "5.3",
+      "env": {
+        "NODEMCU_MOCKS_SPIFFS_DIR": "integration-tests/lua/pid-simulator"
+      },
+      "path": [
+        "${workspaceFolder}/integration-tests/lua/pid-simulator/?.lua",
+        "${workspaceFolder}/vendor/nodemcu-lua-mocks/lua/?.lua"
+      ]
     }
   ]
 }

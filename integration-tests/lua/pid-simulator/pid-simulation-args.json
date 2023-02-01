@@ -1,0 +1,35 @@
+{
+  "delay": 15,
+  "sampletime": 5,
+  "pid": [
+    {
+      "name": "reference",
+      "kp": 98,
+      "ki": 0.66,
+      "kd": 230
+    },
+    {
+      "name": "Kp too low",
+      "kp": 30,
+      "ki": 0.66,
+      "kd": 230
+    },
+    {
+      "name": "Ki too low",
+      "kp": 98,
+      "ki": 0.01,
+      "kd": 230
+    }
+  ],
+  "out_min": 0,
+  "out_max": 100,
+  "diameter": 50,
+  "volume": 70,
+  "kettle_temp": 40,
+  "interval": 20,
+  "setpoint": 45,
+  "verbose": true,
+  "heater_power": 6,
+  "ambient_temp": 20,
+  "heat_loss_factor": 1
+}

@@ -13,10 +13,10 @@ end
 local function main(setpoint)
     package.loaded[modname] = nil
 
-    getState().cfg.Setpoint = setpoint
+    getState().cfg.setpoint = setpoint
 
     local b = require("factory-settings")("pid")
-    b.cfg.Setpoint = setpoint
+    b.cfg.setpoint = setpoint
     b:done()
 end
 

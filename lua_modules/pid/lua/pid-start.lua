@@ -14,9 +14,8 @@ local function initState()
     local def = {
         Input = 0,
         Output = 0,
-        lastInput = 0,
-        lastTime = 0,
-        outputSum = 0,
+        _lastInput = 0,
+        _integralI = 0,
     }
     ---@type pid_state
     local state = require("state")("pid", def)
@@ -24,8 +23,8 @@ local function initState()
     state.cfg = cfg
 
     -- init part
-    state.lastInput = state.Input
-    state.outputSum = state.Output
+    state._lastInput = state.Input
+    state._integralI = state.Output
 
     return state
 end

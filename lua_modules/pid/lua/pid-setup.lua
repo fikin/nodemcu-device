@@ -43,7 +43,7 @@ end
 ---@param reverseDirection boolean
 ---@param noOvershoot boolean
 local function assignCfg(cfg, Setpoint, Kp, Ki, Kd, SampleTimeMs, outMax, outMin, reverseDirection, noOvershoot)
-    cfg.Setpoint = Setpoint
+    cfg.setpoint = Setpoint
     setCoefficients(cfg, Kp, Ki, Kd, SampleTimeMs)
     cfg.outMax = outMax
     cfg.outMin = outMin
