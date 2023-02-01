@@ -8,7 +8,8 @@
   - [What is possible?](#-what-is-possible)
   - [How to use it this repo?](#-how-to-use-it-this-repo)
   - [Image building instructions](#-image-building-instructions)
-    - [Additional details](#-additional-details)
+    - [Additional building details](#-additional-building-details)
+  - [Working with Lua modules](#-working-with-lua-modules)
 
 <!-- /code_chunk_output -->
 
@@ -26,6 +27,9 @@ Using WeMos D1 Mini, one can run following and still have about 30kB free RAM:
 - Http server with Captive portal, OTA and Home Assistant integration
 - Telnet
 - Thermostat control loop
+- PID controller
+
+Browse [lua_modules](lua_modules) folder to explore available functionality.
 
 Example booting sequence is listed [docs/boot-log.txt](docs/boot-log.txt).
 
@@ -37,16 +41,17 @@ Integration with Home Assistant looks like this ![hass](docs/2023-01-22_22-46.pn
 
 Build an image and flash the device. Image content (list of needed C and Lua modules) is defined in `build.config` file. See [building instructions](#image-building-instructions).
 
-hack `lua_modules` to add/remove/modify whatever functionality is needed and build new images.
+Hack `lua_modules` to add/remove/modify whatever functionality is needed and build new images.
 
 ## Image building instructions
 
-Prerequisites:
+**Prerequisites:**
 
-internally the build is using [nodemcu-firmware](https://github.com/nodemcu/nodemcu-firmware) to create actual images (firmware, SPFFS and LFS).
+Internally the build is using [nodemcu-firmware](https://github.com/nodemcu/nodemcu-firmware) to create actual images (firmware, SPFFS and LFS).
+
 Make sure your env can compile it [locally](https://nodemcu.readthedocs.io/en/latest/build/#linux-build-environment)!
 
-Build steps:
+**Build steps:**
 
 - Clone _this_ repo.
 - Modify `build.config` (if you find a need).
@@ -69,7 +74,7 @@ Build steps:
   - This is facilitated by `bootprotect`, `init` and `lfs-init` modules.
 - After that, on second boot, the device will run its normal boot init sequence.
 
-### Additional details
+### Additional building details
 
 Internally build would:
 
@@ -82,3 +87,18 @@ Internally build would:
   - it is used to modify the firmware files prior to image building
   - one can pre-clone different source tree if there is a need.
 - clone [nodemcu-lua-mocks](https://github.com/fikin/nodemcu-lua-mocks) to run tests
+
+## Working with Lua modules
+
+Each optionally installable module is placed in own folder.
+
+In each module, `<module>/lua/` sub-dir contains files which are to be placed in LFS image.
+And `<module>/fs/` contains files to be placed directly in SPIFFS.
+
+By default `build.config` is including most if not all modules.
+
+Look at the [docs/boot-log.txt](docs/boot-log.txt) to see what it looks like the default boot sequence.
+
+Be mindful of module dependencies to include explicitly, there is no automatic build-time checking for this.
+
+Integration test can be used to test that.
