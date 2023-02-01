@@ -5,7 +5,8 @@
 ---@field out_max number
 ---@field diameter number
 ---@field volume number
----@field kettle_temp number
+---@field device_type string -- one of [kettle, room]
+---@field device_temp number
 ---@field setpoint number
 ---@field verbose boolean
 ---@field heater_power number
@@ -17,7 +18,7 @@
 ---@class autotunePid_obj
 ---@field name  string
 ---@field sut  autotune_obj
----@field kettle  kettle_obj
+---@field device  device_sim
 ---@field delayed_temps  deque_obj
 ---@field timestamps number[]
 ---@field heater_temps number[]
@@ -26,7 +27,6 @@
 local M = {}
 M.__index = M
 
-local kettleFact = require("kettle")
 local autotuneFact = require("autotune")
 local dequeFact = require("mini-deque")
 local round = require("round")
@@ -39,18 +39,18 @@ end
 ---instantiate new simulation object
 ---@param name string
 ---@param sut autotune_obj
----@param kettle kettle_obj
+---@param device device_sim
 ---@param delayed_temps deque_obj
 ---@param timestamps number[]
 ---@param heater_temps number[]
 ---@param sensor_temps number[]
 ---@param outputs number[]
 ---@return autotunePid_obj
-local function simulationFact(name, sut, kettle, delayed_temps, timestamps, heater_temps, sensor_temps, outputs)
+local function simulationFact(name, sut, device, delayed_temps, timestamps, heater_temps, sensor_temps, outputs)
     local o = setmetatable({
         name = name,
         sut = sut,
-        kettle = kettle,
+        device = device,
         delayed_temps = delayed_temps,
         timestamps = timestamps,
         heater_temps = heater_temps,
@@ -69,8 +69,8 @@ local function initSimulation(args)
         "autotune",
         autotuneFact(args.setpoint, 100, args.sampletime, args.lookback, args.out_min, args.out_max, args.noiseband,
             timeObj.fnc),
-        kettleFact(args.diameter, args.volume, args.kettle_temp),
-        dequeFact(delayed_temps_len, args.kettle_temp),
+        require(args.device_type)(args.diameter, args.volume, args.device_temp),
+        dequeFact(delayed_temps_len, args.device_temp),
         {}, {}, {}, {}
     )
 end
@@ -81,13 +81,13 @@ end
 ---@param output number
 ---@param args autotunePid_args
 local function sim_update(sim, timestamp, output, args)
-    sim.kettle:heat(args.heater_power * (output / 100), args.sampletime)
-    sim.kettle:cool(args.sampletime, args.ambient_temp, args.heat_loss_factor)
-    sim.delayed_temps:append(sim.kettle:temperature())
+    sim.device:heat(args.heater_power * (output / 100), args.sampletime)
+    sim.device:cool(args.sampletime, args.ambient_temp, args.heat_loss_factor)
+    sim.delayed_temps:append(sim.device:temperature())
     table.insert(sim.timestamps, timestamp)
     table.insert(sim.outputs, output)
     table.insert(sim.sensor_temps, sim.delayed_temps:peekFirst())
-    table.insert(sim.heater_temps, sim.kettle:temperature())
+    table.insert(sim.heater_temps, sim.device:temperature())
 end
 
 ---Run simulation for specified interval

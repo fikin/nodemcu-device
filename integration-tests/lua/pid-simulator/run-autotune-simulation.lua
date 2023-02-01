@@ -32,8 +32,8 @@ end
 ---@param args autotunePid_args
 ---@param sim autotunePid_obj
 local function writeJson(fname, args, sim)
-    local title = string.format('Autotune simulation, %.1fl kettle, %.1fkW heater, %.1fs delay',
-        args.volume, args.heater_power, args.delay)
+    local title = string.format('Autotune simulation, %.1fl %s, %.1fkW heater, %.1fs delay',
+        args.volume, args.device_type, args.heater_power, args.delay)
     local o = { {
         heater_temps = sim.heater_temps,
         name = sim.name,
