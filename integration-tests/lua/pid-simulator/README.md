@@ -19,3 +19,11 @@ Default json argument files are configured identically to examples from [pid-aut
 2. Run `./run-simulation.sh -autotune`
 3. Inspect output files in `out` dir
 4. Plot the `out` results using `./plot-pid-results.py`
+
+## Simulating different devices
+
+Arguments feature `device_type` attribute which refers to `kettle` or `room`.
+
+Kettle is the port from `pid-autotune`.
+
+Room is a minor rework of the kettle model to simulate a room full with air, with circular volume geometry and walls thermal conductivity.

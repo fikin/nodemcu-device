@@ -40,8 +40,8 @@ end
 ---@param args simulationPid_args
 ---@param sims simulationPid_obj[]
 local function writeJson(fname, args, sims)
-    local title = string.format('PID simulation, %.1fl kettle, %.1fkW heater, %.1fs delay',
-        args.volume, args.heater_power, args.delay)
+    local title = string.format('PID simulation, %.1fl %s, %.1fkW heater, %.1fs delay',
+        args.volume, args.device_type, args.heater_power, args.delay)
     local arr = {}
     for _, s in ipairs(sims) do
         local o = {
