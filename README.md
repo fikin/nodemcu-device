@@ -74,6 +74,12 @@ Make sure your env can compile it [locally](https://nodemcu.readthedocs.io/en/la
   - This is facilitated by `bootprotect`, `init` and `lfs-init` modules.
 - After that, on second boot, the device will run its normal boot init sequence.
 
+Note: if many Lua modules are included in the LFS, one might have to patch `./vendor/nodemcu-firmware/app/lua/lopcodes.h` setting for `LFIELDS_PER_FLUSH` from 50 to a bigger value:
+
+```c
+#define LFIELDS_PER_FLUSH	100
+```
+
 ### Additional building details
 
 Internally build would:
