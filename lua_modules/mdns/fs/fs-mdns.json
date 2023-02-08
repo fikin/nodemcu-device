@@ -1,0 +1,25 @@
+{
+  "services": [
+    {
+      "portDS": "http-srv",
+      "properties": {
+        "service": "nodemcu-ha",
+        "description": "HASS integration",
+        "path": "/api/ha"
+      }
+    },
+    {
+      "portDS": "http-srv",
+      "properties": {
+        "service": "http",
+        "path": "/api"
+      }
+    },
+    {
+      "portDS": "telnet",
+      "properties": {
+        "service": "telnet"
+      }
+    }
+  ]
+}

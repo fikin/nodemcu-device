@@ -84,7 +84,7 @@ prepare-firmware: vendor/nodemcu-firmware				## patch firmware files with build.
 ###################
 
 build: prepare-firmware									## builds firmware, SPIFFS and LFS images. Result files are located in nodemcu-firmware/bin and nodemcu-firmware/local/fs/LFS.img.
-	$(MAKE) -C ./vendor/nodemcu-firmware LUA=${X_LUA} all 
+	$(MAKE) -C ./vendor/nodemcu-firmware LUA=${X_LUA} all spiffs-image
 	$(MAKE) -f Makefile-spiffs.mk spiffs-image
 
 spiffs-image: prepare-firmware							## builds only SPIFFS and LFS images. Result files are located in nodemcu-firmware/bin/*.img and nodemcu-firmware/local/fs/LFS.img
@@ -113,7 +113,7 @@ mock_spiffs_dir: spiffs-image							## prepares vendor/test-spiffs folder, used 
 	@mkdir -p $(NODEMCU_MOCKS_SPIFFS_DIR)
 	@rm -rf $(NODEMCU_MOCKS_SPIFFS_DIR)/*
 	@cp ./vendor/nodemcu-firmware/local/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/
-	@cp ./integration-tests/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/
+	@[ -d ./integration-tests/fs ] && cp ./integration-tests/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/ || return 0
 
 test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES)						## runs unit tests
 
