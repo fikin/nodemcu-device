@@ -10,6 +10,8 @@ local modname = ...
 ---@class cfg_wifi_mgr
 ---@field staRetryPeriod integer
 ---@field apStartDelay integer
+---@field sntpSync boolean
+---@field mdsnAdv boolean
 
 ---@class wifi_event_auth_change
 ---@field new_auth_mode integer|string
@@ -22,10 +24,10 @@ local log = require("log")
 local wifi = require("wifi")
 
 
----@type cfg_wifi_mgr
-local devSettings = require("device-settings")(modname)
-local connectLaterDelay = devSettings.staRetryPeriod or (1000 * 60)
-local checkGotIpDelay = devSettings.apStartDelay or (1000 * 60 * 2)
+---@return cfg_wifi_mgr
+local function getSettings()
+  return require("device-settings")(modname)
+end
 
 ---post a task
 ---@param fn fun()
@@ -101,9 +103,11 @@ local function afterDisconnect(reason)
     trySta()
   else
     setAwayFromSta() -- this will disable periodic disconnect calls from firmware
+    local settings = getSettings()
     local c = require("call-later")
-    c(connectLaterDelay, trySta)
-    c(checkGotIpDelay, setApOn)
+    c(settings.staRetryPeriod, trySta)
+    c(settings.apStartDelay, setApOn)
+    if settings.mdsnAdv then require("mdns-adv")("stop") end
   end
 end
 
@@ -149,8 +153,14 @@ end
 local function onStaGotIp(T)
   log.info("got ip %s", log.json, T)
 
-  -- do sntp sync if present, we do not care if missing
-  pcall(require("sntp-sync-start"))
+  local settings = getSettings()
+  if settings.sntpSync then
+    -- do sntp sync if present, we do not care if missing
+    require("sntp-sync")()
+  end
+  if settings.mdsnAdv then
+    require("mdns-adv")("start")
+  end
 
   -- switch off AP if ok
   local fn = function()

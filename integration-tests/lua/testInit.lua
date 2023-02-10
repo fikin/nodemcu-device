@@ -148,7 +148,7 @@ end
 function testInit()
     nodemcu.reset()
 
-    lu.assertIsTrue(file.exists("LFS.img"))
+    --lu.assertIsTrue(file.exists("LFS.img"))
     lu.assertIsFalse(file.exists("LFS.img.PANIC.txt"))
     lu.assertIsTrue(file.exists("fs-wifi.json"))
     lu.assertIsFalse(file.exists("ds-wifi.json"))

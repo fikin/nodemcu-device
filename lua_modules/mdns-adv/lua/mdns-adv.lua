@@ -33,13 +33,19 @@ local function adventiseAllServices(lst)
     end
 end
 
-local function main()
+---Start/stop mDNS advertisement
+---@param operation string one of {start,stop}
+local function main(operation)
     package.loaded[modname] = nil
 
     ---@type mdns_cfg
-    local ms = ds("mdns")
+    local ms = ds("mdns-adv")
 
-    adventiseAllServices(ms.services)
+    if operation == "start" then
+        adventiseAllServices(ms.services)
+    else
+        mdns.close()
+    end
 end
 
 return main

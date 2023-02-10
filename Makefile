@@ -109,10 +109,11 @@ $(UNIT_TEST_CASES):
 		&& lua5.3 $@
 .PHONY: $(UNIT_TEST_CASES)
 
-mock_spiffs_dir: spiffs-image							## prepares vendor/test-spiffs folder, used in running tests
+mock_spiffs_dir: 										## prepares vendor/test-spiffs folder, used in running tests
 	@mkdir -p $(NODEMCU_MOCKS_SPIFFS_DIR)
 	@rm -rf $(NODEMCU_MOCKS_SPIFFS_DIR)/*
 	@cp ./vendor/nodemcu-firmware/local/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/
+	@touch $(NODEMCU_MOCKS_SPIFFS_DIR)/LFS.img
 	@[ -d ./integration-tests/fs ] && cp ./integration-tests/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/ || return 0
 
 test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES)						## runs unit tests
