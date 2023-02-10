@@ -6,7 +6,6 @@
     "wifi-mgr",
     "http-srv",
     "telnet",
-    "mdns-start",
     "temp-sensor-start",
     "relay-switch-start",
     "lights-switch-start",

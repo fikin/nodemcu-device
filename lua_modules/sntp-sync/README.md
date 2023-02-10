@@ -2,4 +2,4 @@
 
 Running periodic SNTP sync.
 
-First time Wifi STA gets an IP, it starts.
+Starting this is typically managed via `wifi-mgr`.

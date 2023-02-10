@@ -1,0 +1,19 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: update apt repos
+      run: sudo apt-get update
+    - name: install make and lua
+      run: sudo apt-get -y install make lua5.3
+    - name: link /usr/bin/lua
+      run: sudo ln -sf /usr/bin/lua5.3 /usr/bin/lua
+    - name: Run lua tests
+      run: make test integration-test

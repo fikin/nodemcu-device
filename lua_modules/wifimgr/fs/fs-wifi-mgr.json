@@ -1,4 +1,6 @@
 {
   "staRetryPeriod": 300000,
-  "apStartDelay": 600000
+  "apStartDelay": 600000,
+  "sntpSync": true,
+  "mdnsAdv": true
 }

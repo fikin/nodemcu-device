@@ -128,6 +128,8 @@ function postDeviceSettings(cfgName) {
     })
     .catch((error) => {
       console.error('Error:', error, cfgName);
+      alert(`Error: ${error.url} responded with ${error.statusText} while saving ${cfgName}`)
+      throw error;
     }).then(() => document.body.style.cursor = 'default');
 }
 
@@ -149,6 +151,8 @@ function askDeviceRestart() {
     })
     .catch((error) => {
       console.error('Error:', error);
+      alert(`Error: ${error.url} responded with ${error.statusText} while requesting device restart`)
+      throw error;
     });
 }
 
@@ -181,6 +185,8 @@ function fetchDeviceSettings(cfgName, cb) {
     .then(cb)
     .catch((error) => {
       console.error('Error:', error, cfgName);
+      alert(`Error: ${error.url} responded with ${error.statusText} while fetching ${cfgName}`)
+      throw error;
     }).then(() => document.body.style.cursor = 'default');
 }
 
@@ -226,7 +232,14 @@ function configureCollapsibleContent() {
   }
 }
 
+function configureWindow() {
+  window.onerror = function (message, url, line) {
+    alert(message + ', ' + url + ', ' + line);
+  };
+}
+
 configureInputEvents();
 configureInputEventsForHostname()
 configureSaveData();
 configureCollapsibleContent();
+configureWindow();
