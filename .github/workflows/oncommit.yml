@@ -15,5 +15,7 @@ jobs:
       run: sudo apt-get -y install make lua5.3
     - name: link /usr/bin/lua
       run: sudo ln -sf /usr/bin/lua5.3 /usr/bin/lua
+    - name: Prepare modules
+      run: make config
     - name: Run lua tests
-      run: make test integration-test
+      run: make prepare-firmware mock_spiffs_dir test integration-test
