@@ -55,7 +55,21 @@ function testDeep2()
     }
     fn(o, o2)
     local txt = sjson.encode(o)
-    lu.assertEquals(txt, '{"k1":{"k2":[3]},"k4":4}')
+    lu.assertEquals(txt, '{"k1":{"k2":[1,2,3]},"k4":4}')
+end
+
+function testArray()
+    local o = sjson.decode('{"bootsequence":["user-settings","log-start"]}')
+    local o2 = sjson.decode('{"bootsequence":["user-settings","log-start","telnet"]}')
+    fn(o, o2)
+    lu.assertEquals(o, { ["bootsequence"] = { "user-settings", "log-start" } })
+end
+
+function testArrayNoDiff()
+    local o = sjson.decode('{"bootsequence":["user-settings","log-start"]}')
+    local o2 = sjson.decode('{"bootsequence":["user-settings","log-start"]}')
+    fn(o, o2)
+    lu.assertEquals(o, {})
 end
 
 os.exit(lu.run())

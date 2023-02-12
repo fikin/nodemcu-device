@@ -7,12 +7,8 @@ local modname = ...
 ---if wasOk is true, device will restart
 ---@param hasErr boolean
 local function restartIfOk(hasErr)
-  if hasErr then
-    require("log").info("Ignoring node restart request due to failed http call")
-  else
-    local task = require("node").task
-    task.post(task.MEDIUM_PRIORITY, function() node.restart(); end)
-  end
+  local task = require("node").task
+  task.post(task.MEDIUM_PRIORITY, function() node.restart(); end)
 end
 
 ---triggers device restart after responding with 200

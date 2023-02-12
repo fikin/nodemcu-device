@@ -4,7 +4,7 @@
     This implementation supports:
         - DS18B20 or DS19B20 familiy of sensors
         - wired in "power" mode (not "parasitic")
-    
+
     Internally it uses a coroutine to suspend the execution when time delay is needed.
 ]]
 local modname = ...
@@ -36,32 +36,6 @@ local function addrToStr(addr)
     end
 end
 
----suspend the thread until node.taks revives it back.
----@param o ds18b20_struct*
----@param delay? integer
-local function wait(o, delay)
-    local f = function() coroutine.resume(o.co) end
-    if delay then
-        tmr.create():alarm(delay, tmr.ALARM_SINGLE, f)
-    else
-        task.post(task.LOW_PRIORITY, f)
-    end
-    coroutine.yield()
-end
-
----waits for coroutine to finish
----@param o ds18b20_struct*
----@return ds18b20_temps
-local function readCo(o)
-    while true do
-        local ok, temps = coroutine.resume(o.co, o)
-        if not ok then error(temps) end
-        if coroutine.status(o.co) == "dead" then
-            return temps
-        end
-    end
-end
-
 ---@param addr string
 ---@param data string
 ---@return number
@@ -87,7 +61,7 @@ local function decodeTemps(rawTemps)
         local crc, b9, t = decodeTemp(addr, data)
         if math.floor(t) ~= 85 then
             if crc == b9 then
-                tbl[addr] = t
+                tbl[addrToStr(addr)] = t
             else
                 log.error("%s temp crc failed", addrToStr, addr)
             end
@@ -192,30 +166,52 @@ local function readRawTemps(pin, addrs)
     return tbl
 end
 
+---read temps after conversion
 ---@param o ds18b20_struct*
----@return ds18b20_temps
-local function readT(o)
-    ow.setup(o.pin)
-    local discoveredAddrs = readAddrs(o.pin)
-    local validAddrs = assertSensors(o.pin, discoveredAddrs)
-    startConvertions(o.pin, validAddrs)
-    wait(o, 750)
-    local rawTemps = readRawTemps(o.pin, validAddrs)
+local function readTempsAfterConversions(o)
+    local rawTemps = readRawTemps(o.pin, o.validAddrs)
     local temps = decodeTemps(rawTemps)
     ow.depower(o.pin)
-    return temps
+    o.cb(temps)
+end
+
+---suspend the thread until node.taks revives it back.
+---@param o ds18b20_struct*
+---@param delay? integer
+local function wait(o, delay)
+    local f = function() readTempsAfterConversions(o) end
+    if delay then
+        tmr.create():alarm(delay, tmr.ALARM_SINGLE, f)
+    else
+        task.post(task.LOW_PRIORITY, f)
+    end
+end
+
+---@param o ds18b20_struct*
+local function readT(o)
+    ow.setup(o.pin)
+    o.discoveredAddrs = readAddrs(o.pin)
+    o.validAddrs = assertSensors(o.pin, o.discoveredAddrs)
+    startConvertions(o.pin, o.validAddrs)
+    wait(o, 750)
 end
 
 ---read DS18B20 sensor temperature over OW and returns its temperature.
 ---throws error in case there was a problem with reading the data.
 ---internally it uses coroutine to suspend execution call when time delay is needed.
 ---@param pin integer
----@return ds18b20_temps
-local function main(pin)
+---@param onReadCb fun(ds18b20_temps) callback when temps have been read
+local function main(pin, onReadCb)
     ---@class ds18b20_struct*
-    local o = { pin = pin }
-    o.co = coroutine.create(readT)
-    return readCo(o)
+    local o = {
+        pin = pin,
+        cb = onReadCb,
+        ---@type string[]
+        discoveredAddrs = nil,
+        ---@type table
+        validAddrs = nil,
+    }
+    readT(o)
 end
 
 return main
