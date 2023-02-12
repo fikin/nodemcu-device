@@ -34,7 +34,7 @@ end
 local function onReconnFn(conn)
   return function(sk, err)
     local remotePort, remoteIp = pcall(function() return sk:getpeer(); end)
-    log.debug("reconnection from %s:%s %s", remoteIp, tostring(remotePort), err)
+    log.debug("reconnection from %s:%s %s", tostring(remoteIp), tostring(remotePort), err)
     coroutine.resume(conn.co)
   end
 end
