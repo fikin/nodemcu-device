@@ -1,6 +1,7 @@
 local lu = require("luaunit")
 local nodemcu = require("nodemcu")
 local file = require("file")
+local sjson = require("sjson")
 
 local fn = require("factory-settings")
 
@@ -22,6 +23,19 @@ function testOk()
 
   b:done()
   lu.assertIsTrue(file.exists("ds-dummy.json"))
+end
+
+function testInitSeq()
+  nodemcu.reset()
+
+  local b = fn("init-seq")
+
+  local o2 = sjson.decode('{"bootsequence":["user-settings","log-start"]}')
+  b:mergeTblInto(nil, o2)
+  b:done()
+
+  local o3 = require("device-settings")("init-seq")
+  lu.assertEquals(o3, { ["bootsequence"] = { "user-settings", "log-start" } })
 end
 
 os.exit(lu.run())

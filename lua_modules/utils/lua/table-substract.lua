@@ -3,9 +3,7 @@
 ]]
 local modname = ...
 
-local function isarray(t)
-    return #t > 0 and next(t, #t) == nil
-end
+local isArray = require("is-array")
 
 local function countKeys(tbl)
     local i = 0
@@ -16,27 +14,45 @@ local function countKeys(tbl)
 end
 
 local function subsTbls(from, subs)
-    if from == subs then return true; end
-    if type(subs) == "table" then
-        if isarray(subs) then
-            local removeCnt = 0
-            for k, v in ipairs(subs) do
-                if subsTbls(from[k - removeCnt], v) then
-                    table.remove(from, k - removeCnt)
-                    removeCnt = removeCnt + 1
-                end
+    local function subTbl(fr, su)
+        for k, v in pairs(su) do
+            if subsTbls(fr[k], v) then
+                fr[k] = nil
             end
-            return #from == 0
-        else
-            for k, v in pairs(subs) do
-                if subsTbls(from[k], v) then
-                    from[k] = nil
-                end
-            end
-            return countKeys(from) == 0
         end
+        return countKeys(fr) == 0
     end
-    return false
+
+    local function subArr(fr, su)
+        if #fr ~= #su then return false; end
+        -- check if all substract-array items are present in from-array
+        local sameCnt = 0
+        for k, v in ipairs(su) do
+            if subsTbls(fr[k], v) then
+                sameCnt = sameCnt + 1
+            end
+        end
+        -- clear from-array only if array is identical with substract one
+        if #fr == sameCnt then
+            for k = #fr, 1, -1 do table.remove(fr, k); end
+            return true
+        end
+        return false
+    end
+
+    local function subAny(fr, su)
+        if fr == su then return true; end
+        if type(su) == "table" then
+            if isArray(su) then
+                return subArr(fr, su)
+            else
+                return subTbl(fr, su)
+            end
+        end
+        return false
+    end
+
+    return subAny(from, subs)
 end
 
 ---from "from" is removed all content, present also in "subs"

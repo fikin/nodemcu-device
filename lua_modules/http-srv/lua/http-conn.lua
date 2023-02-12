@@ -1,7 +1,6 @@
 --[[
   Process a new http connection
 ]]
-
 ---@alias str_fn fun():string|nil
 ---@alias conn_gc_fn fun(wasOk: boolean)
 
@@ -24,17 +23,19 @@ end
 ---@return socket_fn function bound to the connection
 local function auditConnFn()
   return function(sk)
-    local remotePort, remoteIp = sk:getpeer()
-    log.audit("accepted connection from %s:%d", remoteIp, remotePort)
+    local remotePort, remoteIp = pcall(function() return sk:getpeer(); end)
+    log.audit("accepted connection from %s:%s", remoteIp, tostring(remotePort))
   end
 end
 
 ---factory for function which is bound to reconnection() callback, it simply logs it
+---@param conn http_conn*
 ---@return socket_fn function bound to the connection
-local function traceReconnFn()
+local function onReconnFn(conn)
   return function(sk, err)
-    local remotePort, remoteIp = sk:getpeer()
-    log.debug("reconnection from %s:%d %s", remoteIp, remotePort or 0, err)
+    local remotePort, remoteIp = pcall(function() return sk:getpeer(); end)
+    log.debug("reconnection from %s:%s %s", remoteIp, tostring(remotePort), err)
+    coroutine.resume(conn.co)
   end
 end
 
@@ -94,7 +95,7 @@ end
 ---@param err any
 ---@return string text json of the error
 local function logErrMsg(log, conn, msg, err)
-  local remoteIp, remotePort = conn.sk:getpeer()
+  local remoteIp, remotePort = pcall(function() return conn.sk:getpeer(); end)
   local method, url = conn.req.method, conn.req.url
   local o = { host = remoteIp, port = remotePort, method = method, url = url, msg = msg, err = err }
   return log.json(o)
@@ -126,6 +127,8 @@ end
 -- end
 
 ---@param conn http_conn*
+---@return boolean ok
+---@return string|nil err
 local function concurrent(conn)
   -- local state = require("state")(modname)
   -- state.OpenConnectionsCnt = state.OpenConnectionsCnt or 0
@@ -138,12 +141,11 @@ local function concurrent(conn)
 end
 
 ---@param conn http_conn*
----@param err string
+---@param err string|nil
 local function closeConn(conn, err)
   conn.state = { 7, tmr.now() }
-  local p, i = conn.sk:getpeer()
-  log.audit("closing client %s:%d", i, p)
-  conn.sk:close()
+  local p, i = pcall(function() return conn.sk:getpeer(); end)
+  log.audit("closing client %s:%s", tostring(i), tostring(p))
   require("http-conn-gc")(conn, err ~= nil)
 end
 
@@ -157,24 +159,30 @@ local function handleReq(conn, webModules)
     conn.state = { 1, tmr.now() }
     local ok, err = concurrent(conn)
     if ok then
-      conn.state = { 2, tmr.now() }
-      ok, err = pcallgc(require("http-conn-req"), conn)
-    end
-    if ok then
-      conn.state = { 3, tmr.now() }
-      ok, err = pcallgc(handleRoute, conn, webModules)
-    end
-    if not ok then
-      conn.state = { 4, tmr.now() }
-      conn.resp.code, conn.resp.body = errToCode(err)
-      log.error(logErrMsg(log, conn, "processing request", err))
-    end
-    conn.state = { 5, tmr.now() }
-    log.info("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code)
-    ok, err = pcallgc(require("http-conn-resp"), conn)
-    conn.state = { 6, tmr.now() }
-    if not ok then
-      log.error(logErrMsg(log, conn, "writing response", err))
+      ok, err = pcall(function()
+            if ok then
+              conn.state = { 2, tmr.now() }
+              ok, err = pcallgc(require("http-conn-req"), conn)
+            end
+            if ok then
+              conn.state = { 3, tmr.now() }
+              ok, err = pcallgc(handleRoute, conn, webModules)
+            end
+            if not ok then
+              conn.state = { 4, tmr.now() }
+              conn.resp.code, conn.resp.body = errToCode(tostring(err))
+              log.error(logErrMsg(log, conn, "processing request", err))
+            end
+            conn.state = { 5, tmr.now() }
+            log.info("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code)
+            ok, err = pcallgc(require("http-conn-resp"), conn)
+            conn.state = { 6, tmr.now() }
+            if not ok then
+              log.error(logErrMsg(log, conn, "writing response", err))
+            end
+
+            return ok, err
+          end)
     end
     closeConn(conn, err)
   end
@@ -186,34 +194,34 @@ end
 local function defaultConn(sk)
   ---@class http_conn*
   local o = {
-    state = { 0, tmr.now() },
-    ---@type socket
-    sk = sk,
-    ---@type thread
-    co = nil,
-    ---@type string
-    buffer = "",
-    ---@class http_req*
-    req = {
-      method = "",
-      url = "",
-      ---@type {[string]:string}
-      headers = {},
-      ---@type str_fn
-      body = nil,
-      ---@type boolean
-      isEOF = false,
-    },
-    ---@class http_resp*
-    resp = {
-      code = "",
-      ---@type {[string]:string|number}
-      headers = {},
-      ---@type str_fn|string|string[]|nil
-      body = nil
-    },
-    ---@type conn_gc_fn[]
-    onGcFn = {}
+      state = { 0, tmr.now() },
+      ---@type socket
+      sk = sk,
+      ---@type thread
+      co = nil,
+      ---@type string
+      buffer = "",
+      ---@class http_req*
+      req = {
+          method = "",
+          url = "",
+          ---@type {[string]:string}
+          headers = {},
+          ---@type str_fn
+          body = nil,
+          ---@type boolean
+          isEOF = false,
+      },
+      ---@class http_resp*
+      resp = {
+          code = "",
+          ---@type {[string]:string|number}
+          headers = {},
+          ---@type str_fn|string|string[]|nil
+          body = nil
+      },
+      ---@type conn_gc_fn[]
+      onGcFn = {}
   }
   return o
 end
@@ -248,7 +256,7 @@ local function main(sk, webModules)
   trackConn(conn)
   conn.co = coroutine.create(handleReq(conn, webModules))
   sk:on("connection", auditConnFn())
-  sk:on("reconnection", traceReconnFn())
+  sk:on("reconnection", onReconnFn(conn))
   sk:on("disconnection", disconnectedConnFn(conn))
   sk:on("receive", receivingFn(conn))
   sk:on("sent", sendingFn(conn))

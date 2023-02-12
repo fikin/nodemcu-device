@@ -7,26 +7,26 @@ end
 
 local state = getState()
 
----@param addr string
----@return string
-local function addrToStr(addr)
-    return string.format("%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", addr:byte(1, 8))
-end
-
 ---updates RTE state with given temp
 ---@param temp table as provided by ds18b20
 local function updateTempState(temp)
+    local log = require("log")
+    local moreThanOne = false
     for addr, temp in pairs(temp) do
-        state.data.native_value = temp
-        require("log").info("temp of sensor %s is %f", addrToStr(addr), temp)
-        break
+        if moreThanOne then
+            log.info("temp sensor %s (%f°C) is ignored, only one sensor over i2c bus is supported", addr, temp)
+        else
+            state.data.native_value = temp
+            log.info("temp of sensor %s is %f°C", addr, temp)
+        end
+        moreThanOne = true
     end
 end
 
 ---call thermostat's control loop
 local function applyControlLoop()
     local ds18b20 = require("ds18b20")
-    updateTempState(ds18b20(state.pin))
+    ds18b20(state.pin, updateTempState)
 end
 
 local function main()
