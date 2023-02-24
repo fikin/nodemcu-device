@@ -18,4 +18,6 @@ jobs:
     - name: Prepare modules
       run: make config
     - name: Run lua tests
-      run: make prepare-firmware mock_spiffs_dir test integration-test
+      run: make prepare-firmware mock_spiffs_dir test
+    - name: Run lua integration tests
+      run: make prepare-firmware mock_spiffs_dir integration-test
