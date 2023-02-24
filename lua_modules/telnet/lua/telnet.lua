@@ -1,4 +1,4 @@
---[[  
+--[[
   A telnet server.
 
   It supports only 1 telnet session, otherwise node.output and input get messed up.
@@ -6,7 +6,8 @@
   It is based on lua_modules/telnet/telnet.lua.
 
   Depends on: node, net, log
-]] --
+]]
+--
 
 local modname = ...
 
@@ -18,10 +19,22 @@ local log = require("log")
 ---@field timeoutSec integer
 ---@field usr string
 ---@field pwd string
-local cfg = require("device-settings")(modname)
 
--- pipe provided by node.output
-local stdout = nil
+---@class telnet_state
+---@field lastLogingTs string
+
+---@return telnet_cfg
+local function getSettings()
+  return require("device-settings")(modname)
+end
+
+---@return telnet_state
+local function getState()
+  return require("state")(modname)
+end
+
+local cfg = getSettings()
+local usr, pwd = cfg.usr, cfg.pwd
 
 ---called when connection is closed to restore node's std streams
 local function onDisconnect()
@@ -32,33 +45,52 @@ end
 
 ---pass incoming socket data to node's input
 ---this is net.tcp.socket.receiving callback
----@param _ table is net.tcp.socket
+---@param _ socket
 ---@param data string
 local function onReceiving(_, data)
   node.input(data)
 end
 
 ---called initial time to pipe first stdout data to the socket
----@param skt any
-local function readAndSendOnce(skt)
-  local rec = stdout:read(1400)
-  if rec and #rec > 0 then
-    skt:send(rec)
+---@param tbl table containing "pipe":tools_pipe
+---@return fun(skt:socket)
+local function readAndSendOnceFact(tbl)
+  return function(skt)
+    local rec = tbl.pipe:read(1400)
+    if rec and #rec > 0 then
+      skt:send(rec)
+    end
   end
 end
 
 ---audit logging of new connection
----@param skt table is net.tcp.socket
+---@param skt socket
 local function logNewConnection(skt)
   local port, ip = skt:getpeer()
   log.audit("incomming connection from %s", log.json, { port = port, ip = ip })
 end
 
+---@param skt socket
+local function welcomeMsg(skt)
+  log.info("Welcome to NodeMCU")
+  collectgarbage()
+  collectgarbage()
+  log.info("%d mem free", node.heap())
+  local state = getState()
+  log.info("Last login: %s", state.lastLogingTs or log.ts())
+  state.lastLogingTs = log.ts()
+end
+
 ---redirects node std streams to the socket
----@param skt table is net.tcp.socket
+---@param skt socket
 local function openNodeSession(skt)
+  -- pipe provided by node.output
+  local stdout = {}
+
+  local readAndSendOnce = readAndSendOnceFact(stdout)
+
   local function firstWrite(opipe)
-    stdout = opipe
+    stdout.pipe = opipe
     readAndSendOnce(skt)
     return false -- don't repost as the on:sent will do this
   end
@@ -67,78 +99,97 @@ local function openNodeSession(skt)
   skt:on("receive", onReceiving)
   skt:on("sent", readAndSendOnce)
   skt:on("disconnection", onDisconnect)
-  log.info("Welcome to NodeMCU world (%d mem free)", node.heap())
+  welcomeMsg(skt)
 end
 
----asks user name and password from the telnet client
----@param skt table is net.tcp.socket
-local function authenticate(skt)
-  local state = 1 -- 1=username, 2=password
-  local function doState()
-    if state == 2 then
-      skt:send("Enter password:")
-    elseif state == 3 then
-      log.audit("telnet session open for user %s", cfg.usr)
-      openNodeSession(skt)
-    else
-      skt:send("Enter username:")
-    end
-  end
+---normalizes line of data coming from socket
+---@param data string
+---@return string line
+---@return integer count
+local function readLine(data)
+  return string.gsub(data, "^%s*(.-)%s*$", "%1")
+end
 
-  skt:on(
-    "receive",
-    function(_, data)
-      data = string.gsub(data, "^%s*(.-)%s*$", "%1")
-      if state == 1 then
-        state = data == cfg.usr and 2 or 1
-      elseif state == 2 then
-        state = data == cfg.pwd and 3 or 1
-      end
-      doState()
-    end
-  )
-  skt:on(
-    "sent",
-    function()
-    end
-  )
-  skt:on(
-    "disconnection",
-    function()
-    end
+---@type socket_fn
+local askUsr
+
+---@param skt socket
+---@param data string
+local function onAuthenticated(skt, data)
+  if readLine(data) == pwd then
+    log.audit("telnet session open for user %s", usr)
+    -- TODO last login info
+    openNodeSession(skt)
+  else
+    askUsr(skt)
+  end
+end
+
+---@param skt socket
+---@param data string
+local function askPwd(skt, data)
+  if readLine(data) == usr then
+    skt:send("Enter password:")
+    skt:on("receive", onAuthenticated)
+  else
+    askUsr(skt)
+  end
+end
+
+---@param skt socket
+---@param _ string
+askUsr = function(skt, _)
+  skt:send("Enter username:")
+  skt:on("receive", askPwd)
+end
+
+---@param skt socket
+local function authenticate(skt)
+  skt:on("sent", function() ; end)
+  skt:on("disconnection", onDisconnect)
+  askUsr(skt)
+end
+
+---sends already connected message
+---@param skt socket
+local function alreadyConnected(skt)
+  skt:send(
+    "telnet session already open, aborting.",
+    function(sk) sk:close() end
   )
 end
 
 ---handle new telnet connection.
 ---allows only 1 ongoing telnet connection
----@param skt table net.tcp.socket
+---@param skt socket
 local function onNewConnection(skt)
   logNewConnection(skt)
 
   if stdout then
-    skt:send(
-      "telnet session already open, aborting.",
-      function(sk)
-        sk:close()
-      end
-    )
+    alreadyConnected(skt)
     return
   end
 
   authenticate(skt)
 end
 
----creates telnet server
----@param port? integer
----@return table a net.tcp.server
-local function main(port)
-  package.loaded[modname] = nil
-
+---start up telnet server
+---@return tcpServer
+local function startup()
   local net = require("net")
+  local cfg = getSettings()
   local srv = net.createServer(cfg.timeoutSec)
   srv:listen(cfg.port, onNewConnection)
   log.info("listening on port %d", cfg.port)
   return srv
+end
+
+---creates telnet server
+---@return table a net.tcp.server
+local function main()
+  package.loaded[modname] = nil
+
+  return startup()
 end
 
 return main
