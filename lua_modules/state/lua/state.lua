@@ -20,13 +20,14 @@ local M = {}
 ---returns entire state table of no modname is given
 ---@param modname? string state of the given module
 ---@param defVal? table? default data if module has no state defined yet
+---@param noDef? boolean if true, default value is not auto-created. used when trying to test for existing key.
 ---@return table
-local function main(modname, defVal)
+local function main(modname, defVal, noDef)
   if not modname then
     return M
   end
   local s = M[modname]
-  if not s then
+  if not (s or noDef) then
     s = defVal or {}
     M[modname] = s
   end
