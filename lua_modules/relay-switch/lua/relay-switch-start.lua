@@ -10,13 +10,20 @@ local modname = ...
 ---@field pin integer
 ---@field data relay_switch_cfg_data
 
+---setup initial state
+---@return relay_switch_cfg
+local function setupInitialState()
+    local mn = "relay-switch"
+    local cfg = require("device-settings")(mn)
+    local state = require("state")(mn, cfg)
+    state.data = { is_on = false }
+    return state
+end
+
 local function main()
     package.loaded[modname] = nil
 
-    local log = require("log")
-    log.debug("starting up ...")
-
-    require("relay-switch-ha-set")({ is_on = false })
+    require("relay-switch-ha-set")(setupInitialState().data)
 end
 
 return main

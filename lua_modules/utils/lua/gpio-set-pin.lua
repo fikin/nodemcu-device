@@ -1,3 +1,9 @@
+--[[
+    This gpio.write is perhaps over-engineered.
+
+    Use it for casual set calls as lazy way out of using gpio.mode, write and log info.
+]]
+
 local modname = ...
 
 ---turns GPIO pin HIGH is isOn true, lese LOW

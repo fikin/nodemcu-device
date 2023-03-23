@@ -32,7 +32,7 @@ end
 ---@return boolean
 ---@return string|nil
 local function main(conn, creds)
-  package.loaded[modname] = nil
+  -- package.loaded[modname] = nil -- cached, for better tiny performance
 
   if isAuthenticated(creds, conn) then
     return true, nil

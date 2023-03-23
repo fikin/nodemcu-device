@@ -59,15 +59,23 @@ local function isPath(conn, method, path)
   return method == conn.req.method and path == conn.req.url
 end
 
+---portal settings, cached for better performance
+---@return http_h_auth
+local function getSettings()
+  local state = require("state")(modname, nil, true)
+  if state == nil then
+    local cfg = require("device-settings")(modname)
+    state = require("state")(modname, cfg)
+  end
+  return state
+end
+
 ---checks the authentication and if ok handles it in nextFn
 ---@param nextFn conn_handler_fn
 ---@param conn http_conn*
 ---@return boolean
 local function checkAuth(nextFn, conn)
-  -- portal credentials
-  ---@type http_h_auth
-  local adminCred = require("device-settings")(modname)
-
+  local adminCred = getSettings()
   if require("http-authorize")(conn, adminCred) then
     nextFn(conn)
   end

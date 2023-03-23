@@ -39,8 +39,12 @@ INTEGRATION_TEST_CASES		?= $(wildcard integration-tests/lua/*est*.lua)
 NODEMCU_MOCKS_SPIFFS_DIR   	?=  vendor/tests-spiffs
 ###
 
-.PHONY: all config clean prepare-firmware build build-firmware spiffs-image lfs-image 
-.PHONY: test integration-test mock_spiffs_dir flash
+.PHONY: all config clean 
+.PHONY: prepare-firmware prepare-firmware-esp32 prepare-firmware-esp8266 
+.PHONY: build build-esp32 build-esp8266 
+.PHONY: spiffs-image lfs-image 
+.PHONY: test integration-test mock_spiffs_dir
+.PHONY: flash flash-esp32 flash-esp8266
 
 # clone build scripts
 #	you can symlink it manually if you need totally different source code
@@ -76,16 +80,29 @@ config: vendor/.env-vars								## call it FIRST or after build.config change, b
 
 ###################
 
-prepare-firmware: vendor/nodemcu-firmware				## patch firmware files with build.config settings, no need to call it directly
+prepare-firmware-esp32: vendor/nodemcu-firmware
+	@mkdir -p vendor/nodemcu-firmware/local/fs vendor/nodemcu-firmware/local/lua
+	@cd ./vendor/nodemcu-firmware/ && ./install.sh
+	@$(MAKE) -C ./vendor/nodemcu-firmware reconfigure
+
+prepare-firmware-esp8266: vendor/nodemcu-firmware
+
+prepare-firmware: prepare-firmware-$(X_BRANCH_NATURE)	## patch firmware files with build.config settings, no need to call it directly
 	@rm -rf ./vendor/nodemcu-firmware/local/fs/*
 	@rm -rf ./vendor/nodemcu-firmware/local/lua/*
 	cd ./vendor && ./nodemcu-custom-build/run.sh -before
 
 ###################
 
-build: prepare-firmware									## builds firmware, SPIFFS and LFS images. Result files are located in nodemcu-firmware/bin and nodemcu-firmware/local/fs/LFS.img.
+build-esp32:
+	$(MAKE) -C ./vendor/nodemcu-firmware all
+	@echo FIXME
+
+build-esp8266:
 	$(MAKE) -C ./vendor/nodemcu-firmware LUA=${X_LUA} all spiffs-image
 	$(MAKE) -f Makefile-spiffs.mk spiffs-image
+
+build: prepare-firmware	build-$(X_BRANCH_NATURE)		## builds firmware, SPIFFS and LFS images. Result files are located in nodemcu-firmware/bin and nodemcu-firmware/local/fs/LFS.img.
 
 spiffs-image: prepare-firmware							## builds only SPIFFS and LFS images. Result files are located in nodemcu-firmware/bin/*.img and nodemcu-firmware/local/fs/LFS.img
 	$(MAKE) -f Makefile-spiffs.mk spiffs-image
@@ -95,8 +112,13 @@ lfs-image: prepare-firmware								## builds LFS image only. Result file is loca
 
 all: build test											## builds images and runs unit tests
 
-flash:													## flashes all images from nodemcu-firmware/bin to /dev/ttyUSB0
+flash-esp32:
+	@echo FIXME
+
+flash-esp8266:
 	@tools/flash_it.sh vendor/nodemcu-firmware/bin/*.bin vendor/nodemcu-firmware/bin/*.img
+
+flash:	flash-$(X_BRANCH_NATURE)						## flashes all images from nodemcu-firmware/bin to /dev/ttyUSB0
 
 ###################
 ### unit testing
@@ -116,7 +138,7 @@ mock_spiffs_dir: 										## prepares vendor/test-spiffs folder, used in runnin
 	@touch $(NODEMCU_MOCKS_SPIFFS_DIR)/LFS.img
 	@[ -d ./integration-tests/fs ] && cp ./integration-tests/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/ || return 0
 
-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES)						## runs unit tests
+test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES)	## runs unit tests
 
 
 ### integration testing

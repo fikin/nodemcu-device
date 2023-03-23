@@ -18,6 +18,10 @@ local modname = ...
 ---set of entity data, keys must be globally unique!
 ---@alias web_ha_entity_data {[string]:any}
 
+---@class web_ha_settings
+---@field credentials http_h_auth
+---@field entities string[]
+
 ---returns HA DataInfo structure
 ---@param conn http_conn*
 local function getInfo(conn)
@@ -97,12 +101,23 @@ local function isPath(conn, method, path)
   return method == conn.req.method and path == conn.req.url
 end
 
+---read settings, they are cached in state for faster parsing
+---@return web_ha_settings
+local function getSettings()
+  local state = require("state")(modname, nil, true)
+  if state == nil then
+    local cfg = require("device-settings")(modname)
+    state = require("state")(modname, cfg)
+  end
+  return state
+end
+
 ---checks the authentication and if ok handles it in nextFn
 ---@param nextFn fun(conn: http_conn*,entities:string[])
 ---@param conn http_conn*
 ---@return boolean
 local function checkAuth(nextFn, conn)
-  local cfg = require("device-settings")(modname)
+  local cfg = getSettings()
   if require("http-authorize")(conn, cfg.credentials) then
     nextFn(conn, cfg.entities)
   end

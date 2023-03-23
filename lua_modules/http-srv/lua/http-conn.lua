@@ -149,6 +149,38 @@ local function closeConn(conn, err)
   require("http-conn-gc")(conn, err ~= nil)
 end
 
+---actual handler of requests
+---@param webModules string[]
+---@param conn http_conn*
+---@param ok boolean
+---@param err string|nil
+---@return boolean
+---@return string|nil
+local function doHandleReq(webModules, conn, ok, err)
+  if ok then
+    conn.state = { 2, tmr.now() }
+    ok, err = pcallgc(require("http-conn-req"), conn)
+  end
+  if ok then
+    conn.state = { 3, tmr.now() }
+    ok, err = pcallgc(handleRoute, conn, webModules)
+  end
+  if not ok then
+    conn.state = { 4, tmr.now() }
+    conn.resp.code, conn.resp.body = errToCode(tostring(err))
+    log.error(logErrMsg(log, conn, "processing request", err))
+  end
+  conn.state = { 5, tmr.now() }
+  log.info("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code)
+  ok, err = pcallgc(require("http-conn-resp"), conn)
+  conn.state = { 6, tmr.now() }
+  if not ok then
+    log.error(logErrMsg(log, conn, "writing response", err))
+  end
+
+  return ok, err
+end
+
 ---read http request and finds route to handle it
 ---if no route exists, it returns 404
 ---@param conn http_conn*
@@ -159,30 +191,7 @@ local function handleReq(conn, webModules)
     conn.state = { 1, tmr.now() }
     local ok, err = concurrent(conn)
     if ok then
-      ok, err = pcall(function()
-            if ok then
-              conn.state = { 2, tmr.now() }
-              ok, err = pcallgc(require("http-conn-req"), conn)
-            end
-            if ok then
-              conn.state = { 3, tmr.now() }
-              ok, err = pcallgc(handleRoute, conn, webModules)
-            end
-            if not ok then
-              conn.state = { 4, tmr.now() }
-              conn.resp.code, conn.resp.body = errToCode(tostring(err))
-              log.error(logErrMsg(log, conn, "processing request", err))
-            end
-            conn.state = { 5, tmr.now() }
-            log.info("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code)
-            ok, err = pcallgc(require("http-conn-resp"), conn)
-            conn.state = { 6, tmr.now() }
-            if not ok then
-              log.error(logErrMsg(log, conn, "writing response", err))
-            end
-
-            return ok, err
-          end)
+      ok, err = pcall(doHandleReq, webModules, conn, ok, err)
     end
     closeConn(conn, err)
   end
@@ -194,38 +203,42 @@ end
 local function defaultConn(sk)
   ---@class http_conn*
   local o = {
-      state = { 0, tmr.now() },
-      ---@type socket
-      sk = sk,
-      ---@type thread
-      co = nil,
-      ---@type string
-      buffer = "",
-      ---@class http_req*
-      req = {
-          method = "",
-          url = "",
-          ---@type {[string]:string}
-          headers = {},
-          ---@type str_fn
-          body = nil,
-          ---@type boolean
-          isEOF = false,
-      },
-      ---@class http_resp*
-      resp = {
-          code = "",
-          ---@type {[string]:string|number}
-          headers = {},
-          ---@type str_fn|string|string[]|nil
-          body = nil
-      },
-      ---@type conn_gc_fn[]
-      onGcFn = {}
+    state = { 0, tmr.now() },
+    ---@type socket
+    sk = sk,
+    ---@type thread
+    co = nil,
+    ---@type string
+    buffer = "",
+    ---@class http_req*
+    req = {
+      method = "",
+      url = "",
+      ---@type {[string]:string}
+      headers = {},
+      ---@type str_fn
+      body = nil,
+      ---@type boolean
+      isEOF = false,
+    },
+    ---@class http_resp*
+    resp = {
+      code = "",
+      ---@type {[string]:string|number}
+      headers = {},
+      ---@type str_fn|string|string[]|nil
+      body = nil
+    },
+    ---@type conn_gc_fn[]
+    onGcFn = {}
   }
   return o
 end
 
+---callback when gc connections
+---removes connection from state.http-conn.OpenConn
+---@param conn http_conn*
+---@return fun()
 local function untrackConn(conn)
   return function()
     local state = require("state")(modname)
@@ -238,6 +251,8 @@ local function untrackConn(conn)
   end
 end
 
+---add the connection to state.http-conn.OpenConn list
+---@param conn http_conn*
 local function trackConn(conn)
   local state = require("state")(modname)
   state.OpenConn = state.OpenConn or {}
