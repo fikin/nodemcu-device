@@ -145,7 +145,7 @@ end
 
 ---@param skt socket
 local function authenticate(skt)
-  skt:on("sent", function() ; end)
+  skt:on("sent", nil)
   skt:on("disconnection", onDisconnect)
   askUsr(skt)
 end
