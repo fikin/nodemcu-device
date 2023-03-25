@@ -5,11 +5,11 @@ declare -r DEV=$( [ "xx" != "x${DEV}x" ] && echo "${DEV}" || echo "/dev/ttyUSB0"
 
 _runEcho() { echo -e "######\n$@\n------" ; "$@" ; }
 
-_flash_esp8266 {
+_flash_esp8266() {
   _runEcho vendor/nodemcu-firmware/tools/toolchains/esptool.py -p ${DEV} -b 460800 write_flash "$@"
 }
 
-_flash_esp32 {
+_flash_esp32() {
 	_runEcho vendor/nodemcu-firmware/sdk/esp32-esp-idf/components/esptool_py/esptool/esptool.py \
     -p ${DEV} -b 460800 \
     --before default_reset \

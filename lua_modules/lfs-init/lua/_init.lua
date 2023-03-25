@@ -22,7 +22,8 @@ local function lfsLoader(module) -- loader_flash
   return node.LFS.get(module)
 end
 
-table.insert(package.searchers, lfsLoader) -- searches is lua5.3 related.
+-- place it right after predefined-searcher and before file-searcher as file is relatively slow
+table.insert(package.searchers, 2, lfsLoader) -- searches is lua5.3 related.
 
 --[[
   ----------------------------------------------------------------------------
