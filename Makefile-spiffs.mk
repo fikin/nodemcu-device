@@ -14,9 +14,9 @@ ifeq ($(strip $(X_BRANCH_NATURE)),esp8266) ### ESP8266 specific settings
 
 APP_DIR 			= $(FWDIR)/app
 
-LFS_SIZE	 		?= $(shell $(CC) -E -dM - <$(APP_DIR)/include/user_config.h | grep SPIFFS_MAX_FILESYSTEM_SIZE | cut -d ' ' -f 3)
-ifneq ($(strip $(LFS_SIZE)),)
-LFS_SIZE 			= $(shell printf "0x%x" $(LFS_SIZE))
+LFS_SIZE_TMP 		?= $(shell $(CC) -E -dM - <$(APP_DIR)/include/user_config.h | grep SPIFFS_MAX_FILESYSTEM_SIZE | cut -d ' ' -f 3)
+ifneq ($(strip $(LFS_SIZE_TMP)),)
+LFS_SIZE 			= $(shell printf "0x%x" $(LFS_SIZE_TMP))
 endif
 
 LFS_LOC 			?= $(shell $(CC) -E -dM - <$(APP_DIR)/include/user_config.h | grep SPIFFS_FIXED_LOCATION | cut -d ' ' -f 3)
@@ -27,13 +27,13 @@ else
 LFS_LOC 			:= $(shell printf "0x%x" $(LFS_LOC))
 endif
 
-LUAC_CROSS 			?= $(PWD)/$(shell ls $(FWDIR)/luac.cross)
+LUAC_CROSS 			?= $(PWD)/$(FWDIR)/luac.cross
 SPIFFSIMG			?= $(FWDIR)/tools/spiffsimg/spiffsimg
 
 #############################
 else	### ESP32 specific settings
 
-LUAC_CROSS 			?= $(PWD)/$(shell ls $(FWDIR)/build/luac_cross/luac.cross)
+LUAC_CROSS 			?= $(PWD)/$(FWDIR)/build/luac_cross/luac.cross
 SPIFFSIMG			?= $(FWDIR)/sdk/esp32-esp-idf/components/spiffs/spiffsgen.py
 
 SPIFFS_SIZE			?= $(shell grep spiffs $(FWDIR)/components/platform/partitions.csv | awk -F, '{printf $$5}')
@@ -51,17 +51,17 @@ docker-deps:
 	docker pull tdewolff/minify
 
 # compile local/lua into local/fs/LFS.img (LFS image)
-lfs-lst:
-	@rm -f ./vendor/lfs.lst
-	@$(foreach f, $(shell cd $(LFS_DIR) && ls *.lc), echo "import $(f)" >> ./vendor/lfs.lst ;)
-
 lfs-lc:
 	@rm -f $(LFS_DIR)/*.lc
 	@$(foreach f, $(shell cd $(LFS_DIR) && ls *.lua),(cd $(LFS_DIR) && $(LUAC_CROSS) -o $(f:.lua=.lc) $(f)) ;)
 	@rm -f $(LFS_DIR)/*.lua
 
+lfs-lst:
+	@rm -f ./vendor/lfs.lst
+	@$(foreach f, $(shell cd $(LFS_DIR) && ls *.lc), echo "import $(f)" >> ./vendor/lfs.lst ;)
+
 lfs-image: lfs-lc lfs-lst
-	@cd $(LFS_DIR) && $(LUAC_CROSS) -f -o ../fs/LFS.img *.lc
+	@cd $(LFS_DIR) && $(LUAC_CROSS) -f -o $(PWD)/$(FS_DIR)/LFS.img *.lc
 
 # compule local/fs/*.lua to local/fs/*.lc
 spiffs-lc:
@@ -88,7 +88,7 @@ spiffs-minify: spiffs-lst
 spiffs-image-esp32:
 	$(SPIFFSIMG) $(SPIFFS_SIZE) $(FS_DIR) $(FWDIR)/build/spiffs.img 
 
-spiffs-image-esp8266:
+spiffs-image-esp8266: 
 	$(SPIFFSIMG) -f $(FWDIR)/bin/0x%x-$(LFS_SIZE).img -c $(LFS_SIZE) -U $(LFS_LOC) -r ./vendor/spiffs.lst -d
 
 spiffs-image: spiffs-minify spiffs-image-$(X_BRANCH_NATURE)
