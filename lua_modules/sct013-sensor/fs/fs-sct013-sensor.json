@@ -1,0 +1,6 @@
+{
+  "periodMs": 1000,
+  "pinSda": 6,
+  "pinScl": 5,
+  "address": 72
+}
