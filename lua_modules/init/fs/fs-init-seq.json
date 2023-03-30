@@ -9,6 +9,7 @@
     "temp-sensor-start",
     "relay-switch-start",
     "lights-switch-start",
-    "thermostat-start"
+    "thermostat-start",
+    "sct013-sensor-start"
   ]
 }

@@ -66,10 +66,10 @@ local function assertHassSpec()
     local r = 'GET /api/ha/spec HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n'
     local e = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: 539\r\n' ..
+        'Content-Length: 676\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
-        '{"button":[{"device_class":"restart","key":"system-restart-button","name":"Restart"}],"climate":[{"key":"thermostat","name":"Thermostat"}],"light":[{"key":"lights-switch","name":"Lights"}],"sensor":[{"device_class":"temperature","key":"temp-sensor","name":"Temperature","native_unit_of_measurement":"°C","state_class":"measurement"},{"device_class":"data_size","key":"system-heap-sensor","name":"Heap","native_unit_of_measurement":"B","state_class":"measurement"}],"switch":[{"device_class":"switch","key":"relay-switch","name":"Relay"}]}'
+        '{"button":[{"device_class":"restart","key":"system-restart-button","name":"Restart"}],"climate":[{"key":"thermostat","name":"Thermostat"}],"light":[{"key":"lights-switch","name":"Lights"}],"sensor":[{"device_class":"temperature","key":"temp-sensor","name":"Temperature","native_unit_of_measurement":"°C","state_class":"measurement"},{"device_class":"data_size","key":"system-heap-sensor","name":"Heap","native_unit_of_measurement":"B","state_class":"measurement"},{"device_class":"current","key":"sct013-sensor-0-current","name":"Current","native_unit_of_measurement":"A","state_class":"measurement"}],"switch":[{"device_class":"switch","key":"relay-switch","name":"Relay"}]}'
     assert200HttpRequest(r, e)
 end
 
@@ -77,10 +77,10 @@ local function assertHassData()
     local r = 'GET /api/ha/data HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n'
     local e = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: 475\r\n' ..
+        'Content-Length: 522\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
-        '{"lights-switch":{"color_mode":"onoff","is_on":false,"supported_color_modes":["onoff"]},"relay-switch":{"is_on":false},"system-heap-sensor":{"native_value":32096},"temp-sensor":{"native_value":22},"thermostat":{"current_temperature":22,"hvac_action":"off","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","home","sleep"],"supported_features":2,"target_temperature_high":17,"target_temperature_low":15,"temperature_unit":"°C"}}'
+        '{"lights-switch":{"color_mode":"onoff","is_on":false,"supported_color_modes":["onoff"]},"relay-switch":{"is_on":false},"sct013-sensor-0-current":{"native_value":0.0},"system-heap-sensor":{"native_value":32096},"temp-sensor":{"native_value":22},"thermostat":{"current_temperature":22,"hvac_action":"off","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","home","sleep"],"supported_features":2,"target_temperature_high":17,"target_temperature_low":15,"temperature_unit":"°C"}}'
     assert200HttpRequest(r, e)
 end
 
