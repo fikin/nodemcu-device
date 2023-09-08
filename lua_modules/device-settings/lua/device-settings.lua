@@ -13,6 +13,7 @@ local modname = ...
 ---@param fName string
 ---@return table
 local function loadJsonFile(fName)
+  local file = require("file")
   if file.exists(fName) then
     return require("read-json-file")(fName)
   end

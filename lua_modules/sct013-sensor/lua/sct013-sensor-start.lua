@@ -40,7 +40,7 @@ local function prepareRteState(ads)
     -- remember in RTE state
     require("state")(moduleName, {
         ads = ads,
-        data = { native_value = 0 },
+        data = { native_value = 0.0 },
     })
 end
 

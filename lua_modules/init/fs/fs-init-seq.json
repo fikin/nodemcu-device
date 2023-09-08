@@ -1,5 +1,6 @@
 {
   "bootsequence": [
+    "bootstrap",
     "user-settings",
     "log-start",
     "wifi-apply-config",
