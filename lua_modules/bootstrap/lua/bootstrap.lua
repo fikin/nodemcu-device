@@ -1,9 +1,13 @@
+local modname = ...
+
 local file, log = require("file"), require("log")
 
-local fName = "bootstrap-sw.lua"
+local fName = "bootstrap-sw.lc"
 local fNameErr = "bootstrap-sw.PANIC.txt"
 
 local function main()
+    package.loaded[modname] = nil
+
     if file.exists(fName) then
         log.info("running %s", fName)
 
