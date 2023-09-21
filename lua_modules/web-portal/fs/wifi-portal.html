@@ -484,14 +484,6 @@
       <fieldset>
         <h3 class="collapsible">Temp Sensor (hass)</h3>
         <div class="collapsible-content grid-container">
-          <label for="tempSensor_pin" class="grid-item">Pin:</label>
-          <input
-            id="tempSensor_pin"
-            class="cfgValue grid-item"
-            type="number"
-            min="1"
-            max="13"
-          />
           <label for="tempSensor_periodMs" class="grid-item"
             >Read period (ms):</label
           >
@@ -502,7 +494,79 @@
             min="1"
             max="3600000"
           />
+          <label for="tempSensor_filterSize" class="grid-item">Filter size:</label>
+          <input
+            id="tempSensor_filterSize"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+          />
+          <label for="tempSensor_moduleName" class="grid-item">Sensor module:</label>
+          <select id="tempSensor_moduleName" class="cfgValue grid-item" multiple>
+            <option>ds18b20</option>
+            <option>adc-ntc</option>
+          </select>
         </div>
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Temp Sensor (ds18b20)</h3>
+        <div class="collapsible-content grid-container">
+          <label for="ds18b20_pin" class="grid-item">Pin:</label>
+          <input
+            id="ds18b20_pin"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+            max="13"
+          />
+      </fieldset>
+      <br />
+      <fieldset>
+        <h3 class="collapsible">Temp Sensor (adc NTC)</h3>
+        <div class="collapsible-content grid-container">
+          <label for="adcNtc_Rntc" class="grid-item">Thermistor resistance (ohm):</label>
+          <input
+            id="adcNtc_Rntc"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+          />
+          <label for="adcNtc_R1" class="grid-item">Resistor 1 (ohm):</label>
+          <input
+            id="adcNtc_R1"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+          />
+          <label for="adcNtc_VCC" class="grid-item">VCC (V):</label>
+          <input
+            id="adcNtc_VCC"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+          />
+          <label for="adcNtc_A" class="grid-item">Steinhart-Hart model coefficient A:</label>
+          <input
+            id="adcNtc_A"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+          />
+          <label for="adcNtc_B" class="grid-item">Steinhart-Hart model coefficient B:</label>
+          <input
+            id="adcNtc_B"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+          />
+          <label for="adcNtc_C" class="grid-item">Steinhart-Hart model coefficient C:</label>
+          <input
+            id="adcNtc_C"
+            class="cfgValue grid-item"
+            type="number"
+            min="1"
+          />
       </fieldset>
       <br />
       <fieldset>

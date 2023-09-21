@@ -58,7 +58,10 @@ local function readAndSendOnceFact(tbl)
   return function(skt)
     local rec = tbl.pipe:read(1400)
     if rec and #rec > 0 then
-      skt:send(rec)
+      if not pcall(function() skt:send(rec) end) then
+        pcall(function() skt:close() end)
+        onDisconnect()
+      end
     end
   end
 end

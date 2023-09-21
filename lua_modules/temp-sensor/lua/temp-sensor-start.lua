@@ -10,7 +10,8 @@ local log = require("log")
 
 ---@class temp_sensor_cfg
 ---@field periodMs integer
----@field pin integer
+---@field filterSize integer
+---@field moduleName string
 ---@field data temp_sensor_cfg_data
 
 ---@return temp_sensor_cfg

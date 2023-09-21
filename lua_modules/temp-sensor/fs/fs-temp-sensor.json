@@ -1,4 +1,5 @@
 {
   "periodMs": 19000,
-  "pin": 5
+  "filterSize": 20,
+  "moduleName": "ds18b20"
 }
