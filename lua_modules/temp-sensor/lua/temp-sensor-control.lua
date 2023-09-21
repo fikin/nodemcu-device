@@ -11,22 +11,26 @@ local state = getState()
 ---@param temp table as provided by ds18b20
 local function updateTempState(temp)
     local log = require("log")
-    local moreThanOne = false
+    local addrsCnt = 0
     for addr, temp in pairs(temp) do
-        if moreThanOne then
-            log.info("temp sensor %s (%f°C) is ignored, only one sensor over i2c bus is supported", addr, temp)
+        if addrsCnt > 1 then
+            log.info("temp sensor %s (%f°C) is ignored, only one sensor is supported", addr, temp)
         else
-            state.data.native_value = temp
-            log.info("temp of sensor %s is %f°C", addr, temp)
+            -- pass new value over avg filter logic
+            state.data.native_value = (state.data.native_value * (state.filterSize - 1) + temp) / state.filterSize
+            log.info("temp of sensor %s is : %f°C : new reading is %f°C", addr, state.data.native_value, temp)
         end
-        moreThanOne = true
+        addrsCnt = addrsCnt + 1
+    end
+    if addrsCnt == 0 then
+        log.error("no temp sensor readings provided : %s", log.tbl, temp)
     end
 end
 
 ---call thermostat's control loop
 local function applyControlLoop()
-    local ds18b20 = require("ds18b20")
-    ds18b20(state.pin, updateTempState)
+    local m = require(state.moduleName)
+    m(updateTempState)
 end
 
 local function main()
