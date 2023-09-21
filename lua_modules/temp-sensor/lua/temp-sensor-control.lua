@@ -23,7 +23,7 @@ local function updateTempState(temp)
         addrsCnt = addrsCnt + 1
     end
     if addrsCnt == 0 then
-        log.error("no temp sensor readings provided : %s", log.tbl, temp)
+        log.error("no temp sensor readings provided : %s", log.json, temp)
     end
 end
 

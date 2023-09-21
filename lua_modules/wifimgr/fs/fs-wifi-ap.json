@@ -7,7 +7,7 @@
   "config": {
     "beacon": 1000,
     "ssid": "<AP_SSID>",
-    "pwd": "1234567890",
+    "pwd": "<AP_PWD>",
     "save": false,
     "max": 1,
     "auth": 3,

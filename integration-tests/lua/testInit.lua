@@ -160,9 +160,9 @@ local function assertTelnet()
     local skt = nodemcu.net_tpc_connect_to_listener(23, "0.0.0.0")
     assertSktReceived(skt, "Enter username:")
     assertSktSendReceived(skt, "dummy", "Enter username:")
-    assertSktSendReceived(skt, "telnet", "Enter password:")
+    assertSktSendReceived(skt, "admin", "Enter password:")
     assertSktSendReceived(skt, "dummy", "Enter username:")
-    assertSktSendReceived(skt, "telnet", "Enter password:")
+    assertSktSendReceived(skt, "admin", "Enter password:")
     assertSktSendReceived(skt, "admin", "") -- this is now deviating from actual device, as node.output() is not properly captured in mock setup
     assertSktSendReceived(skt, "return 'abc'", "abc\n")
 end
