@@ -78,12 +78,14 @@ spiffs-lst: spiffs-lc lfs-image spiffs-md5
 	@$(foreach f, $(FS_FILES), echo "import $(FS_DIR)/$(f) $(f)" >> ./vendor/spiffs.lst ;)
 
 spiffs-minify: spiffs-lst
+	@mkdir -p vendor/minify
 	@docker run -it --rm \
 		-v $(PWD)/vendor/minify:/to \
 		-v $(PWD)/$(FS_DIR):/from \
-		-u $(id -u ${USER}):$(id -g ${USER}) \
+		-u $(shell id -u ${USER}):$(shell id -g ${USER}) \
 		tdewolff/minify -rv -o /to /from
 	@cp vendor/minify/*/* $(FS_DIR)/
+	@rm -rf vendor/minify
 
 spiffs-image-esp32:
 	$(SPIFFSIMG) $(SPIFFS_SIZE) $(FS_DIR) $(FWDIR)/build/spiffs.img 
