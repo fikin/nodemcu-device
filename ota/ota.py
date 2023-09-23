@@ -69,6 +69,8 @@ def indexSwRelease(data: list[str]) -> dict[str, str]:
     for line in data:
         arr = line.split()
         ret[arr[1]] = arr[0]
+    ss = ("\n".join(data) + "\n").encode()
+    ret["release"] = hashlib.md5(ss).hexdigest()
     return ret
 
 
