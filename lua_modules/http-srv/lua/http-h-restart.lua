@@ -7,8 +7,14 @@ local modname = ...
 ---if wasOk is true, device will restart
 ---@param hasErr boolean
 local function restartIfOk(hasErr)
-  local task = require("node").task
-  task.post(task.MEDIUM_PRIORITY, function() node.restart(); end)
+  if not hasErr then
+    require("log").info("user requested node restart ...")
+    local tmr = require("tmr")
+    local t = tmr.create()
+    t:alarm(300, tmr.ALARM_SINGLE, function(t)
+      node.restart()
+    end)
+  end
 end
 
 ---triggers device restart after responding with 200

@@ -81,7 +81,7 @@ end
 ---@return string code
 ---@return string message or error
 local function errToCode(err)
-  local _, _, code, msg = string.find(err, "(%d+): (.*)")
+  local _, _, _, _, code, msg = string.find(err, "(.*):(%d+): (%d+): (.*)")
   if code then
     return code, msg
   end
@@ -114,7 +114,7 @@ local function handleRoute(conn, webModules)
       return ok
     end
   end
-  error("404: no router defind handling %s" % conn.req.url)
+  error("404: router has no mapping for %s %s" % { conn.req.method, conn.req.url })
 end
 
 -- ---called at connection GC to decrease global open connections counter
