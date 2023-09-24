@@ -78,7 +78,7 @@ end
 
 ---@param conn http_conn*
 local function handleRestart(conn)
-  require("http-h-restart")(require("http-h-ok"))(conn)
+  require("http-h-restart")(nil)(conn)
 end
 
 local function deleteFile(fl)
@@ -93,15 +93,15 @@ end
 local function renameFile(from, to)
   local l = require("log")
   local file = require("file")
-  deleteFile(to)
   if file.exists(from) then
+    deleteFile(to)
     l.debug("renaming %s to %s", from, to)
     if not file.rename(from, to) then
       l.error("failed to rename %s to %s", from, to)
       return false
     end
-    return true
   end
+  return true
 end
 
 ---@param conn http_conn*
