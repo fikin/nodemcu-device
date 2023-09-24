@@ -16,7 +16,7 @@ local tmr = require("tmr")
 
 local DS18B20FAMILY = 0x28
 local DS1920FAMILY = 0x10 -- and DS18S20 series
-local READ_ROM = 0x33
+-- local READ_ROM = 0x33
 local CONVERT_T = 0x44
 local READ_SCRATCHPAD = 0xBE
 local READ_POWERSUPPLY = 0xB4
@@ -34,22 +34,11 @@ local cfg = require("device-settings")(modname)
 
 ---@class ds18b20_struct
 ---@field pin integer
----@field cb function(ds18b20_temps)
----@field discoveredAddrs string[]
----@field validAddrs  table
+---@field cb fun(ds18b20_temps)|nil
+---@field discoveredAddrs string[]|nil
+---@field validAddrs table|nil
 
----@type ds18b20_struct
-local callState = {
-    pin = cfg.pin,
-    ---@type function(ds18b20_temps)
-    cb = nil,
-    ---@type string[]
-    discoveredAddrs = nil,
-    ---@type table
-    validAddrs = nil,
-}
-
-    ---converts ow sensor addr to string representation
+---converts ow sensor addr to string representation
 ---@param addr string
 ---@return string
 local function addrToStr(addr)
@@ -90,7 +79,7 @@ local function decodeTemps(rawTemps)
                 log.error("%s temp crc failed", addrToStr, addr)
             end
         else
-            log.error("%s temp signature failed", addrToStr, addr)
+            log.error("sensor %s provided no conversion result", addrToStr, addr)
         end
     end
     return tbl
@@ -155,7 +144,7 @@ end
 
 ---@param pin integer
 ---@param addr string
-local function startConvertion(pin, addr)
+local function startConversion(pin, addr)
     ow.reset(pin)
     ow.select(pin, addr)
     ow.write(pin, CONVERT_T, MODE)
@@ -163,9 +152,9 @@ end
 
 ---@param pin integer
 ---@param addrs string[]
-local function startConvertions(pin, addrs)
+local function startConversions(pin, addrs)
     for _, addr in ipairs(addrs) do
-        startConvertion(pin, addr)
+        startConversion(pin, addr)
     end
 end
 
@@ -216,8 +205,8 @@ local function readT(o)
     ow.setup(o.pin)
     o.discoveredAddrs = readAddrs(o.pin)
     o.validAddrs = assertSensors(o.pin, o.discoveredAddrs)
-    startConvertions(o.pin, o.validAddrs)
-    wait(o, 750)
+    startConversions(o.pin, o.validAddrs)
+    wait(o, 640)
 end
 
 ---read DS18B20 sensor temperature over OW and returns its temperature.
@@ -228,7 +217,14 @@ end
 local function main(onReadCb)
     package.loaded[modname] = nil
 
-    callState.cb = onReadCb
+    ---@type ds18b20_struct
+    local callState = {
+        pin = cfg.pin,
+        cb = onReadCb,
+        discoveredAddrs = nil,
+        validAddrs = nil,
+    }
+
     readT(callState)
     return callState
 end
