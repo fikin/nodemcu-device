@@ -58,14 +58,70 @@ local function handleSwVersion(conn)
   require("http-h-send-json")(conn, data)
 end
 
+---reads sw_version and sends it back to caller
+---@param conn http_conn*
+local function handleSwVersion(conn)
+  local data = require("get-sw-version")()
+  require("http-h-send-json")(conn, data)
+end
+
+---reads "releases" file and sends it back to caller
+---@param conn http_conn*
+local function handleSwRelease(conn)
+  local txt = require("file").getcontents("release")
+  conn.resp.code = "200"
+  conn.resp.headers["Content-Type"] = "text/plain"
+  conn.resp.headers["Content-Length"] = #txt
+  conn.resp.headers["Cache-Control"] = "private, no-cache, no-store"
+  conn.resp.body = txt
+end
+
 ---@param conn http_conn*
 local function handleRestart(conn)
-  require("http-h-restart")(require("http-h-ok"))(conn)
+  require("http-h-restart")(nil)(conn)
+end
+
+local function deleteFile(fl)
+  local l = require("log")
+  local file = require("file")
+  if file.exists(fl) then
+    l.info("removing %s", fl)
+    file.remove(fl)
+  end
+end
+
+local function renameFile(from, to)
+  local l = require("log")
+  local file = require("file")
+  if file.exists(from) then
+    deleteFile(to)
+    l.debug("renaming %s to %s", from, to)
+    if not file.rename(from, to) then
+      l.error("failed to rename %s to %s", from, to)
+      return false
+    end
+  end
+  return true
 end
 
 ---@param conn http_conn*
 local function handleSaveFile(conn)
-  require("http-h-save-file-bak")(true, require("http-h-save-file"))(conn)
+  local fName1 = string.sub(conn.req.url, 2)
+  local fName2 = string.sub(conn.req.url, 6)
+  local fBak = fName2 .. ".bak"
+  local function f()
+    deleteFile(fBak)
+    if renameFile(fName2, fBak) then
+      if renameFile(fName1, fName2) then
+        deleteFile(fBak)
+      else
+        renameFile(fBak, fName2)
+      end
+    end
+  end
+  table.insert(conn.onGcFn, f)
+
+  require("http-h-save-file")(conn)
 end
 
 ---handle http request if it is OTA rest apis related
@@ -76,6 +132,8 @@ local function main(conn)
 
   if isPath(conn, "GET", "/ota?version") then
     return checkAuth(handleSwVersion, conn)
+  elseif isPath(conn, "GET", "/ota?release") then
+    return checkAuth(handleSwRelease, conn)
   elseif isPath(conn, "POST", "/ota?restart") then
     return checkAuth(handleRestart, conn)
   elseif isPathMatch(conn, "POST", "/ota/.+") then

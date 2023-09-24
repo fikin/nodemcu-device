@@ -8,9 +8,9 @@ local modname = ...
 local adc = require("adc")
 
 ---@class adcNtc_cfg
----@field Rntc integer NTC resistance in Kohm
+---@field AdcCorr integer correction factor for read ADC values. 1 means no correction.
+---@field Vcc integer max voltage at A0 input i.e 3.3V for NodeMCU and 1V for ESP8266
 ---@field R1 integer resistor 1 in Kohm
----@field VCC integer VCC in V
 ---@field A number Steinhart-Hart model coefficient
 ---@field B number Steinhart-Hart model coefficient
 ---@field C number  Steinhart-Hart model coefficient
@@ -21,25 +21,6 @@ local adc = require("adc")
 
 ---@type adcNtc_cfg
 local cfg = require("device-settings")(modname)
-
----natural logarithm approximation
----@param x number
----@return number
-function ln(x) --natural logarithm function for x>0 real values
-    local y = (x - 1) / (x + 1)
-    local sum = 1
-    local val = 1
-    if (x == nil) then
-        return 0
-    end
-    -- we are using limited iterations to acquire reliable accuracy.
-    -- here its upto 10000 and increased by 2
-    for i = 3, 10000, 2 do
-        val = val * (y * y)
-        sum = sum + (val / i)
-    end
-    return 2 * y * sum
-end
 
 ---@param cnt integer how to many readinds to average
 ---@return number average value
@@ -55,15 +36,22 @@ end
 local function main(onReadCb)
     package.loaded[modname] = nil
 
-    local dAdcValue = readAvg(10)
-    local dVout = (dAdcValue * cfg.VCC) / 1023
-    local dRth = (cfg.VCC * cfg.R1 / dVout) - cfg.R1
+    local AdcValue = readAvg(20) * cfg.AdcCorr
+    local Vntc = cfg.Vcc * AdcValue / 1023
+    local Rntc = cfg.R1 * Vntc / (cfg.Vcc - Vntc)
+    local LogRntc = math.log(Rntc)
+    local bVal = cfg.B * LogRntc
+    local cVal = cfg.C * LogRntc * LogRntc * LogRntc
     -- Temperature in kelvin
-    local t = (1 / (cfg.A + (cfg.B * ln(dRth)) + (cfg.C * (ln(dRth)) ^ 3)))
+    local tK = 1 / (cfg.A + bVal + cVal)
     -- Temperature in degree celsius
-    t = t - 273.15
+    local tC = tK - 273.15
+    -- Temperature in Farenheit
+    -- local tF = (tC * 9.0)/ 5.0 + 32.0;
+    -- require("log").debug("AdcValue=%f Vntc=%f Rntc=%f logRntc=%f bVal=%f cVal=%f tK=%f",
+    --     AdcValue, Vntc, Rntc, LogRntc, bVal, cVal, tK)
 
-    onReadCb({ adc = t })
+    onReadCb({ adc = tC })
 end
 
 return main

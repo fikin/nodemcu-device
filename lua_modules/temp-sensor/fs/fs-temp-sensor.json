@@ -1,5 +1,5 @@
 {
   "periodMs": 19000,
-  "filterSize": 20,
+  "filterSize": 60,
   "moduleName": "ds18b20"
 }

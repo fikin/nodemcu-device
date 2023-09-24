@@ -39,7 +39,7 @@ local function main(conn, hasErr)
     for _, v in ipairs(conn.onGcFn) do
       local ok, err = pcall(v, hasErr) -- cleanup callbacks
       if not ok then
-        require("log").error("cleanup connection", err)
+        require("log").error("connection cleanup callback : %s", err)
       end
     end
     conn.onGcFn = nil

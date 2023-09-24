@@ -39,7 +39,7 @@ local function main(operation)
     package.loaded[modname] = nil
 
     ---@type mdns_cfg
-    local ms = ds("mdns-adv")
+    local ms = ds(modname)
 
     if operation == "start" then
         adventiseAllServices(ms.services)

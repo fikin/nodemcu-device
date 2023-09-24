@@ -27,7 +27,8 @@ end
 ---@return conn_gc_fn
 local function closeFileFn(fd)
   return function()
-    fd:close()
+    -- ignore error if fd is already closed
+    pcall(function() fd:close() end)
   end
 end
 
