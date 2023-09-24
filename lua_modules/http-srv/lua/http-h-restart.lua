@@ -7,8 +7,10 @@ local modname = ...
 ---if wasOk is true, device will restart
 ---@param hasErr boolean
 local function restartIfOk(hasErr)
-  if not hasErr then
-    require("log").info("user requested node restart ...")
+  if hasErr then
+    require("log").info("user requested node restart but there was connection error, aborting request")
+  else
+    require("log").info("user requested node restart, scheduling one in 300ms ...")
     local tmr = require("tmr")
     local t = tmr.create()
     t:alarm(300, tmr.ALARM_SINGLE, function(t)
