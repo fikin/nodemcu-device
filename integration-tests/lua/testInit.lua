@@ -55,10 +55,10 @@ local function assertHassInfo()
     local r = 'GET /api/ha/info HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n'
     local e = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: 120\r\n' ..
+        'Content-Length: 135\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
-        '{"hwVersion":"1.0.0","manufacturer":"fikin","model":"WeMos D1 mini","name":"nodemcu1234567890","swVersion":"1669271656"}'
+        '{"hwVersion":"1.0.0","manufacturer":"Noname vendor","model":"Generic NodeMCU make","name":"nodemcu1234567890","swVersion":"1669271656"}'
     assert200HttpRequest(r, e)
 end
 

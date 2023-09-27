@@ -5,6 +5,8 @@ local function getState()
     return require("state")("temp-sensor")
 end
 
+---returns temp-sernsor current value stored in state
+---@return number
 local function getTemp()
     package.loaded[modname] = nil
 
