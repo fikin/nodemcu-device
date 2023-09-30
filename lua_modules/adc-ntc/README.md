@@ -7,15 +7,37 @@ Schematic is:
 
 The default configuration is defined for:
 
-- VCC=5V
+- VccR1=5V
 - R1=330k
 - Rntc=50k
+- NodeMCU board
 
-$Vntc = VCC * Rntc / ( Rntc + R1 )$
+_Note: stock ESP8266 chip accepts 1V in A0 input. NodeMCU boards are shipped with built-in voltage divider and accept 3.3V._
 
-$Adc = 1023 * Vntc / 3.3$
+Since resistor and voltage values are not perfect, there are some discrepancies between schematic and reality.
+There are two way to influence for biased results:
 
-where 1023 is Adc resolution and 3.3V is the A0 input max voltage i.e. NodeMCU board. Plain ESP8266 chips accept 1v max.
+- Adjust R1 resistor value in the settings.
+  - With default configuration, each +15k => +1C.
+- Use `correction factor`.
+  - Correction factor is ADC value added to A0 reading before Vntc is being calculated.
+  - With default configuration, +9 => +1C.
+
+Perform temperature calibration or observe long term and adjust these if you see fit.
+
+$Vstep = VccA0 / 1023$
+
+$AdcValue = A0 + correction_factor$
+
+$Vntc = Vstep * AdvValue$
+
+$Rntc = R1 * Vntc / ( VccR1 - Vntc )$
+
+$TempK = A + B * ln(Rntc) + C * ln(Rntc)^3$
+
+$TempC = TempK - 273.15$
+
+With default configuration following values could be expected:
 
 | Temp (C) | Rntc (kOhm) | Vntc (V) | Adc (0-1024) |
 | -------- | ----------- | -------- | ------------ |

@@ -9,7 +9,8 @@ local adc = require("adc")
 
 ---@class adcNtc_cfg
 ---@field AdcCorr integer correction factor for read ADC values. 1 means no correction.
----@field Vcc integer max voltage at A0 input i.e 3.3V for NodeMCU and 1V for ESP8266
+---@field VccA0 integer max voltage at A0 input i.e 3.3V for NodeMCU and 1V for ESP8266
+---@field VccR1 integer voltage at R1 i.e 5V or 3.3V
 ---@field R1 integer resistor 1 in Kohm
 ---@field A number Steinhart-Hart model coefficient
 ---@field B number Steinhart-Hart model coefficient
@@ -36,9 +37,10 @@ end
 local function main(onReadCb)
     package.loaded[modname] = nil
 
-    local AdcValue = readAvg(20) * cfg.AdcCorr
-    local Vntc = cfg.Vcc * AdcValue / 1023
-    local Rntc = cfg.R1 * Vntc / (cfg.Vcc - Vntc)
+    local Vstep = cfg.VccA0 / 1023
+    local AdcValue = readAvg(20) + cfg.AdcCorr
+    local Vntc = Vstep * AdcValue
+    local Rntc = cfg.R1 * Vntc / (cfg.VccR1 - Vntc)
     local LogRntc = math.log(Rntc)
     local bVal = cfg.B * LogRntc
     local cVal = cfg.C * LogRntc * LogRntc * LogRntc
