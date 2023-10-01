@@ -37,7 +37,7 @@ end
 local function main(onReadCb)
     package.loaded[modname] = nil
 
-    local Vstep = cfg.VccA0 / 1023
+    local Vstep = cfg.VccA0 / 1024
     local AdcValue = readAvg(20) + cfg.AdcCorr
     local Vntc = Vstep * AdcValue
     local Rntc = cfg.R1 * Vntc / (cfg.VccR1 - Vntc)
