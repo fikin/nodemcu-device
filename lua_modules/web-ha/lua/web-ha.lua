@@ -26,9 +26,9 @@ local modname = ...
 ---@param conn http_conn*
 local function getInfo(conn)
   local data = {
-    manufacturer = "fikin",
+    manufacturer = "Noname vendor",
     name = require("wifi").sta.gethostname(),
-    model = "WeMos D1 mini",
+    model = "Generic NodeMCU make",
     swVersion = require("get-sw-version")().version,
     hwVersion = "1.0.0"
   }

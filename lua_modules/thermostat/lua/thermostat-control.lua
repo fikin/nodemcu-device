@@ -54,7 +54,7 @@ local function handleHvacMode()
   local mode = state.data.hvac_mode
   if mode == "off" then
     ensureIsOff()
-  elseif mode == "on" then
+  elseif mode == "heat" then
     ensureIsOn()
   elseif mode == "auto" then
     ensureIsAuto()

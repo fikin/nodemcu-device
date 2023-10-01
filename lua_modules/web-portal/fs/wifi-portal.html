@@ -380,16 +380,18 @@
         <h3 class="collapsible">Temp Sensor (adc NTC)</h3>
         <div class="collapsible-content grid-container">
           <label for="adcNtc_AdcCorr" class="grid-item"
-            >Read ADC-values correction factor<br />
-            use this to long term tune temp calculation<br />
-            start with 1 (no correction) and adjust<br />
+            >Read ADC-values correction factor.<br />
+            Use this to long term tune temp calculation.<br />
+            Start with 0 (no correction) increase/decrease<br />
             after comparing room temp and sensor results:</label
           >
-          <input id="adcNtc_AdcCorr" class="cfgValue grid-item" type="number" />
+          <input id="adcNtc_AdcCorr" class="cfgValue grid-item" type="number" step="1" />
           <label for="adcNtc_R1" class="grid-item">Resistor 1 (ohm):</label>
           <input id="adcNtc_R1" class="cfgValue grid-item" type="number" min="1" />
-          <label for="adcNtc_Vcc" class="grid-item">VCC (V):</label>
-          <input id="adcNtc_Vcc" class="cfgValue grid-item" type="number" min="1" />
+          <label for="adcNtc_VccA0" class="grid-item">VCC at A0 (V)<br />i.e 3.3 (NodeMCU) or 1 (ESP):</label>
+          <input id="adcNtc_VccA0" class="cfgValue grid-item" type="number" min="1" />
+          <label for="adcNtc_VccR1" class="grid-item">VCC at R1 (V)<br />likely 3.3 or 5:</label>
+          <input id="adcNtc_VccR1" class="cfgValue grid-item" type="number" min="1" />
           <label for="adcNtc_A" class="grid-item">Steinhart-Hart model coefficient A:</label>
           <input id="adcNtc_A" class="cfgValue grid-item" type="number" min="1" />
           <label for="adcNtc_B" class="grid-item">Steinhart-Hart model coefficient B:</label>

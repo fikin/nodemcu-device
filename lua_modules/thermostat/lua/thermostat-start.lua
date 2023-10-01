@@ -16,8 +16,8 @@ local modname = ...
 local log = require("log")
 
 ---@class thermostat_cfg_mode_cfg
----@field target_temperature_high integer
----@field target_temperature_low integer
+---@field target_temperature_high number
+---@field target_temperature_low number
 
 ---@class thermostat_cfg_mode
 ---@field away thermostat_cfg_mode_cfg
@@ -26,17 +26,18 @@ local log = require("log")
 
 ---@class thermostat_cfg_data
 ---@field temperature_unit string
----@field target_temperature_high integer
----@field target_temperature_low integer
+---@field target_temperature_high number
+---@field target_temperature_low number
 ---@field hvac_mode string
 ---@field hvac_modes string[]
 ---@field preset_mode string
 ---@field preset_modes string[]
 ---@field supported_features integer
+---@field current_temperature number
+---@field hvac_action string provided by HASS when setting other values
 
 ---@class thermostat_cfg
 ---@field periodMs integer
----@field tempSensorPin integer
 ---@field relayPin integer
 ---@field modes thermostat_cfg_mode[]
 ---@field data thermostat_cfg_data
