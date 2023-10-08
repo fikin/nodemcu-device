@@ -64,8 +64,8 @@ local function prepareRteState()
   ---@type thermostat_cfg
   local state = require("device-settings")("thermostat")
 
-  -- remember in RTE state
-  require("state")("thermostat", state)
+  -- set RTE state
+  require("state")()["thermostat"] = state
 end
 
 ---schedule repeating timer to control the thermostat

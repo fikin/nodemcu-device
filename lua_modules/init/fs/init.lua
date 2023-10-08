@@ -25,18 +25,6 @@ local function main()
   local b = require("bootprotect")
 
   configureFromBootSequence(b)
-  -- b.require("setup device settings", "user-settings")
-  -- b.require("configure logger with stored device settings", "log-start")
-  -- b.require("configure wifi module", "wifi-apply-config")
-  -- b.require("start wifi manager", "wifi-mgr")
-  -- b.require("start http server", "http-srv")
-  -- b.require("telnet", "telnet")
-  -- b.require("start temp sensor", "temp-sensor-start")
-  -- b.require("start relay switch", "relay-switch-start")
-  -- b.require("start lights switch", "lights-switch-start")
-  -- b.require("start thermostat", "thermostat-start")
-
-  -- TODO add here more startup functions
 
   b.start()
 end

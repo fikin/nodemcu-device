@@ -22,22 +22,6 @@ local READ_SCRATCHPAD = 0xBE
 local READ_POWERSUPPLY = 0xB4
 local MODE = 1
 
----@class ds18b20_sensor_cfg
----@field pin integer
----@field readingDelayMs integer
-
----@type ds18b20_sensor_cfg
-local cfg = require("device-settings")(modname)
-
----table with sensor addresses and temperature in C.
----this is temp-sensor interface req.
----@alias ds18b20_temps {[string]:number}
-
----@class ds18b20_struct
----@field cb fun(ds18b20_temps)|nil
----@field discoveredAddrs string[]|nil
----@field validAddrs table|nil
-
 ---converts ow sensor addr to string representation
 ---@param addr string
 ---@return string
@@ -182,19 +166,19 @@ end
 ---read temps after conversion
 ---@param o ds18b20_struct
 local function readTempsAfterConversions(o)
-    local rawTemps = readRawTemps(cfg.pin, o.validAddrs)
+    local rawTemps = readRawTemps(o.pin, o.validAddrs)
     local temps = decodeTemps(rawTemps)
-    ow.depower(cfg.pin)
+    ow.depower(o.pin)
     o.cb(temps)
 end
 
 ---suspend the thread until node.taks revives it back.
 ---@param o ds18b20_struct
 ---@param delay? integer
-local function wait(o, delay)
+local function wait(o)
     local f = function() readTempsAfterConversions(o) end
-    if delay then
-        tmr.create():alarm(delay, tmr.ALARM_SINGLE, f)
+    if o.delay then
+        tmr.create():alarm(o.delay, tmr.ALARM_SINGLE, f)
     else
         task.post(task.LOW_PRIORITY, f)
     end
@@ -202,24 +186,24 @@ end
 
 ---@param o ds18b20_struct
 local function readT(o)
-    ow.setup(cfg.pin)
-    o.discoveredAddrs = readAddrs(cfg.pin)
-    o.validAddrs = assertSensors(cfg.pin, o.discoveredAddrs)
-    startConversions(cfg.pin, o.validAddrs)
-    wait(o, cfg.readingDelayMs)
+    ow.setup(o.pin)
+    o.discoveredAddrs = readAddrs(o.pin)
+    o.validAddrs = assertSensors(o.pin, o.discoveredAddrs)
+    startConversions(o.pin, o.validAddrs)
+    wait(o, o.delay)
 end
 
----read DS18B20 sensor temperature over OW and returns its temperature.
----throws error in case there was a problem with reading the data.
----internally it uses coroutine to suspend execution call when time delay is needed.
----@param onReadCb fun(ds18b20_temps) callback when temps have been read
----@return ds18b20_struct one can use it to troubleshoot ow addresses
-local function main(onReadCb)
+local function main(pin, delay)
     package.loaded[modname] = nil
 
-    ---@type ds18b20_struct
+    local prn = function(o)
+        log.info("read : %s", log.json, o)
+    end
+
     local callState = {
-        cb = onReadCb,
+        pin = pin,
+        delay = delay,
+        cb = prn,
         discoveredAddrs = nil,
         validAddrs = nil,
     }

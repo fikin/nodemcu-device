@@ -19,7 +19,7 @@ local function getState()
     return require("state")("temp-sensor")
 end
 
----call thermostat's control loop
+---call sensor's control loop
 local function applyControlLoop()
     require("temp-sensor-control")()
 end
@@ -36,7 +36,7 @@ local function prepareRteState()
     require("state")("temp-sensor", state)
 end
 
----schedule repeating timer to control the thermostat
+---schedule repeating timer to control the sensor
 local function scheduleTimerLoop()
     log.debug("scheduling control loop")
     local state = getState()

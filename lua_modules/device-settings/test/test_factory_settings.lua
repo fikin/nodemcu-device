@@ -30,12 +30,12 @@ function testInitSeq()
 
   local b = fn("init-seq")
 
-  local o2 = sjson.decode('{"bootsequence":["user-settings","log-start"]}')
+  local o2 = sjson.decode('{"bootsequence":["user-settings"]}')
   b:mergeTblInto(nil, o2)
   b:done()
 
   local o3 = require("device-settings")("init-seq")
-  lu.assertEquals(o3, { ["bootsequence"] = { "user-settings", "log-start" } })
+  lu.assertEquals(o3, { ["bootsequence"] = { "user-settings" } })
 end
 
 os.exit(lu.run())

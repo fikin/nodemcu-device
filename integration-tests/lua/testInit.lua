@@ -77,10 +77,10 @@ local function assertHassData()
     local r = 'GET /api/ha/data HTTP/1.0\r\nAuthorization: Basic aGFzczphZG1pbg==\r\n\r\n'
     local e = 'HTTP/1.0 200 OK\r\n' ..
         'Cache-Control: private, no-cache, no-store\r\n' ..
-        'Content-Length: 522\r\n' ..
+        'Content-Length: 523\r\n' ..
         'Content-Type: application/json\r\n' ..
         '\r\n' ..
-        '{"lights-switch":{"color_mode":"onoff","is_on":false,"supported_color_modes":["onoff"]},"relay-switch":{"is_on":false},"sct013-sensor-0-current":{"native_value":0.0},"system-heap-sensor":{"native_value":32096},"temp-sensor":{"native_value":22},"thermostat":{"current_temperature":22,"hvac_action":"off","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","home","sleep"],"supported_features":2,"target_temperature_high":17,"target_temperature_low":15,"temperature_unit":"°C"}}'
+        '{"lights-switch":{"color_mode":"onoff","is_on":false,"supported_color_modes":["onoff"]},"relay-switch":{"is_on":false},"sct013-sensor-0-current":{"native_value":0.0},"system-heap-sensor":{"native_value":32096},"temp-sensor":{"native_value":22},"thermostat":{"current_temperature":22,"hvac_action":"off","hvac_mode":"off","hvac_modes":["off","heat","auto"],"preset_mode":"away","preset_modes":["away","home","sleep"],"supported_features":18,"target_temperature_high":20,"target_temperature_low":18,"temperature_unit":"°C"}}'
     assert200HttpRequest(r, e)
 end
 
@@ -117,9 +117,9 @@ local function assertThermostatPresetRanges()
         lu.assertEquals(v1.target_temperature_low, tgt2)
     end
 
-    assertValues(stS.data, 17, 15)
+    assertValues(stS.data, 20, 18)
     local devSet = require("device-settings")("thermostat")
-    assertValues(devSet.data, 17, 15)
+    assertValues(devSet.data, 20, 18)
 
     local txt = sjson.encode({ thermostat = { target_temperature_high = 33, target_temperature_low = 11 } })
     local r = 'POST /api/ha/data HTTP/1.0\r\n' ..

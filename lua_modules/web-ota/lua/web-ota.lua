@@ -76,6 +76,18 @@ local function handleSwRelease(conn)
   conn.resp.body = txt
 end
 
+---return folder structure
+---@param conn http_conn*
+local function handleListFiles(conn)
+  local lst = require("file").list()
+  local txt = require("log").json(lst)
+  conn.resp.code = "200"
+  conn.resp.headers["Content-Type"] = "application/json"
+  conn.resp.headers["Content-Length"] = #txt
+  conn.resp.headers["Cache-Control"] = "private, no-cache, no-store"
+  conn.resp.body = txt
+end
+
 ---@param conn http_conn*
 local function handleRestart(conn)
   require("http-h-restart")(nil)(conn)
@@ -134,6 +146,8 @@ local function main(conn)
     return checkAuth(handleSwVersion, conn)
   elseif isPath(conn, "GET", "/ota?release") then
     return checkAuth(handleSwRelease, conn)
+  elseif isPath(conn, "GET", "/ota?listfiles") then
+    return checkAuth(handleListFiles, conn)
   elseif isPath(conn, "POST", "/ota?restart") then
     return checkAuth(handleRestart, conn)
   elseif isPathMatch(conn, "POST", "/ota/.+") then

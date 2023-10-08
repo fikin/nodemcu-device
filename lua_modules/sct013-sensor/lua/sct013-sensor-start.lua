@@ -26,7 +26,7 @@ local function getState()
     return require("state")(moduleName)
 end
 
----call thermostat's control loop
+---call sensor's control loop
 local function applyControlLoop()
     local state = getState()
     local volt, _, _, _ = state.ads:read()
@@ -44,7 +44,7 @@ local function prepareRteState(ads)
     })
 end
 
----schedule repeating timer to control the thermostat
+---schedule repeating timer to control the sensor
 ---@param cfg sct013_sensor_cfg
 local function scheduleTimerLoop(cfg)
     log.debug("scheduling control loop")

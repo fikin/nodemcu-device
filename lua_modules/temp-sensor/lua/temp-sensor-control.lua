@@ -27,7 +27,7 @@ local function updateTempState(temp)
     end
 end
 
----call thermostat's control loop
+---call sensor's control loop
 local function applyControlLoop()
     local m = require(state.moduleName)
     m(updateTempState)

@@ -286,14 +286,22 @@
             <option value="error">error</option>
             <option value="audit">audit</option>
           </select>
-          <label for="log_usecolor" class="grid-item">Use color:</label>
-          <select id="log_usecolor" class="cfgValue grid-item">
+          <label for="log_logmodule" class="grid-item">Logging module:</label>
+          <select id="log_logmodule" class="cfgValue grid-item">
+            <option value="logstdout">logstdout</option>
+            <option value="rsyslog">rsyslog</option>
+            <option value="logfile">logfile</option>
+          </select>
+
+          <label for="logstdout_usecolor" class="grid-item">Use color:</label>
+          <select id="logstdout_usecolor" class="cfgValue grid-item">
             <option>true</option>
             <option>false</option>
           </select>
-          <label for="log_outfile" class="grid-item">Log file:</label>
+
+          <label for="logfile_outfile" class="grid-item">Log file:</label>
           <input
-            id="log_outfile"
+            id="logfile_outfile"
             class="cfgValue grid-item"
             type="text"
             autocorrect="off"
@@ -301,8 +309,13 @@
             autocomplete="off"
             placeholder="i.e. syslog.log"
           />
-          <label for="log_logrotate" class="grid-item">Log file rotate (bytes):</label>
-          <input id="log_logrotate" class="cfgValue grid-item" type="number" min="512" max="4086" step="1" />
+          <label for="logfile_logrotate" class="grid-item">Log file rotate (bytes):</label>
+          <input id="logfile_logrotate" class="cfgValue grid-item" type="number" min="512" max="4086" step="1" />
+
+          <label for="rsyslog_host" class="grid-item">Rsyslog server:</label>
+          <input id="rsyslog_host" class="cfgValue grid-item" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" />
+          <label for="rsyslog_port" class="grid-item">Rsyslog server port:</label>
+          <input id="rsyslog_port" class="cfgValue grid-item" type="number" step="1" />
         </div>
       </fieldset>
       <br />
@@ -498,7 +511,6 @@
           <select id="initSeq_bootsequence" class="cfgValue grid-item" multiple>
             <option>&#160;</option>
             <option>user-settings</option>
-            <option>log-start</option>
             <option>wifi-apply-config</option>
             <option>wifi-mgr</option>
             <option>http-srv</option>

@@ -1,3 +1,4 @@
 {
-    "pin": 5
+    "pin": 5,
+    "readingDelayMs": 600
 }

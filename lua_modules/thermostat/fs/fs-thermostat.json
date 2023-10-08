@@ -3,22 +3,22 @@
   "relayPin": 1,
   "modes": {
     "away": {
-      "target_temperature_high": 17,
-      "target_temperature_low": 15
+      "target_temperature_high": 20,
+      "target_temperature_low": 18
     },
     "home": {
-      "target_temperature_high": 21,
-      "target_temperature_low": 19
-    },
-    "sleep": {
       "target_temperature_high": 22,
       "target_temperature_low": 20
+    },
+    "sleep": {
+      "target_temperature_high": 24,
+      "target_temperature_low": 22
     }
   },
   "data": {
     "temperature_unit": "°C",
-    "target_temperature_high": 17,
-    "target_temperature_low": 15,
+    "target_temperature_high": 20,
+    "target_temperature_low": 18,
     "hvac_mode": "off",
     "hvac_modes": [
       "off",
@@ -31,6 +31,6 @@
       "home",
       "sleep"
     ],
-    "supported_features": 2
+    "supported_features": 18
   }
 }

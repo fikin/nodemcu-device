@@ -80,8 +80,9 @@ local function welcomeMsg(skt)
   collectgarbage()
   log.info("%d mem free", node.heap())
   local state = getState()
-  log.info("Last login: %s", state.lastLogingTs or log.ts())
-  state.lastLogingTs = log.ts()
+  local ts = require("get-timestamp")()
+  log.info("Last login: %s", state.lastLogingTs or ts)
+  state.lastLogingTs = ts
 end
 
 ---redirects node std streams to the socket

@@ -21,13 +21,14 @@ There are unit and even integration tests but coverage is on the lower ends.
 
 ## What is possible?
 
-Using WeMos D1 Mini, one can run following and still have about 30kB free RAM:
+Using WeMos D1 Mini one can run following and still have about 30kB free RAM:
 
 - Wifi manager
 - Http server with Captive portal, OTA and Home Assistant integration
 - Telnet
 - Thermostat control loop
 - PID controller
+- Send logs over rsyslog (BSD, UDP)
 
 Browse [lua_modules](lua_modules) folder to explore available functionality.
 
@@ -36,6 +37,8 @@ Example booting sequence is listed [docs/boot-log.txt](docs/boot-log.txt).
 Captive portal web page looks like this ![portal](docs/portal.png)
 
 Integration with Home Assistant looks like this ![hass](docs/2023-01-22_22-46.png) ![hass2](docs/2023-01-22_22-47.png)
+
+Sending logs over rsyslog requires the server to be accepting BSD UDP traffic format (RFC 3164).
 
 ## How to use it this repo?
 
