@@ -40,8 +40,10 @@ local function setFn(changes)
 
   log.info("change settings to %s", log.json, changes)
   if changes.preset_mode or changes.hvac_mode or changes.target_temperature_high then
-    updateState(changes)
     updateDevSettings(changes)
+    collectgarbage()
+    collectgarbage()
+    updateState(changes)
     applyControlLoop()
   else
     log.error("ignoring the change, thermostat is not supporting it")

@@ -130,7 +130,7 @@ end
 ---@param txt string
 ---@return boolean
 local function isJson(txt)
-  require("str-to-json")(txt)
+  require("sjson").decode(txt)
   return true
 end
 
