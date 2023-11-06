@@ -27,6 +27,7 @@ local function setRealy(isOn)
   local action = determineHvacAction(isOn)
   state.data.hvac_action = action
   log.info("setting hvac action to %s, mode is %s", action, state.data.hvac_mode)
+  if state.invertPin then isOn = not isOn end
   require("gpio-set-pin")(state.relayPin, isOn)
 end
 

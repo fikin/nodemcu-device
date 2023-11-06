@@ -39,6 +39,7 @@ local log = require("log")
 ---@class thermostat_cfg
 ---@field periodMs integer
 ---@field relayPin integer
+---@field invertPin boolean
 ---@field modes thermostat_cfg_mode[]
 ---@field data thermostat_cfg_data
 
