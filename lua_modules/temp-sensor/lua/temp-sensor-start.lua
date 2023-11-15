@@ -13,6 +13,7 @@ local log = require("log")
 ---@field filterSize integer
 ---@field moduleName string
 ---@field data temp_sensor_cfg_data
+---@field firstReading boolean
 
 ---@return temp_sensor_cfg
 local function getState()
@@ -31,6 +32,7 @@ local function prepareRteState()
 
     -- by default 22C, until reading happens
     state.data = { native_value = 22 }
+    state.firstReading = true
 
     -- remember in RTE state
     require("state")("temp-sensor", state)
