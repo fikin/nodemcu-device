@@ -13,17 +13,19 @@ local function updateTempState(temp)
     local log = require("log")
     local addrsCnt = 0
     for addr, temp in pairs(temp) do
-        if addrsCnt > 1 then
-            log.info("temp sensor %s (%f°C) is ignored, only one sensor is supported", addr, temp)
+        if temp > 125 or temp < -55 then
+            log.error("erroneous temp sensor reading from %s (%f°C): ignoring it", addr, temp)
+        elseif addrsCnt > 1 then
+            log.error("more than one temp sensors found, temp sensor %s (%f°C) is ignored", addr, temp)
         elseif state.firstReading then
             -- assign first time reading
             state.data.native_value = temp
             log.info("temp of sensor %s is : %f°C", addr, temp)
+            state.firstReading = false
         else
             -- pass new value over avg filter logic
             state.data.native_value = (state.data.native_value * (state.filterSize - 1) + temp) / state.filterSize
-            log.info("temp of sensor %s is : %f°C : new reading is %f°C", addr, state.data.native_value, temp)
-            state.firstReading = false
+            log.info("temp of sensor %s is now %f°C, new reading was %f°C", addr, state.data.native_value, temp)
         end
         addrsCnt = addrsCnt + 1
     end
