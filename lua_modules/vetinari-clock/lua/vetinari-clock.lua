@@ -221,7 +221,7 @@ local function main(typeOfClock)
             trueOnNCall = trueOnNCall
         }
     else
-        assert("expected 'silent' or 'loud' clock type but given " .. typeOfClock)
+        error("expected 'silent' or 'loud' clock type but found " .. typeOfClock)
     end
 end
 
