@@ -33,7 +33,7 @@ local function readAvg(cnt)
     return t / cnt
 end
 
----@param onReadCb fun(adc_temp) callback when temps have been read
+---@param onReadCb fun(temp:adc_temp) callback when temps have been read
 local function main(onReadCb)
     package.loaded[modname] = nil
 
