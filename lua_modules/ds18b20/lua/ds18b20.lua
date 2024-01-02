@@ -4,8 +4,6 @@
     This implementation supports:
         - DS18B20 or DS19B20 familiy of sensors
         - wired in "power" mode (not "parasitic")
-
-    Internally it uses a coroutine to suspend the execution when time delay is needed.
 ]]
 local modname = ...
 
@@ -34,7 +32,7 @@ local cfg = require("device-settings")(modname)
 ---@alias ds18b20_temps {[string]:number}
 
 ---@class ds18b20_struct
----@field cb fun(ds18b20_temps)|nil
+---@field cb fun(temps:ds18b20_temps)|nil
 ---@field discoveredAddrs string[]|nil
 ---@field validAddrs table|nil
 
@@ -74,7 +72,11 @@ local function decodeTemps(rawTemps)
         local crc, b9, t = decodeTemp(addr, data)
         if math.floor(t) ~= 85 then
             if crc == b9 then
-                tbl[addrToStr(addr)] = t
+                if t < -55 or t > 125 then
+                    log.error("%s temp readout out of range (-55,+125) : %s", addrToStr(addr), t)
+                else
+                    tbl[addrToStr(addr)] = t
+                end
             else
                 log.error("%s temp crc failed", addrToStr, addr)
             end
@@ -110,15 +112,15 @@ local function assertSensor(pin, addr)
         return false
     end
     if not wiredInPowerMode(pin, addr) then
-        log.error("sensor %s is powered in parasitic mode, use on own risk", addrToStr, addr)
+        log.error("sensor %s is powered in parasitic mode, use at own risk", addrToStr, addr)
     end
     return true
 end
 
 ---@param pin integer
 ---@param addrs string[]
----@returns string[] addrs valid only
-local function assertSensors(pin, addrs)
+---@return string[] addrs valid only
+local function filterOutInvalidAddresses(pin, addrs)
     local lst = {}
     for i, addr in ipairs(addrs) do
         if assertSensor(pin, addr) then
@@ -129,7 +131,7 @@ local function assertSensors(pin, addrs)
 end
 
 ---@param pin integer
----@return string[]
+---@return string[] addrs addresses of discovered temp sensors
 local function readAddrs(pin)
     ow.reset_search(pin)
     ow.reset(pin)
@@ -204,18 +206,26 @@ end
 local function readT(o)
     ow.setup(cfg.pin)
     o.discoveredAddrs = readAddrs(cfg.pin)
-    o.validAddrs = assertSensors(cfg.pin, o.discoveredAddrs)
+    o.validAddrs = filterOutInvalidAddresses(cfg.pin, o.discoveredAddrs)
     startConversions(cfg.pin, o.validAddrs)
     wait(o, cfg.readingDelayMs)
 end
 
----read DS18B20 sensor temperature over OW and returns its temperature.
+---read DS18B20 sensor(s) temperature over OW and returns its temperature.
 ---throws error in case there was a problem with reading the data.
----internally it uses coroutine to suspend execution call when time delay is needed.
----@param onReadCb fun(ds18b20_temps) callback when temps have been read
----@return ds18b20_struct one can use it to troubleshoot ow addresses
-local function main(onReadCb)
+---@param onReadCb fun(temps:ds18b20_temps)|nil callback when temps have been read, if not provided one can use the returned data structure instead for troubleshooting use cases
+---@param pin integer|nil pin number to use for reading ow sensor, by default this is provided by device settings, use for troubleshooting use cases
+---@param delayMs integer|nil sensor conversion delay in ms, by default it is defined in device settings, use for troubleshooting use cases
+---@return ds18b20_struct temps data structure with read temps, one can use it to troubleshoot ow addresses
+local function main(onReadCb, pin, delayMs)
     package.loaded[modname] = nil
+
+    if pin ~= nil then
+        cfg.pin = pin
+    end
+    if delayMs ~= nil then
+        cfg.readingDelayMs = delayMs
+    end
 
     ---@type ds18b20_struct
     local callState = {
