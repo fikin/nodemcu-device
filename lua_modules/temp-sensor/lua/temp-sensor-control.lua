@@ -13,9 +13,7 @@ local function updateTempState(temp)
     local log = require("log")
     local addrsCnt = 0
     for addr, temp in pairs(temp) do
-        if temp > 125 or temp < -55 then
-            log.error("erroneous temp sensor reading from %s (%f°C): ignoring it", addr, temp)
-        elseif addrsCnt > 1 then
+        if addrsCnt > 1 then
             log.error("more than one temp sensors found, temp sensor %s (%f°C) is ignored", addr, temp)
         elseif state.firstReading then
             -- assign first time reading
