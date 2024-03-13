@@ -1,0 +1,7 @@
+{
+    "triggerPin": 5,
+    "echoPin": 6,
+    "averageReads": 2,
+    "impulseUs": 10,
+    "calibrationCoef": 1
+}
