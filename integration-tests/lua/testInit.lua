@@ -84,6 +84,20 @@ local function assertHassData()
     assert200HttpRequest(r, e)
 end
 
+---forms HASS POST request
+---@param obj table
+---@return string
+local function newHASSPOST(obj)
+    local txt = sjson.encode(obj)
+    local r = 'POST /api/ha/data HTTP/1.0\r\n' ..
+        'Authorization: Basic aGFzczphZG1pbg==\r\n' ..
+        'Content-Type: application/json\r\n' ..
+        'Content-Length: ' .. tostring(#txt) .. '\r\n' ..
+        '\r\n' ..
+        txt
+    return r
+end
+
 local function assertThermostatMode()
     ---@type thermostat_cfg
     local stS = require("state")("thermostat")
@@ -95,13 +109,7 @@ local function assertThermostatMode()
 
     assertValues(stS.data.hvac_mode, require("device-settings")("thermostat").data.hvac_mode, "off")
 
-    local txt = sjson.encode({ thermostat = { hvac_mode = "auto" } })
-    local r = 'POST /api/ha/data HTTP/1.0\r\n' ..
-        'Authorization: Basic aGFzczphZG1pbg==\r\n' ..
-        'Content-Type: application/json\r\n' ..
-        'Content-Length: ' .. tostring(#txt) .. '\r\n' ..
-        '\r\n' ..
-        txt
+    local r = newHASSPOST({ thermostat = { hvac_mode = "auto" } })
     local e = 'HTTP/1.0 200 OK\r\n' .. '\r\n'
     assert200HttpRequest(r, e)
 
@@ -121,13 +129,7 @@ local function assertThermostatPresetRanges()
     local devSet = require("device-settings")("thermostat")
     assertValues(devSet.data, 20, 18)
 
-    local txt = sjson.encode({ thermostat = { target_temperature_high = 33, target_temperature_low = 11 } })
-    local r = 'POST /api/ha/data HTTP/1.0\r\n' ..
-        'Authorization: Basic aGFzczphZG1pbg==\r\n' ..
-        'Content-Type: application/json\r\n' ..
-        'Content-Length: ' .. tostring(#txt) .. '\r\n' ..
-        '\r\n' ..
-        txt
+    local r = newHASSPOST({ thermostat = { target_temperature_high = 33, target_temperature_low = 11 } })
     local e = 'HTTP/1.0 200 OK\r\n' .. '\r\n'
     assert200HttpRequest(r, e)
 
@@ -137,12 +139,40 @@ local function assertThermostatPresetRanges()
     assertValues(devS.modes[devS.data.preset_mode], 33, 11)
 end
 
+local function assertRelaySwitchIsOn()
+    ---@type relay_switch_cfg
+    local stS = require("state")("relay-switch")
+
+    lu.assertFalse(stS.data.is_on)
+
+    local r = newHASSPOST({ ["relay-switch"] = { is_on = true } })
+    local e = 'HTTP/1.0 200 OK\r\n' .. '\r\n'
+    assert200HttpRequest(r, e)
+
+    lu.assertTrue(stS.data.is_on)
+end
+
+local function assertLightIsOn()
+    ---@type lights_switch_cfg
+    local stS = require("state")("lights-switch")
+
+    lu.assertFalse(stS.data.is_on)
+
+    local r = newHASSPOST({ ["lights-switch"] = { is_on = true } })
+    local e = 'HTTP/1.0 200 OK\r\n' .. '\r\n'
+    assert200HttpRequest(r, e)
+
+    lu.assertTrue(stS.data.is_on)
+end
+
 local function assertHass()
     assertHassInfo()
     assertHassSpec()
     assertHassData()
     assertThermostatMode()
     assertThermostatPresetRanges()
+    assertRelaySwitchIsOn()
+    assertLightIsOn()
 end
 
 local function assertSktReceived(skt, expected)
