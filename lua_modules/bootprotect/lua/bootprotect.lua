@@ -1,6 +1,6 @@
 --[[
   Runs sequence of functions, one after another.
-  
+
   In case of error, it offers a time delay and then runs it again.
 
   In case of device reboot, it runs same sequence of functions but pauses

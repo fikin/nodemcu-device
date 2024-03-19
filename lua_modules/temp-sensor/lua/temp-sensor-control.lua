@@ -8,11 +8,11 @@ end
 local state = getState()
 
 ---updates RTE state with given temp
----@param temp table as provided by ds18b20
-local function updateTempState(temp)
+---@param temps table as provided by ds18b20
+local function updateTempState(temps)
     local log = require("log")
     local addrsCnt = 0
-    for addr, temp in pairs(temp) do
+    for addr, temp in pairs(temps) do
         if addrsCnt > 1 then
             log.error("more than one temp sensors found, temp sensor %s (%f°C) is ignored", addr, temp)
         elseif state.firstReading then
@@ -28,7 +28,7 @@ local function updateTempState(temp)
         addrsCnt = addrsCnt + 1
     end
     if addrsCnt == 0 then
-        log.error("no temp sensor readings provided : %s", log.json, temp)
+        log.error("no temp sensor readings provided : %s", log.json, temps)
     end
 end
 

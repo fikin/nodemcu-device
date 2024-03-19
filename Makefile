@@ -26,17 +26,17 @@ X_REPO         ?= https://github.com/nodemcu/nodemcu-firmware
 
 ### testing related
 # Lua mocks used in test target
-MOCKS_REPO			?= https://github.com/fikin/nodemcu-lua-mocks
-MOCKS_BRANCH		?= master
+MOCKS_REPO								?= https://github.com/fikin/nodemcu-lua-mocks
+MOCKS_BRANCH							?= master
 # only SPIFFS lua files are here (lua_moduesl/*/fs/*lua) + external dependencies
-LUA_SPIFFS_PATH				?= $(shell ls -f lua_modules/*/fs/*.lua | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
-LUA_LFS_PATH				?= $(shell ls -f lua_modules/*/lua/*.lua | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
+LUA_SPIFFS_PATH						?= $(shell ls -f lua_modules/*/fs/*.lua | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
+LUA_LFS_PATH							?= $(shell ls -f lua_modules/*/lua/*.lua | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
 # only LFS lua files are here (lua_modules/*/lua/*.lua)
-NODEMCU_LFS_FILES			?= $(wildcard lua_modules/*/lua/*.lua)
-UNIT_TEST_CASES				?= $(wildcard lua_modules/*/test/*est*.lua)
+NODEMCU_LFS_FILES					?= $(wildcard lua_modules/*/lua/*.lua)
+UNIT_TEST_CASES						?= $(wildcard lua_modules/*/test/*est*.lua)
 INTEGRATION_TEST_CASES		?= $(wildcard integration-tests/lua/*est*.lua)
 # dir containing all SPIFFS files except *.lua/lc
-NODEMCU_MOCKS_SPIFFS_DIR   	?=  vendor/tests-spiffs
+NODEMCU_MOCKS_SPIFFS_DIR	?=  vendor/tests-spiffs
 ###
 
 .PHONY: all config clean 
@@ -45,6 +45,11 @@ NODEMCU_MOCKS_SPIFFS_DIR   	?=  vendor/tests-spiffs
 .PHONY: spiffs-image lfs-image 
 .PHONY: test integration-test mock_spiffs_dir
 .PHONY: flash flash-esp32 flash-esp8266
+.PHONY: $(UNIT_TEST_CASES)
+.PHONY: $(INTEGRATION_TEST_CASES)
+
+###################
+### dependencies and other tools and sources
 
 # clone build scripts
 #	you can symlink it manually if you need totally different source code
@@ -62,7 +67,14 @@ vendor/nodemcu-lua-mocks:
 vendor/nodemcu-firmware:
 	git clone --depth=1 --branch=${X_BRANCH} --recursive ${X_REPO} vendor/nodemcu-firmware
 
+vendor/hererocks:
+	@mkdir vendor/hererocks
+	curl -sLo vendor/hererocks/hererocks.py https://github.com/mpeterv/hererocks/raw/master/hererocks.py
+	python vendor/hererocks/hererocks.py vendor/lua53 -l5.3 -rlatest
+	@source vendor/lua53/bin/activate && luarocks install luacheck && luarocks install luacov
+
 ###################
+###
 
 help:  													## Display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nExample:\n  \033[36mmake test\033[0m\n  Run unit tests.\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -71,6 +83,7 @@ clean:
 	rm -rf $(MAKEFILE_CONFIG) $(NODEMCU_MOCKS_SPIFFS_DIR) vendor/*.lst vendor/minify
 
 ###################
+### configuring build of firmware
 
 # generate .env-vars our of build.config
 vendor/.env-vars: build.config vendor/nodemcu-custom-build 
@@ -79,6 +92,7 @@ vendor/.env-vars: build.config vendor/nodemcu-custom-build
 config: vendor/.env-vars								## call it FIRST or after build.config change, before prepare-firmware 
 
 ###################
+### preparing firmware
 
 prepare-firmware-esp32: vendor/nodemcu-firmware
 	@mkdir -p vendor/nodemcu-firmware/local/fs vendor/nodemcu-firmware/local/lua
@@ -93,6 +107,7 @@ prepare-firmware: prepare-firmware-$(X_BRANCH_NATURE)	## patch firmware files wi
 	cd ./vendor && ./nodemcu-custom-build/run.sh -before
 
 ###################
+### building and flashing
 
 build-esp32:
 	$(MAKE) -C ./vendor/nodemcu-firmware all
@@ -128,8 +143,9 @@ $(UNIT_TEST_CASES):
 	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);$(LUA_LFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
 		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
 		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
-		&& lua5.3 $@
-.PHONY: $(UNIT_TEST_CASES)
+		&& export PATH="vendor/lua53/bin:${PATH}" \
+		&& lua $@
+# difference with integration tests is presence of LUA_LFS_PATH in lua path, integration tests simulate node.LFS better while unit tests not.
 
 mock_spiffs_dir: 										## prepares vendor/test-spiffs folder, used in running tests
 	@mkdir -p $(NODEMCU_MOCKS_SPIFFS_DIR)
@@ -141,6 +157,7 @@ mock_spiffs_dir: 										## prepares vendor/test-spiffs folder, used in runnin
 test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES)	## runs unit tests
 
 
+###################
 ### integration testing
 
 $(INTEGRATION_TEST_CASES):
@@ -148,7 +165,29 @@ $(INTEGRATION_TEST_CASES):
 	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
 		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
 		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
-		&& lua5.3 $@
-.PHONY: $(INTEGRATION_TEST_CASES)
+		&& export PATH="vendor/lua53/bin:${PATH}" \
+		&& lua $@
 
 integration-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(INTEGRATION_TEST_CASES)	## runs integration tests
+
+
+###################
+### linting
+
+lint/%: vendor/hererocks
+	@echo [INFO] : Running tests in $@ ...
+	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
+		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
+		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
+		&& export PATH="vendor/lua53/bin:${PATH}" \
+		&& luacheck ${*}
+
+lint-tests/%: vendor/hererocks
+	@echo [INFO] : Running tests in $@ ...
+	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
+		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
+		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
+		&& export PATH="vendor/lua53/bin:${PATH}" \
+		&& luacheck -g ${*}
+
+lint: ${NODEMCU_LFS_FILES:%=lint/%} ${UNIT_TEST_CASES:%=lint-tests/%} ${INTEGRATION_TEST_CASES:%=lint-tests/%}	## runs linter

@@ -19,7 +19,7 @@
 
 ---------------------------------------------------------------------------------]]
 local function lfsLoader(module) -- loader_flash
-  return node.LFS.get(module)
+  return require("node").LFS.get(module)
 end
 
 -- place it right after predefined-searcher and before file-searcher as file is relatively slow
@@ -33,11 +33,11 @@ table.insert(package.searchers, 2, lfsLoader) -- searches is lua5.3 related.
 ------------------------------------------------------------------------------]]
 local lf = loadfile
 _G.loadfile = function(n)
-  if file.exists(n) then
+  if require("file").exists(n) then
     return lf(n)
   end
   local mod = n:match("^([^\\.]+)")
-  local fn = mod and node.LFS.get(mod)
+  local fn = mod and require("node").LFS.get(mod)
   return (fn or error(("Cannot find '%s' in FS or LFS"):format(n))) and fn
 end
 

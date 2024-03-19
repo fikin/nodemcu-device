@@ -7,8 +7,8 @@ local modname = ...
 ---@param cmd hass_button_req
 local function restartNode(cmd)
     if cmd.action == "restart" then
-        local task = require("node").task
-        task.post(task.MEDIUM_PRIORITY, node.restart)
+        local node = require("node")
+        node.task.post(node.task.MEDIUM_PRIORITY, node.restart)
     else
         local log = require("log")
         log.error("HASS unsupported action received : %s", log.json, cmd)

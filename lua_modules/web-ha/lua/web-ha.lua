@@ -86,8 +86,8 @@ end
 
 ---set data for some HA entity
 ---@param conn http_conn*
----@param entities string[] list with entities defined in device settings
-local function setData(conn, entities)
+---@param _ string[] entities, list with entities defined in device settings
+local function setData(conn, _)
   local data = require("http-h-read-json")(conn)
   updateEntities(data)
   conn.resp.code = "200"

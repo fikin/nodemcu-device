@@ -142,8 +142,8 @@ local function onStaAuthModeChange(T)
 end
 
 ---called on sta dhcp timeout, logs it only
----@param T table as provided by wifi.event
-local function onStaDhcpTimeout(T)
+---@param _ table as provided by wifi.event
+local function onStaDhcpTimeout(_)
   log.info("dhcp timeout")
 end
 

@@ -11,7 +11,7 @@ end
 ---@return web_ha_entity_data
 local function main()
     package.loaded[modname] = nil
-    
+
     return { ["relay-switch"] = getState().data }
 end
 

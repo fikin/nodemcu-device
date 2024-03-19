@@ -122,7 +122,7 @@ end
 ---@return string[] addrs valid only
 local function filterOutInvalidAddresses(pin, addrs)
     local lst = {}
-    for i, addr in ipairs(addrs) do
+    for _, addr in ipairs(addrs) do
         if assertSensor(pin, addr) then
             table.insert(lst, addr)
         end
@@ -213,9 +213,13 @@ end
 
 ---read DS18B20 sensor(s) temperature over OW and returns its temperature.
 ---throws error in case there was a problem with reading the data.
----@param onReadCb fun(temps:ds18b20_temps)|nil callback when temps have been read, if not provided one can use the returned data structure instead for troubleshooting use cases
----@param pin integer|nil pin number to use for reading ow sensor, by default this is provided by device settings, use for troubleshooting use cases
----@param delayMs integer|nil sensor conversion delay in ms, by default it is defined in device settings, use for troubleshooting use cases
+---@param onReadCb fun(temps:ds18b20_temps)|nil callback when temps have been read.
+-- if not provided one can use the returned data structure instead for troubleshooting use cases
+---@param pin integer|nil pin number to use for reading ow sensor.
+-- by default this is provided by device settings, use for troubleshooting use cases
+---@param delayMs integer|nil sensor conversion delay in ms.
+-- by default it is defined in device settings.
+-- use for troubleshooting use cases
 ---@return ds18b20_struct temps data structure with read temps, one can use it to troubleshoot ow addresses
 local function main(onReadCb, pin, delayMs)
     package.loaded[modname] = nil

@@ -67,6 +67,9 @@ local function prepareRteState()
 
   -- set RTE state
   require("state")()["thermostat"] = state
+
+  local gpio = require("gpio")
+  gpio.mode( state.relayPin, gpio.OUTPUT)
 end
 
 ---schedule repeating timer to control the thermostat

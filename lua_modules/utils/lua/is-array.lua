@@ -7,7 +7,7 @@ local function isArray(t)
 
     --check if all the table keys are numerical and count their number
     local count = 0
-    for k, v in pairs(t) do
+    for k, _ in pairs(t) do
         if type(k) ~= "number" then
             return false
         else

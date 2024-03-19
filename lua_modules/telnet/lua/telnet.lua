@@ -36,6 +36,9 @@ end
 local cfg = getSettings()
 local usr, pwd = cfg.usr, cfg.pwd
 
+local stdout = nil -- TODO defining it here used to break telnet in past.
+-- check it again? adding it now due to linter ...
+
 ---called when connection is closed to restore node's std streams
 local function onDisconnect()
   log.audit("telnet session closed")
@@ -73,8 +76,8 @@ local function logNewConnection(skt)
   log.audit("incomming connection from %s", log.json, { port = port, ip = ip })
 end
 
----@param skt socket
-local function welcomeMsg(skt)
+---@param _ socket
+local function welcomeMsg(_)
   log.info("Welcome to NodeMCU")
   collectgarbage()
   collectgarbage()
@@ -89,7 +92,7 @@ end
 ---@param skt socket
 local function openNodeSession(skt)
   -- pipe provided by node.output
-  local stdout = {}
+  stdout = {} -- TODO used to be "local"-defined here. check comment at beginning.
 
   local readAndSendOnce = readAndSendOnceFact(stdout)
 
@@ -181,7 +184,6 @@ end
 ---@return tcpServer
 local function startup()
   local net = require("net")
-  local cfg = getSettings()
   local srv = net.createServer(cfg.timeoutSec)
   srv:listen(cfg.port, onNewConnection)
   log.info("listening on port %d", cfg.port)

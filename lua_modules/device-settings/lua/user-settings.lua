@@ -1,9 +1,9 @@
 --[[
-  Add here device settings which you want to 
+  Add here device settings which you want to
   apply programmatically at boot time each time.
-  
+
   Use builder:set("field path", value) to set a value.
-  
+
   Use builder:unset("field path") to set a field to nil.
 
   Use builder:default("field path", value) to assign some value, if not assigned already.

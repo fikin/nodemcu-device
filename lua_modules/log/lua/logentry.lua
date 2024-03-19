@@ -22,7 +22,6 @@ end
 ---@param ... unknown
 ---@return string
 local function formMsg(txt, ...)
-  local tail
   local ok, subTxt = pcall(string.format, txt, expandArgs(...))
   if ok then
     return subTxt
@@ -39,10 +38,10 @@ local function getLineinfo()
 end
 
 ---logs an entry for given log level
----@param lvl string
+---@param _ string stack level
 ---@param txt string
 ---@param ... any
-local function logEntry(lvl, txt, ...)
+local function logEntry(_, txt, ...)
   local msg = formMsg(txt, ...)
   local src = getLineinfo()
   local ts = require("get-timestamp")()

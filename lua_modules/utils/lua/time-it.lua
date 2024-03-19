@@ -1,9 +1,12 @@
 local modname = ...
 
 local function timeIt(cnt, fnc, ...)
+    local tmr = require("tmr")
+    local node = require("node")
+
     local function loopIt(f2, ...)
         local t0 = tmr.ccount()
-        for i = 1, cnt do
+        for _ = 1, cnt do
             f2(...)
         end
         local t1 = tmr.ccount()
@@ -21,8 +24,6 @@ end
 local function main(cnt, fnc, ...)
     package.loaded[modname] = nil
 
-    local tmr = require("tmr")
-    local node = require("node")
     return timeIt(cnt, fnc, ...)
 end
 

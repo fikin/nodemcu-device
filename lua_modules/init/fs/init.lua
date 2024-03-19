@@ -9,7 +9,7 @@
 local function configureFromBootSequence(b)
   ---@type init_seq_cfg
   local cfg = require("device-settings")("init-seq")
-  for _, m in pairs(cfg.bootsequence) do
+  for _, m in ipairs(cfg.bootsequence) do
     b.require(m, m)
   end
 end

@@ -60,8 +60,6 @@ end
 
 ---callback called by wifi event
 local function wifiCbFn()
-  local wifi = require("wifi")
-  local mode = wifi.getmode()
   if isConnected() then
     getState().syncOngoing = true
     require("sntp").sync(nil, okCbFn, errCbFn, nil)

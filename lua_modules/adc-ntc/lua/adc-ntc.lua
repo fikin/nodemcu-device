@@ -27,7 +27,7 @@ local cfg = require("device-settings")(modname)
 ---@return number average value
 local function readAvg(cnt)
     local t = 0
-    for i = 1, cnt, 1 do
+    for _ = 1, cnt, 1 do
         t = t + adc.read(0)
     end
     return t / cnt

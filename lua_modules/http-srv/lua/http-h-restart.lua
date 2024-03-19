@@ -13,8 +13,8 @@ local function restartIfOk(hasErr)
     require("log").info("user requested node restart, scheduling one in 300ms ...")
     local tmr = require("tmr")
     local t = tmr.create()
-    t:alarm(300, tmr.ALARM_SINGLE, function(t)
-      node.restart()
+    t:alarm(300, tmr.ALARM_SINGLE, function(_)
+      require("node").restart()
     end)
   end
 end

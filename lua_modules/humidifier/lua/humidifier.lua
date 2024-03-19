@@ -10,19 +10,21 @@ local modname = ...
 ---@field current_temperature number
 ---@field current_water_level number
 
----@return humidifier_cfg
-local function getState()
-    ---@type humidifier_cfg
-    local cfg = require("device-settings")("humidifier")
-    --cfg.current_humidity
-    return cfg
-end
+-- ---@return humidifier_cfg
+-- local function getState()
+--     ---@type humidifier_cfg
+--     local cfg = require("device-settings")("humidifier")
+--     --cfg.current_humidity
+--     return cfg
+-- end
 
 
 local function controllLoop()
 end
 
 local function main(operation)
+    package.loaded[modname] = nil
+
     if operation == "control" then
         controllLoop()
     end

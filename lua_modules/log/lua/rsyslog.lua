@@ -88,7 +88,8 @@ local function main()
                 u:dns(cfg.host, onDnsHostLookup)
             end
         else
-            ip = nil
+            require("log").error("dns lookup failed : %s", cfg.host)
+            state.ip = nil
         end
         print(txt)
     end

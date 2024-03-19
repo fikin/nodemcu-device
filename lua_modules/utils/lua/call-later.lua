@@ -11,7 +11,7 @@ local function main(delay, fnc)
   t:register(
     delay,
     tmr.ALARM_SINGLE,
-    function(T)
+    function(_)
       fnc()
     end
   )

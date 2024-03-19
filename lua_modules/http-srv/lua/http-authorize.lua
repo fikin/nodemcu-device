@@ -32,7 +32,7 @@ end
 ---@return boolean
 ---@return string|nil
 local function main(conn, creds)
-  -- package.loaded[modname] = nil -- cached, for better tiny performance
+  package.loaded[modname] = nil -- TODO : should we consider caching it? for better tiny performance ...
 
   if isAuthenticated(creds, conn) then
     return true, nil

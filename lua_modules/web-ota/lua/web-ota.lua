@@ -11,10 +11,10 @@
 local modname = ...
 
 ---@param conn http_conn*
----@param method string
+---@param _ string method
 ---@param pathPattern string
 ---@return boolean match
-local function isPathMatch(conn, method, pathPattern)
+local function isPathMatch(conn, _, pathPattern)
   return string.find(conn.req.url, pathPattern) ~= nil
 end
 
@@ -49,13 +49,6 @@ local function checkAuth(nextFn, conn)
     nextFn(conn)
   end
   return true
-end
-
----reads sw_version and sends it back to caller
----@param conn http_conn*
-local function handleSwVersion(conn)
-  local data = require("get-sw-version")()
-  require("http-h-send-json")(conn, data)
 end
 
 ---reads sw_version and sends it back to caller

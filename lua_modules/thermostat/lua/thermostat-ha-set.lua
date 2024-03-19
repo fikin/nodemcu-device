@@ -50,12 +50,16 @@ local function setFn(changes)
   end
 end
 
----handle HASS command (service) request
----@param data table HASS command payload
-local function main(data)
+---@param changes table changes as they are coming from HASS
+---@return boolean flag if recognizes the key, it returns true, otherwise false
+local function main(changes)
   package.loaded[modname] = nil
 
-  setFn(data)
+  if changes then
+    setFn(changes)
+    return true
+  end
+  return false
 end
 
 return main
