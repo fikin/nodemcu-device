@@ -139,7 +139,7 @@ Authorization: Basic aGFzczphZG1pbg==
         },
         {
         "device_class": "current",
-        "key": "sct013-sensor-0-current",
+        "key": "sct013-sensor",
         "name": "Current",
         "native_unit_of_measurement": "A",
         "state_class": "measurement"
@@ -173,7 +173,7 @@ Authorization: Basic aGFzczphZG1pbg==
     "relay-switch": {
       "is_on": false
     },
-    "sct013-sensor-0-current": {
+    "sct013-sensor": {
       "native_value": 0.0
     },
     "system-heap-sensor": {

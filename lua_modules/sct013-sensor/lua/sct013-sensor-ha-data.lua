@@ -7,9 +7,10 @@ local modname = ...
 local function main()
     package.loaded[modname] = nil
 
+
     ---@type sct013_sensor_state
     local cfg = require("state")("sct013-sensor")
-    return { ["sct013-sensor-0-current"] = cfg.data }
+    return { ["sct013-sensor"] = cfg.data }
 end
 
 return main

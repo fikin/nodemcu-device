@@ -7,7 +7,7 @@ local function main()
     return { {
         type = "sensor",
         spec = {
-            key                        = "sct013-sensor-0-current",
+            key                        = "sct013-sensor",
             name                       = "Current",
             device_class               = "current",
             native_unit_of_measurement = "A",

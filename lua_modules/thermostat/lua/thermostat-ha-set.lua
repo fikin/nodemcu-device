@@ -50,16 +50,15 @@ local function setFn(changes)
   end
 end
 
----@param changes table changes as they are coming from HASS
+---@param data table changes as they are coming from HASS
 ---@return boolean flag if recognizes the key, it returns true, otherwise false
-local function main(changes)
+local function main(data)
   package.loaded[modname] = nil
 
-  if changes then
-    setFn(changes)
-    return true
-  end
-  return false
+  local changes = data["thermostat"]
+  if not changes then return false end
+  setFn(changes)
+  return true
 end
 
 return main
