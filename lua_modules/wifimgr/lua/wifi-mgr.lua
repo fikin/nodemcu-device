@@ -23,7 +23,6 @@ local modname = ...
 local log = require("log")
 local wifi = require("wifi")
 
-
 ---@return cfg_wifi_mgr
 local function getSettings()
   return require("device-settings")(modname)
@@ -115,13 +114,14 @@ end
 ---tries reconnect or schedules such
 ---@param T wifi_event_disconnect as provided by wifi.event
 local function onStaDisconnect(T)
+  local l = require("log")
   local reason = tonumber(T.reason) or 0
   T.reason = require("wifi-reasons")(reason)
-  log.info("disconnected from %s", log.json, T)
+  l.info("disconnected from %s", l.json, T)
 
   ---a wrapper to afterDisconnect
   local fn = function()
-    afterDisconnect(reason)
+    require(modname)("afterDisconnect", reason)
   end
   postTask(fn)
 end
@@ -129,29 +129,32 @@ end
 ---called on sta connected to ssid, logs it
 ---@param T table as provided by wifi.event
 local function onStaConnect(T)
-  log.info("connected to %s", log.json, T)
+  local l = require("log")
+  l.info("connected to %s", l.json, T)
 end
 
 ---called on wifi sta auth mode change, logs it
 ---@param T wifi_event_auth_change as provided by wifi.event
 local function onStaAuthModeChange(T)
+  local l = require("log")
   local d = require("wifi-authmode")
   T.new_auth_mode = d(tonumber(T.new_auth_mode) or 0)
   T.old_auth_mode = d(tonumber(T.old_auth_mode) or 0)
-  log.info("authorization mode changed %s", log.json, T)
+  l.info("authorization mode changed %s", l.json, T)
 end
 
 ---called on sta dhcp timeout, logs it only
 ---@param _ table as provided by wifi.event
 local function onStaDhcpTimeout(_)
-  log.info("dhcp timeout")
+  require("log").info("dhcp timeout")
 end
 
 ---called on sta-ip address assigned
 ---shutdowns ap if still connected after 1min
 ---@param T table as provided by wifi.event
 local function onStaGotIp(T)
-  log.info("got ip %s", log.json, T)
+  local l = require("log")
+  l.info("got ip %s", l.json, T)
 
   local settings = getSettings()
   if settings.sntpSync then
@@ -163,31 +166,31 @@ local function onStaGotIp(T)
   end
 
   -- switch off AP if ok
-  local fn = function()
-    require("call-later")(1000 * 60, setApOn)
-  end
-  postTask(fn)
+  require("call-later")(1000 * 60, function() require(modname)("setApOn") end)
 end
 
 ---called on wifi mode change, logs it
 ---@param T table as provided by wifi.event
 local function onWifiModeChanged(T)
+  local l = require("log")
   local d = require("wifi-wifimode")
   T.new_mode = d(tonumber(T.new_mode) or 0)
   T.old_mode = d(tonumber(T.old_mode) or 0)
-  log.info("wifi mode changed %s", log.json, T)
+  l.info("wifi mode changed %s", l.json, T)
 end
 
 ---called on ap-connected, audits the client
 ---@param T table as provided by wifi.event
 local function onApConnected(T)
-  log.audit("accepted connection from %s", log.json, T)
+  local l = require("log")
+  l.audit("accepted connection from %s", l.json, T)
 end
 
 ---called on ap-disconnect, audits the client
 ---@param T table as provided by wifi.event
 local function onApDisconnected(T)
-  log.audit("connection closed from %s", log.json, T)
+  local l = require("log")
+  l.audit("connection closed from %s", l.json, T)
 end
 
 ---assign wifi.event callbacks via which the orchestration
@@ -218,17 +221,30 @@ end
 ---starts wifi management
 ---it tries to connect to sta if it is defined
 ---it starts ap if sta is not defined
-local function main()
+local function main(args, ...)
   package.loaded[modname] = nil
 
-  wifi.setmode(wifi.NULLMODE) -- reset state just for any case
+  if args then
+    -- recursive call from insize
+    if args == "setApOn" then
+      setApOn()
+    elseif args == "afterDisconnect" then
+      afterDisconnect(...)
+    else
+      log.error("unrecognized callback : %s", args)
+    end
+  else
+    -- startup call
 
-  assignCbs()
+    wifi.setmode(wifi.NULLMODE) -- reset state just for any case
 
-  if hasSSIDDefined("wifi-sta") then
-    trySta() -- try to connect to sta
-  elseif hasSSIDDefined("wifi-ap") then
-    setApOn() -- start ap right on
+    assignCbs()
+
+    if hasSSIDDefined("wifi-sta") then
+      trySta()  -- try to connect to sta
+    elseif hasSSIDDefined("wifi-ap") then
+      setApOn() -- start ap right on
+    end
   end
 end
 
