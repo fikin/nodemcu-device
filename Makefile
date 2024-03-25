@@ -39,6 +39,10 @@ INTEGRATION_TEST_CASES		?= $(wildcard integration-tests/lua/*est*.lua)
 NODEMCU_MOCKS_SPIFFS_DIR	?=  vendor/tests-spiffs
 ###
 
+LUAOPTS										:=
+
+###################
+
 .PHONY: all config clean 
 .PHONY: prepare-firmware prepare-firmware-esp32 prepare-firmware-esp8266 
 .PHONY: build build-esp32 build-esp8266 
@@ -71,7 +75,10 @@ vendor/hererocks:
 	@mkdir vendor/hererocks
 	curl -sLo vendor/hererocks/hererocks.py https://github.com/mpeterv/hererocks/raw/master/hererocks.py
 	python vendor/hererocks/hererocks.py vendor/lua53 -l5.3 -rlatest
-	@source vendor/lua53/bin/activate && luarocks install luacheck && luarocks install luacov && luarocks install luacov-console
+	@source vendor/lua53/bin/activate \
+		&& luarocks install luacheck \
+		&& luarocks install luacov \
+		&& luarocks install luacov-console
 
 ###################
 ###
@@ -169,31 +176,26 @@ $(INTEGRATION_TEST_CASES):
 
 integration-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(INTEGRATION_TEST_CASES) coverage	## runs integration tests
 
-
 ###################
 ### linting
 
 lint/%: vendor/hererocks
-	@echo [INFO] : Running tests in $@ ...
-	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
-		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
-		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
-		&& export PATH="vendor/lua53/bin:${PATH}" \
-		&& luacheck ${*}
+	@echo [INFO] : Running lint for $@ ...
+	@export PATH="vendor/lua53/bin:${PATH}" \
+		&& luacheck $(LUAOPTS) "${*}"
 
-lint-tests/%: vendor/hererocks
-	@echo [INFO] : Running tests in $@ ...
-	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
-		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
-		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
-		&& export PATH="vendor/lua53/bin:${PATH}" \
-		&& luacheck -g ${*}
+lint-lua: ${NODEMCU_LFS_FILES:%=lint/%}									## lint all source files
 
-lint: ${NODEMCU_LFS_FILES:%=lint/%} ${UNIT_TEST_CASES:%=lint-tests/%} ${INTEGRATION_TEST_CASES:%=lint-tests/%}	## runs linter
+lint-test: LUAOPTS = -g																	# disable globals related linting rules
+lint-test: ${UNIT_TEST_CASES:%=lint/%} ${INTEGRATION_TEST_CASES:%=lint/%}	## lint all test files
+
+lint: vendor/hererocks lint-lua lint-test 							## lint all lua files
 
 ###################
 ### coverage report
 
 coverage:		## prints coverage report, collected when running unit and integration tests
 	export export PATH="vendor/lua53/bin:${PATH}" \
-		&& luacov-console lua_modules && luacov-console -s
+		&& luacov-console lua_modules -s
+
+###################
