@@ -182,6 +182,8 @@ end
 ---@param self factory_settings*
 M.done = function(self)
   saveCfgIfChanged(self.cfg, self.moduleName)
+  collectgarbage()
+  collectgarbage()
 end
 
 ---sets the field to given value, unconditionally.

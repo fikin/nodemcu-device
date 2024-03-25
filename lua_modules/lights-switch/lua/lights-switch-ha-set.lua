@@ -6,9 +6,9 @@ local function setFn(changes)
     log.info("change settings to %s", log.json, changes)
 
     ---@type lights_switch_cfg
-    local state = require("state")("lights-switch")
-    state.data.is_on = changes.is_on
-    require("gpio-set-pin")(state.pin, state.data.is_on)
+    local cfg = require("device-settings")("lights-switch")
+
+    require("relay")(cfg.relay)(changes.is_on)
 end
 
 ---@param data table changes as they are coming from HASS

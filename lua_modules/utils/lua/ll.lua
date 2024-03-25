@@ -24,15 +24,23 @@ local function getKeys(tbl)
     return ret
 end
 
-local function main()
+local function prn(name, size)
+    print(rpad(name, 25, " "), size)
+end
+
+---lists SPIFFS content
+---@param fn nil|fun(name:string,size:integer) print function to use or use default
+local function main(fn)
     package.loaded[modname] = nil
 
     local file = require("file")
     local tbl = file.list()
     local lst = getKeys(tbl)
     table.sort(lst)
+
+    fn = fn or prn
     for _, v in pairs(lst) do
-        print(rpad(v, 25, " "), tbl[v])
+        fn(v, tbl[v])
     end
 end
 

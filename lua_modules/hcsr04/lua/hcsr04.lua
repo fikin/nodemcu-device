@@ -1,7 +1,5 @@
 local modname = ...
 
----@alias hcsr04_sensor_reading_cb fun(distanceMm:number)
-
 ---@class hcsr04_sensor_cfg
 ---@field triggerPin integer
 ---@field echoPin integer
@@ -9,7 +7,7 @@ local modname = ...
 ---@field impulseUs integer trigger signal length, def 10
 ---@field calibrationCoef integer callibration coeficient, def 1
 
-local node, tmr, gpio = require("node"), require("tmr"), require("gpio")
+local node, tmr, gpio, scheduler = require("node"), require("tmr"), require("gpio"), require("scheduler")
 
 -- speed of sound in air at 20C is about 343m/s
 -- metrics conversion to mm/us = (100cm * 10mm) / (1000ms * 1000us)
@@ -17,80 +15,56 @@ local node, tmr, gpio = require("node"), require("tmr"), require("gpio")
 -- divided by 2 because the meassured time duration includes both directions of sound travel
 local tickMmUs = 0.343 * node.getcpufreq() / 2
 
---- configuration as provided by caller
----@type hcsr04_sensor_cfg
-local cfg = require("device-settings")(modname)
+local key = math.random(1024)
 
---- callback to pass the read distance as provided by caller
----@type hcsr04_sensor_reading_cb
-local onReadingCb
-
---- coroutine created to read one caller request
----@type thread
-local co
---- timeout protection against indefinite distances
----@type tmr_instance
-local tm
-
-local function yieldCcount()
-    if co and coroutine.status(co) == "suspended" then
-        coroutine.resume(co, tmr.ccount())
-    end
-end
-
-local function meassureDistance()
-    if not tm:start() then error("failed starting hcsr04 timeout timer") end
-
+---@param cfg hcsr04_sensor_cfg
+---@return number
+local function meassureDistance(cfg)
     gpio.write(cfg.triggerPin, gpio.HIGH)
     node.delay(cfg.impulseUs)
     gpio.write(cfg.triggerPin, gpio.LOW)
 
-    local ccountStart = coroutine.yield()
-    local ccountEnd = coroutine.yield()
-
-    tm:stop()
+    local ccountStart = tmr.ccount()
+    local ccountEnd = scheduler:waitOrTimeout(key, 50)
+    ccountEnd = ccountEnd or tmr.ccount()
 
     return math.abs(ccountEnd - ccountStart) * cfg.calibrationCoef / tickMmUs
 end
 
 ---average distance reads
+---@param cfg hcsr04_sensor_cfg
 ---@return number
-local function meassureAverage()
+local function meassureAverage(cfg)
     local sum = 0
     for _ = 0, cfg.averageReads do
-        sum = sum + meassureDistance()
+        sum = sum + meassureDistance(cfg)
     end
 
     return sum / cfg.averageReads
 end
 
-local function performMeassurement()
+---@param cfg hcsr04_sensor_cfg
+local function performMeassurement(cfg)
     gpio.mode(cfg.triggerPin, gpio.OUTPUT)
     gpio.mode(cfg.echoPin, gpio.INPUT)
 
-    gpio.trig(cfg.echoPin, "both", yieldCcount)
+    gpio.trig(cfg.echoPin, "both", function() scheduler:signal(key, tmr.ccount()) end)
 
-    -- indefinite distance protection, set to 50ms i.e. ~ 17m
-    tm = tmr.create()
-    tm:register(50, tmr.ALARM_AUTO, yieldCcount)
+    local distance = meassureAverage(cfg)
 
-    local distance = meassureAverage()
-
-    -- tear down sequence
-    tm:unregister()
     gpio.trig(cfg.echoPin, "none", nil)
 
-    onReadingCb(distance)
+    return distance
 end
 
----@param onReadingCb1 hcsr04_sensor_reading_cb
-local function main(onReadingCb1)
+---@param cfg hcsr04_sensor_cfg|nil
+---@return number distance in meters
+local function main(cfg)
     package.loaded[modname] = nil
 
-    onReadingCb = onReadingCb1
+    cfg = cfg or require("device-settings")(modname)
 
-    co = coroutine.create(performMeassurement)
-    coroutine.resume(co)
+    return performMeassurement(cfg)
 end
 
 return main

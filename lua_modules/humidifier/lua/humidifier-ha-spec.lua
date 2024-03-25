@@ -29,20 +29,28 @@ local function main()
                 device_class = "door",
             }
         },
+        -- {
+        --     type = "sensor",
+        --     spec = {
+        --         key                        = "humidifier-water",
+        --         name                       = "Water Level",
+        --         device_class               = "volume_storage",
+        --         native_unit_of_measurement = "mL",
+        --         state_class                = "measurement",
+        --     }
+        -- },
+        -- {
+        --     type = "binary_sensor",
+        --     spec = {
+        --         key          = "humidifier-water-level-is-low",
+        --         name         = "Water Level is Low",
+        --         device_class = "problem",
+        --     }
+        -- },
         {
             type = "sensor",
             spec = {
-                key                        = "humidifier-water",
-                name                       = "Water Level",
-                device_class               = "volume_storage",
-                native_unit_of_measurement = "mL",
-                state_class                = "measurement",
-            }
-        },
-        {
-            type = "sensor",
-            spec = {
-                key                        = "humidifier-temp",
+                key                        = "humidifier-temperature",
                 name                       = "Temperature",
                 device_class               = "temperature",
                 native_unit_of_measurement = "°C",

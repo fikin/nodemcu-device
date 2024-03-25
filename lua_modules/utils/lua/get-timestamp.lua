@@ -6,12 +6,17 @@
 local modname = ...
 
 ---returns timestamp from rtctime
+---@param sec integer|nil sec in unix epoch
 ---@return string
-local function main()
+---@return integer sec in unix epoch
+local function main(sec)
     package.loaded[modname] = nil
 
     local rtctime = require("rtctime")
-    local sec, _, _ = rtctime.get()
+    sec = sec or (function()
+        local _sec, _, _ = rtctime.get()
+        return _sec
+    end)()
     local tm = rtctime.epoch2cal(sec)
     return string.format(
         "%04d-%02d-%02dT%02d:%02d:%02d",
@@ -21,7 +26,7 @@ local function main()
         tm.hour,
         tm.min,
         tm.sec
-    )
+    ), sec
 end
 
 return main

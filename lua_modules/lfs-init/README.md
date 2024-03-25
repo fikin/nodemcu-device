@@ -10,4 +10,4 @@ And if SPIFFS contains `LFS.img` file, it will auto-flash it.
 
 In case of success, `LFS.img` will be removed.
 
-In case of LFS flash error, `LFS.img` will be removed and ``LFS.img`.PANIC.txt` will contain `node` reboot error.
+In case of LFS flash error, `LFS.img` will be removed and `LFS.img.PANIC.txt` will contain `node` reboot error.

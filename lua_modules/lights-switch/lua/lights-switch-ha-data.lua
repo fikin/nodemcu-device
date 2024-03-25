@@ -3,16 +3,16 @@
 ]]
 local modname = ...
 
----@return relay_switch_cfg
-local function getState()
-    return require("state")("lights-switch")
-end
-
 ---@return web_ha_entity_data
 local function main()
     package.loaded[modname] = nil
 
-    return { ["lights-switch"] = getState().data }
+    ---@type lights_switch_cfg
+    local cfg = require("device-settings")("lights-switch")
+
+    cfg.data.is_on = require("relay")(cfg.relay)()
+
+    return { ["lights-switch"] = cfg.data }
 end
 
 return main

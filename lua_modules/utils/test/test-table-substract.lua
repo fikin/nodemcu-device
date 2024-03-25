@@ -59,15 +59,15 @@ function testDeep2()
 end
 
 function testArray()
-    local o = sjson.decode('{"bootsequence":["user-settings"]}')
-    local o2 = sjson.decode('{"bootsequence":["user-settings","telnet"]}')
+    local o = sjson.decode('{"modules":["user-settings"]}')
+    local o2 = sjson.decode('{"modules":["user-settings","telnet"]}')
     fn(o, o2)
-    lu.assertEquals(o, { ["bootsequence"] = { "user-settings" } })
+    lu.assertEquals(o, { ["modules"] = { "user-settings" } })
 end
 
 function testArrayNoDiff()
-    local o = sjson.decode('{"bootsequence":["user-settings"]}')
-    local o2 = sjson.decode('{"bootsequence":["user-settings"]}')
+    local o = sjson.decode('{"modules":["user-settings"]}')
+    local o2 = sjson.decode('{"modules":["user-settings"]}')
     fn(o, o2)
     lu.assertEquals(o, {})
 end

@@ -261,28 +261,34 @@ end
 
 local function assertRelaySwitchIsOn()
     ---@type relay_switch_cfg
-    local stS = require("state")("relay-switch")
+    local cfg = require("device-settings")("relay-switch")
 
-    lu.assertFalse(stS.data.is_on)
+    local state = require("relay")(cfg.relay)
+
+    lu.assertFalse(state())
 
     local r = newHASSPOST({ ["relay-switch"] = { is_on = true } })
     local e = 'HTTP/1.0 200 OK\r\n\r\n'
     assert200HttpRequest(r, e)
 
-    lu.assertTrue(stS.data.is_on)
+    lu.assertTrue(state())
 end
 
 local function assertLightIsOn()
     ---@type lights_switch_cfg
-    local stS = require("state")("lights-switch")
+    local cfg = require("device-settings")("relay-switch")
 
-    lu.assertFalse(stS.data.is_on)
+    local state = require("relay")(cfg.relay)
 
-    local r = newHASSPOST({ ["lights-switch"] = { is_on = true } })
+    -- opposite value to relay
+    -- as assertRelaySwitchIsOn() is called before this ione
+    lu.assertTrue(state())
+
+    local r = newHASSPOST({ ["lights-switch"] = { is_on = false } })
     local e = 'HTTP/1.0 200 OK\r\n\r\n'
     assert200HttpRequest(r, e)
 
-    lu.assertTrue(stS.data.is_on)
+    lu.assertFalse(state())
 end
 
 local function assertHass()

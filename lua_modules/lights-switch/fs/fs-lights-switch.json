@@ -1,7 +1,11 @@
 {
-  "pin": 1,
+  "relay": {
+    "pin": 1
+  },
   "data": {
     "color_mode": "onoff",
-    "supported_color_modes": ["onoff"]
+    "supported_color_modes": [
+      "onoff"
+    ]
   }
 }

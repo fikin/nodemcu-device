@@ -1,7 +1,21 @@
 {
     "periodMs": 60000,
-    "relayPin": 1,
-    "invertPin": false,
+    "door": {
+        "pin": 5,
+        "invert": false
+    },
+    "fan": {
+        "pin": 6,
+        "invert": true
+    },
+    "mistifier": {
+        "pin": 7,
+        "invert": true
+    },
+    "modules": {
+        "waterLevel": "hcsr04",
+        "humidity": "dht"
+    },
     "modes": {
         "auto": {
             "target_humidity": 50,
@@ -10,12 +24,14 @@
         }
     },
     "data": {
-        "is_on": true,
+        "is_on": false,
         "action": "off",
         "target_humidity": 50,
         "max_humidity": 100,
         "min_humidity": 0,
-        "available_modes": [ "auto" ],
+        "available_modes": [
+            "auto"
+        ],
         "mode": "auto",
         "supported_features": 0
     }
