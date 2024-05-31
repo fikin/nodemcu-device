@@ -2,26 +2,19 @@
 
 .DEFAULT_GOAL                   := help
 
-# Ensure "config" is called before running other targets
-# Config provides .env-vars which contains instrumentation for firmware and LFS
-MAKEFILE_CONFIG := vendor/.env-vars
-ifeq ($(filter $(MAKECMDGOALS),config clean),)
-    ifeq ($(strip $(wildcard $(MAKEFILE_CONFIG))),)
-        $(error Config file '$(MAKEFILE_CONFIG)' does not exist. Please, use 'make config' before)
-    else
-        ifneq ($(MAKECMDGOALS),config)
-            include $(MAKEFILE_CONFIG)
-        endif
-    endif
-endif
-
 ### building related
 # build scripts, used for preparing firmware modules and other options
-BUILD_REPO     ?= https://github.com/fikin/nodemcu-custom-build
+BUILD_REPO     			?= https://github.com/fikin/nodemcu-custom-build
 #		### the repo fork contains more functionality than upstream, use that for now
-BUILD_BRANCH   ?= master
-# firmware repo
-X_REPO         ?= https://github.com/nodemcu/nodemcu-firmware
+BUILD_BRANCH   			?= master
+
+# firmare related settings
+# they are here in order to enable target dependencies to operate normally
+# ATTN: these configs should be same as in build.config, if nodemcu-custom-build is to be as upstream
+X_REPO         			?= https://github.com/fikin/nodemcu-firmware
+X_BRANCH			 			?= dev
+X_BRANCH_NATURE			?= esp8266
+X_LUA								?= 53
 ###
 
 ### testing related
@@ -108,7 +101,7 @@ prepare-firmware-esp32: vendor/nodemcu-firmware
 
 prepare-firmware-esp8266: vendor/nodemcu-firmware
 
-prepare-firmware: prepare-firmware-$(X_BRANCH_NATURE)	## patch firmware files with build.config settings, no need to call it directly
+prepare-firmware: config prepare-firmware-$(X_BRANCH_NATURE)	## patch firmware files with build.config settings, no need to call it directly
 	@rm -rf ./vendor/nodemcu-firmware/local/fs/*
 	@rm -rf ./vendor/nodemcu-firmware/local/lua/*
 	cd ./vendor && ./nodemcu-custom-build/run.sh -before
@@ -121,18 +114,18 @@ build-esp32:
 	@echo FIXME
 
 build-esp8266:
-	$(MAKE) -C ./vendor/nodemcu-firmware LUA=${X_LUA} all spiffs-image
-	$(MAKE) -f Makefile-spiffs.mk spiffs-image
+	$(MAKE) -C ./vendor/nodemcu-firmware LUA=${X_LUA} all
+	$(MAKE) spiffs-image
 
-build: prepare-firmware	build-$(X_BRANCH_NATURE)		## builds firmware, SPIFFS and LFS images. Result files are located in nodemcu-firmware/bin and nodemcu-firmware/local/fs/LFS.img.
+build: prepare-firmware	build-$(X_BRANCH_NATURE) spiffs-image ## builds firmware, SPIFFS and LFS images. Result files are located in nodemcu-firmware/bin and nodemcu-firmware/local/fs/LFS.img.
 
 spiffs-image: prepare-firmware							## builds only SPIFFS and LFS images. Result files are located in nodemcu-firmware/bin/*.img and nodemcu-firmware/local/fs/LFS.img
-	$(MAKE) -f Makefile-spiffs.mk spiffs-image
+	$(MAKE) -f Makefile-spiffs.mk X_BRANCH_NATURE=$(X_BRANCH_NATURE) spiffs-image
 
-lfs-image: prepare-firmware								## builds LFS image only. Result file is located in nodemcu-firmware/local/fs/LFS.img.
+lfs-image: prepare-firmware									## builds LFS image only. Result file is located in nodemcu-firmware/local/fs/LFS.img.
 	$(MAKE) -f Makefile-spiffs.mk lfs-image
 
-all: build test											## builds images and runs unit tests
+all: build test															## builds images and runs unit tests
 
 flash-esp32:
 	@echo FIXME
@@ -154,7 +147,7 @@ $(UNIT_TEST_CASES):
 		&& lua -lluacov $@
 # difference with integration tests is presence of LUA_LFS_PATH in lua path, integration tests simulate node.LFS better while unit tests not.
 
-mock_spiffs_dir: 										## prepares vendor/test-spiffs folder, used in running tests
+mock_spiffs_dir: prepare-firmware					## prepares vendor/test-spiffs folder, used in running tests
 	@mkdir -p $(NODEMCU_MOCKS_SPIFFS_DIR)
 	@rm -rf $(NODEMCU_MOCKS_SPIFFS_DIR)/*
 	@cp ./vendor/nodemcu-firmware/local/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/
@@ -168,13 +161,14 @@ test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES) coverage	## ru
 
 $(INTEGRATION_TEST_CASES):
 	@echo [INFO] : Running tests in $@ ...
+	@$(MAKE) mock_spiffs_dir
 	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
 		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
 		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
 		&& export PATH="vendor/lua53/bin:${PATH}" \
 		&& lua -lluacov $@
 
-integration-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(INTEGRATION_TEST_CASES) coverage	## runs integration tests
+integration-test: vendor/nodemcu-lua-mocks $(INTEGRATION_TEST_CASES) coverage	## runs integration tests
 
 ###################
 ### linting
