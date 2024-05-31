@@ -8,14 +8,24 @@ local function nl(str)
     return string.gsub(str, "\n", "\r\n")
 end
 
----test that LFS.img is LFS.reload() and error is captured.
----as node.LFS.reload() is not possible to implement currently.
-local function assertLFSFileError()
-    lu.assertEquals(file.getcontents("LFS.img.PANIC.txt"), "FIXME : not implemented")
-    lu.assertIsFalse(file.exists("LFS.img"))
+-- test that reboot is initiated after LFS.img is reloaded ok
+local function assertLFSReload()
+    require("init")
+    local ok, err = pcall(nodemcu.advanceTime, 2000)
+    lu.assertIsFalse(ok)
+    lu.assertStrContains(err, "node.LFS.reload")
+    -- simulate node.LFS.reload removal of image file
+    file.remove("LFS.img")
 end
 
-local function assertDeviSettingsFile()
+local function assertNormalBootAfterLFSReload()
+    require("init")
+    nodemcu.advanceTime(2000)
+end
+
+local function assertSpiffsContent()
+    lu.assertIsFalse(file.exists("LFS.img.PANIC.txt"))
+    lu.assertIsTrue(file.exists("LFS.img"))
     lu.assertIsTrue(file.exists("fs-wifi.json"))
     lu.assertIsFalse(file.exists("ds-wifi.json"))
     lu.assertIsFalse(file.exists("ds-wifi.json.bak"))
@@ -72,7 +82,8 @@ Authorization: Basic YWRtaW46YWRtaW4=
 
 ]])
     assert200HttpRequest(r, e)
-    lu.assertIsTrue(nodemcu.node.restartRequested)
+    lu.assertIsTrue(nodemcu.node.restartIgnored)
+    nodemcu.node.restartIgnored = false
 end
 
 local function assertWifiPortal()
@@ -327,19 +338,14 @@ end
 function testInit()
     nodemcu.reset()
 
-    --lu.assertIsTrue(file.exists("LFS.img"))
-    lu.assertIsFalse(file.exists("LFS.img.PANIC.txt"))
-    lu.assertIsTrue(file.exists("fs-wifi.json"))
-    lu.assertIsFalse(file.exists("ds-wifi.json"))
-
-    require("init")
-    nodemcu.advanceTime(2000)
-
-    assertLFSFileError()
-    assertDeviSettingsFile()
+    assertSpiffsContent()
+    assertLFSReload()
+    assertNormalBootAfterLFSReload()
+    NODEMCU_RESTART_IGNORE = true
     assertWifiPortal()
     assertHass()
     assertTelnet()
+    _G["NODEMCU_RESTART_IGNORE"] = nil
 end
 
 os.exit(lu.run())
