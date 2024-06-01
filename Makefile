@@ -155,7 +155,7 @@ mock_spiffs_dir: prepare-firmware					## prepares vendor/test-spiffs folder, use
 	@touch $(NODEMCU_MOCKS_SPIFFS_DIR)/LFS.img
 	@[ -d ./integration-tests/fs ] && cp ./integration-tests/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/ || return 0
 
-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES) ## runs unit tests
+test: vendor/hererocks vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES) ## runs unit tests
 
 ###################
 ### integration testing
@@ -169,7 +169,7 @@ $(INTEGRATION_TEST_CASES):
 		&& export PATH="vendor/lua53/bin:${PATH}" \
 		&& lua -lluacov $@
 
-integration-test: vendor/nodemcu-lua-mocks $(INTEGRATION_TEST_CASES) ## runs integration tests
+integration-test: vendor/hererocks vendor/nodemcu-lua-mocks mock_spiffs_dir $(INTEGRATION_TEST_CASES) ## runs integration tests
 
 ###################
 ### linting
