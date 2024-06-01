@@ -270,9 +270,9 @@
             <option>false</option>
           </select>
           <label for="wifiMgr_staRetryPeriod" class="grid-item">Retry connect to STA (ms):</label>
-          <input id="wifiMgr_staRetryPeriod" class="cfgValue grid-item" type="number" min="1" />
+          <input id="wifiMgr_staRetryPeriod" class="cfgValue grid-item" type="number" min="1" step="1" />
           <label for="wifiMgr_apStartDelay" class="grid-item">Start AP if not connected after (ms):</label>
-          <input id="wifiMgr_apStartDelay" class="cfgValue grid-item" type="number" min="1" />
+          <input id="wifiMgr_apStartDelay" class="cfgValue grid-item" type="number" min="1" step="1" />
         </div>
       </fieldset>
       <br />
@@ -286,14 +286,22 @@
             <option value="error">error</option>
             <option value="audit">audit</option>
           </select>
-          <label for="log_usecolor" class="grid-item">Use color:</label>
-          <select id="log_usecolor" class="cfgValue grid-item">
+          <label for="log_logmodule" class="grid-item">Logging module:</label>
+          <select id="log_logmodule" class="cfgValue grid-item">
+            <option value="logstdout">logstdout</option>
+            <option value="rsyslog">rsyslog</option>
+            <option value="logfile">logfile</option>
+          </select>
+
+          <label for="logstdout_usecolor" class="grid-item">Use color:</label>
+          <select id="logstdout_usecolor" class="cfgValue grid-item">
             <option>true</option>
             <option>false</option>
           </select>
-          <label for="log_outfile" class="grid-item">Log file:</label>
+
+          <label for="logfile_outfile" class="grid-item">Log file:</label>
           <input
-            id="log_outfile"
+            id="logfile_outfile"
             class="cfgValue grid-item"
             type="text"
             autocorrect="off"
@@ -301,8 +309,13 @@
             autocomplete="off"
             placeholder="i.e. syslog.log"
           />
-          <label for="log_logrotate" class="grid-item">Log file rotate (bytes):</label>
-          <input id="log_logrotate" class="cfgValue grid-item" type="number" min="512" max="4086" />
+          <label for="logfile_logrotate" class="grid-item">Log file rotate (bytes):</label>
+          <input id="logfile_logrotate" class="cfgValue grid-item" type="number" min="512" max="4086" step="1" />
+
+          <label for="rsyslog_host" class="grid-item">Rsyslog server:</label>
+          <input id="rsyslog_host" class="cfgValue grid-item" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" />
+          <label for="rsyslog_port" class="grid-item">Rsyslog server port:</label>
+          <input id="rsyslog_port" class="cfgValue grid-item" type="number" step="1" />
         </div>
       </fieldset>
       <br />
@@ -312,7 +325,7 @@
           <label for="telnet_port" class="grid-item">Port:</label>
           <input id="telnet_port" class="cfgValue grid-item" type="number" min="1" max="65535" />
           <label for="telnet_timeoutSec" class="grid-item">Connection timeout (sec):</label>
-          <input id="telnet_timeoutSec" class="cfgValue grid-item" type="number" min="1" max="65535" />
+          <input id="telnet_timeoutSec" class="cfgValue grid-item" type="number" min="1" max="65535" step="1" />
           <label for="telnet_usr" class="grid-item">Username:</label>
           <input id="telnet_usr" class="cfgValue grid-item" type="text" autocorrect="off" autocapitalize="none" placeholder="i.e. admin" />
           <label for="telnet_pwd" class="grid-item">Password:</label>
@@ -332,9 +345,9 @@
         <h3 class="collapsible">HTTP Server</h3>
         <div class="collapsible-content grid-container">
           <label for="httpSrv_port" class="grid-item">Port:</label>
-          <input id="httpSrv_port" class="cfgValue grid-item" type="number" min="1" max="65535" />
+          <input id="httpSrv_port" class="cfgValue grid-item" type="number" min="1" max="65535" step="1" />
           <label for="httpSrv_timeoutSec" class="grid-item">Connection timeout (sec):</label>
-          <input id="httpSrv_timeoutSec" class="cfgValue grid-item" type="number" min="1" max="65535" />
+          <input id="httpSrv_timeoutSec" class="cfgValue grid-item" type="number" min="1" max="65535" step="1" />
           <label for="httpSrv_webModules" class="grid-item">Web modules:</label>
           <select id="httpSrv_webModules" class="cfgValue grid-item" multiple>
             <option>&#160;</option>
@@ -349,7 +362,7 @@
         <h3 class="collapsible">Relay Switch (hass)</h3>
         <div class="collapsible-content grid-container">
           <label for="relaySwitch_pin" class="grid-item">Port:</label>
-          <input id="relaySwitch_pin" class="cfgValue grid-item" type="number" min="1" max="13" />
+          <input id="relaySwitch_pin" class="cfgValue grid-item" type="number" min="1" max="13" step="1" />
         </div>
       </fieldset>
       <br />
@@ -357,9 +370,9 @@
         <h3 class="collapsible">Temp Sensor (hass)</h3>
         <div class="collapsible-content grid-container">
           <label for="tempSensor_periodMs" class="grid-item">Read period (ms):</label>
-          <input id="tempSensor_periodMs" class="cfgValue grid-item" type="number" min="1" max="3600000" />
+          <input id="tempSensor_periodMs" class="cfgValue grid-item" type="number" min="1" max="3600000" step="1" />
           <label for="tempSensor_filterSize" class="grid-item">Filter size:</label>
-          <input id="tempSensor_filterSize" class="cfgValue grid-item" type="number" min="1" />
+          <input id="tempSensor_filterSize" class="cfgValue grid-item" type="number" min="1" step="1" />
           <label for="tempSensor_moduleName" class="grid-item">Sensor module:</label>
           <select id="tempSensor_moduleName" class="cfgValue grid-item" multiple>
             <option>ds18b20</option>
@@ -372,7 +385,7 @@
         <h3 class="collapsible">Temp Sensor (ds18b20)</h3>
         <div class="collapsible-content grid-container">
           <label for="ds18b20_pin" class="grid-item">Pin:</label>
-          <input id="ds18b20_pin" class="cfgValue grid-item" type="number" min="1" max="13" />
+          <input id="ds18b20_pin" class="cfgValue grid-item" type="number" min="1" max="13" step="1" />
         </div>
       </fieldset>
       <br />
@@ -387,17 +400,17 @@
           >
           <input id="adcNtc_AdcCorr" class="cfgValue grid-item" type="number" step="1" />
           <label for="adcNtc_R1" class="grid-item">Resistor 1 (ohm):</label>
-          <input id="adcNtc_R1" class="cfgValue grid-item" type="number" min="1" />
+          <input id="adcNtc_R1" class="cfgValue grid-item" type="number" min="1" step="1" />
           <label for="adcNtc_VccA0" class="grid-item">VCC at A0 (V)<br />i.e 3.3 (NodeMCU) or 1 (ESP):</label>
-          <input id="adcNtc_VccA0" class="cfgValue grid-item" type="number" min="1" />
+          <input id="adcNtc_VccA0" class="cfgValue grid-item" type="number" step="any" />
           <label for="adcNtc_VccR1" class="grid-item">VCC at R1 (V)<br />likely 3.3 or 5:</label>
-          <input id="adcNtc_VccR1" class="cfgValue grid-item" type="number" min="1" />
+          <input id="adcNtc_VccR1" class="cfgValue grid-item" type="number" step="any" />
           <label for="adcNtc_A" class="grid-item">Steinhart-Hart model coefficient A:</label>
-          <input id="adcNtc_A" class="cfgValue grid-item" type="number" min="1" />
+          <input id="adcNtc_A" class="cfgValue grid-item" type="number" step="any" />
           <label for="adcNtc_B" class="grid-item">Steinhart-Hart model coefficient B:</label>
-          <input id="adcNtc_B" class="cfgValue grid-item" type="number" min="1" />
+          <input id="adcNtc_B" class="cfgValue grid-item" type="number" step="any" />
           <label for="adcNtc_C" class="grid-item">Steinhart-Hart model coefficient C:</label>
-          <input id="adcNtc_C" class="cfgValue grid-item" type="number" min="1" />
+          <input id="adcNtc_C" class="cfgValue grid-item" type="number" step="any" />
         </div>
       </fieldset>
       <br />
@@ -405,9 +418,9 @@
         <h3 class="collapsible">Thermostat (hass)</h3>
         <div class="collapsible-content grid-container">
           <label for="thermostat_relayPin" class="grid-item">Relay Pin:</label>
-          <input id="thermostat_relayPin" class="cfgValue grid-item" type="number" min="1" max="13" />
+          <input id="thermostat_relayPin" class="cfgValue grid-item" type="number" min="1" max="13" step="1" />
           <label for="thermostat_periodMs" class="grid-item">Read period (ms):</label>
-          <input id="thermostat_periodMs" class="cfgValue grid-item" type="number" min="1" max="3600000" />
+          <input id="thermostat_periodMs" class="cfgValue grid-item" type="number" min="1" max="3600000" step="1" />
           <label for="thermostat_data_hvac#mode" class="grid-item">HVAC Mode:</label>
           <select id="thermostat_data_hvac#mode" class="cfgValue grid-item">
             <option>off</option>
@@ -421,17 +434,17 @@
             <option>sleep</option>
           </select>
           <label for="thermostat_modes_away_target#temperature#low" class="grid-item">Target temp "away" low (C):</label>
-          <input id="thermostat_modes_away_target#temperature#low" class="cfgValue grid-item" type="number" />
+          <input id="thermostat_modes_away_target#temperature#low" class="cfgValue grid-item" type="number" step="any" />
           <label for="thermostat_modes_away_target#temperature#high" class="grid-item">Target temp "away" high (C):</label>
-          <input id="thermostat_modes_away_target#temperature#high" class="cfgValue grid-item" type="number" />
+          <input id="thermostat_modes_away_target#temperature#high" class="cfgValue grid-item" type="number" step="any" />
           <label for="thermostat_modes_home_target#temperature#low" class="grid-item">Target temp "home" low (C):</label>
-          <input id="thermostat_modes_home_target#temperature#low" class="cfgValue grid-item" type="number" />
+          <input id="thermostat_modes_home_target#temperature#low" class="cfgValue grid-item" type="number" step="any" />
           <label for="thermostat_modes_home_target#temperature#high" class="grid-item">Target temp "home" high (C):</label>
-          <input id="thermostat_modes_home_target#temperature#high" class="cfgValue grid-item" type="number" />
+          <input id="thermostat_modes_home_target#temperature#high" class="cfgValue grid-item" type="number" step="any" />
           <label for="thermostat_modes_sleep_target#temperature#low" class="grid-item">Target temp "sleep" low (C):</label>
-          <input id="thermostat_modes_sleep_target#temperature#low" class="cfgValue grid-item" type="number" />
+          <input id="thermostat_modes_sleep_target#temperature#low" class="cfgValue grid-item" type="number" step="any" />
           <label for="thermostat_modes_sleep_target#temperature#high" class="grid-item">Target temp "sleep" high (C):</label>
-          <input id="thermostat_modes_sleep_target#temperature#high" class="cfgValue grid-item" type="number" />
+          <input id="thermostat_modes_sleep_target#temperature#high" class="cfgValue grid-item" type="number" step="any" />
         </div>
       </fieldset>
       <br />
@@ -498,7 +511,6 @@
           <select id="initSeq_bootsequence" class="cfgValue grid-item" multiple>
             <option>&#160;</option>
             <option>user-settings</option>
-            <option>log-start</option>
             <option>wifi-apply-config</option>
             <option>wifi-mgr</option>
             <option>http-srv</option>

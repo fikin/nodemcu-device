@@ -8,26 +8,31 @@ end
 local state = getState()
 
 ---updates RTE state with given temp
----@param temp table as provided by ds18b20
-local function updateTempState(temp)
+---@param temps table as provided by ds18b20
+local function updateTempState(temps)
     local log = require("log")
     local addrsCnt = 0
-    for addr, temp in pairs(temp) do
+    for addr, temp in pairs(temps) do
         if addrsCnt > 1 then
-            log.info("temp sensor %s (%f°C) is ignored, only one sensor is supported", addr, temp)
+            log.error("more than one temp sensors found, temp sensor %s (%f°C) is ignored", addr, temp)
+        elseif state.firstReading then
+            -- assign first time reading
+            state.data.native_value = temp
+            log.info("temp of sensor %s is : %f°C", addr, temp)
+            state.firstReading = false
         else
             -- pass new value over avg filter logic
             state.data.native_value = (state.data.native_value * (state.filterSize - 1) + temp) / state.filterSize
-            log.info("temp of sensor %s is : %f°C : new reading is %f°C", addr, state.data.native_value, temp)
+            log.info("temp of sensor %s is now %f°C, new reading was %f°C", addr, state.data.native_value, temp)
         end
         addrsCnt = addrsCnt + 1
     end
     if addrsCnt == 0 then
-        log.error("no temp sensor readings provided : %s", log.json, temp)
+        log.error("no temp sensor readings provided : %s", log.json, temps)
     end
 end
 
----call thermostat's control loop
+---call sensor's control loop
 local function applyControlLoop()
     local m = require(state.moduleName)
     m(updateTempState)

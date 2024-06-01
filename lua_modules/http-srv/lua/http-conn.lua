@@ -31,7 +31,6 @@
 local modname = ...
 
 local log = require("log")
-local tmr = require("tmr")
 
 local function pcallgc(fnc, ...)
   local ok, err = pcall(fnc, ...)
@@ -76,7 +75,7 @@ end
 ---@param conn http_conn*
 ---@return socket_fn function bound to the connection
 local function receivingFn(conn)
-  return function(sk, data)
+  return function(_, data)
     if data then
       conn.buffer = conn.buffer .. data
       conn.req.isEOF = false
@@ -91,7 +90,7 @@ end
 ---@param conn http_conn*
 ---@return socket_fn function bound to the connection
 local function sendingFn(conn)
-  return function(sk)
+  return function(_)
     coroutine.resume(conn.co)
   end
 end
@@ -110,12 +109,11 @@ local function errToCode(err)
 end
 
 ---logs error
----@param log logger
 ---@param conn http_conn*
 ---@param msg string
 ---@param err any
 ---@return string text json of the error
-local function logErrMsg(log, conn, msg, err)
+local function logErrMsg(conn, msg, err)
   local remoteIp, remotePort = pcall(function() return conn.sk:getpeer(); end)
   local method, url = conn.req.method, conn.req.url
   local o = { host = remoteIp, port = remotePort, method = method, url = url, msg = msg, err = err }
@@ -166,7 +164,7 @@ end
 local function prepareRespInCaseOfError(conn, ok, err)
   if not ok then
     conn.resp.code, conn.resp.body = errToCode(tostring(err))
-    log.error(logErrMsg(log, conn, "processing request", err))
+    log.error(logErrMsg(conn, "processing request", err))
   end
 end
 
@@ -182,7 +180,7 @@ local function doHandleReq(webModules, conn)
   log.info("%s %s -> %s", conn.req.method, conn.req.url, conn.resp.code)
   ok, err = pcallgc(require("http-conn-resp"), conn)
   if not ok then
-    log.error(logErrMsg(log, conn, "writing response", err))
+    log.error(logErrMsg(conn, "writing response", err))
   end
 end
 

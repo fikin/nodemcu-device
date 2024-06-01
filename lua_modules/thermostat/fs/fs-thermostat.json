@@ -1,36 +1,29 @@
 {
   "periodMs": 60000,
   "relayPin": 1,
+  "invertPin": false,
   "modes": {
     "away": {
-      "target_temperature_high": 17,
-      "target_temperature_low": 15
+      "target_temperature_high": 20,
+      "target_temperature_low": 18
     },
     "home": {
-      "target_temperature_high": 21,
-      "target_temperature_low": 19
-    },
-    "sleep": {
       "target_temperature_high": 22,
       "target_temperature_low": 20
+    },
+    "sleep": {
+      "target_temperature_high": 24,
+      "target_temperature_low": 22
     }
   },
   "data": {
     "temperature_unit": "°C",
-    "target_temperature_high": 17,
-    "target_temperature_low": 15,
+    "target_temperature_high": 20,
+    "target_temperature_low": 18,
     "hvac_mode": "off",
-    "hvac_modes": [
-      "off",
-      "heat",
-      "auto"
-    ],
+    "hvac_modes": ["off", "heat", "auto"],
     "preset_mode": "away",
-    "preset_modes": [
-      "away",
-      "home",
-      "sleep"
-    ],
-    "supported_features": 2
+    "preset_modes": ["away", "home", "sleep"],
+    "supported_features": 18
   }
 }

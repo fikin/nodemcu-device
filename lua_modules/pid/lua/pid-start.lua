@@ -12,6 +12,7 @@ local function initState()
 
     ---@type pid_state
     local def = {
+        cfg = cfg,
         Input = 0,
         Output = 0,
         _lastInput = 0,

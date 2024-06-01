@@ -39,6 +39,7 @@ local log = require("log")
 ---@class thermostat_cfg
 ---@field periodMs integer
 ---@field relayPin integer
+---@field invertPin boolean
 ---@field modes thermostat_cfg_mode[]
 ---@field data thermostat_cfg_data
 
@@ -64,8 +65,11 @@ local function prepareRteState()
   ---@type thermostat_cfg
   local state = require("device-settings")("thermostat")
 
-  -- remember in RTE state
-  require("state")("thermostat", state)
+  -- set RTE state
+  require("state")()["thermostat"] = state
+
+  local gpio = require("gpio")
+  gpio.mode( state.relayPin, gpio.OUTPUT)
 end
 
 ---schedule repeating timer to control the thermostat

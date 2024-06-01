@@ -2,11 +2,12 @@ local lu = require("luaunit")
 local nodemcu = require("nodemcu")
 local file = require("file")
 
-local fs = require("factory-settings")
-local ds = require("device-settings")
-
 function testOk()
     nodemcu.reset()
+
+    -- after nodemcu.reset()
+    local fs = require("factory-settings")
+    local ds = require("device-settings")
 
     file.remove("ds-dummy.json")
     file.remove("fs-dummy.json")

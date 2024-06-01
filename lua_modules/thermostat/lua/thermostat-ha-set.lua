@@ -40,20 +40,25 @@ local function setFn(changes)
 
   log.info("change settings to %s", log.json, changes)
   if changes.preset_mode or changes.hvac_mode or changes.target_temperature_high then
-    updateState(changes)
     updateDevSettings(changes)
+    collectgarbage()
+    collectgarbage()
+    updateState(changes)
     applyControlLoop()
   else
     log.error("ignoring the change, thermostat is not supporting it")
   end
 end
 
----handle HASS command (service) request
----@param data table HASS command payload
+---@param data table changes as they are coming from HASS
+---@return boolean flag if recognizes the key, it returns true, otherwise false
 local function main(data)
   package.loaded[modname] = nil
 
-  setFn(data)
+  local changes = data["thermostat"]
+  if not changes then return false end
+  setFn(changes)
+  return true
 end
 
 return main

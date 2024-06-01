@@ -2,11 +2,12 @@
   Infrastructure initializer, to be called right after NodeMCU boots up.
 
   It prints SPIFFS and LFS memory regions. Needed for preparing LFS images.
-  
+
   It initializes LFS.
 
 Depends on: rtctime, node, _reloadLFS
-]] --
+]]
+--
 local modname = ...
 
 ---initialize LFS and require and etc.
@@ -80,6 +81,14 @@ local function main()
     else
       log.info("<No LFS _init function defined>")
     end
+  end
+
+  -- SPIFFS print directory
+  do
+    log.info("SPIFFS contains:")
+    require("ll")(function(name, size)
+      log.info("  %6d %s", size, name)
+    end)
   end
 
   -- clear the simpleton "logger", next user will load it from LFS

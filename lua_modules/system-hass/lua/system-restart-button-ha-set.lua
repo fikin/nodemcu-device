@@ -6,20 +6,29 @@ local modname = ...
 ---handle HASS button request
 ---@param cmd hass_button_req
 local function restartNode(cmd)
+    local log = require("log")
     if cmd.action == "restart" then
-        local task = require("node").task
-        task.post(task.MEDIUM_PRIORITY, node.restart)
+        log.info("HASS (user) requested node restart, scheduling in 300ms ...")
+        local tmr = require("tmr")
+        tmr:create():alarm(300, tmr.ALARM_SINGLE, function()
+            require("node").restart()
+        end)
     else
-        local log = require("log")
         log.error("HASS unsupported action received : %s", log.json, cmd)
     end
 end
 
----@param changes hass_button_req
-local function main(changes)
+---@param data table
+local function main(data)
     package.loaded[modname] = nil
 
-    restartNode(changes)
+    local changes = data["system-restart-button"]
+    if changes then
+        restartNode(changes)
+        return true
+    else
+        return false
+    end
 end
 
 return main

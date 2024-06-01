@@ -81,14 +81,14 @@ def readSwReleaseFile(fName: str) -> dict[str, str]:
 
 def readRemoteSwVersion(usr: str, pwd: str, urlStr: str) -> str:
     bb = requests.auth.HTTPBasicAuth(usr, pwd)
-    with requests.get(urlStr, auth=bb) as response:
+    with requests.get(urlStr, auth=bb, timeout=10) as response:
         with wrapGetResponseWithProgress(response) as rr:
             return json.load(rr)
 
 
 def readSwReleaseUrl(ignoreOtaErr: bool, usr: str, pwd: str, urlStr: str) -> dict[str, str]:
     bb = requests.auth.HTTPBasicAuth(usr, pwd)
-    with requests.get(urlStr, auth=bb) as response:
+    with requests.get(urlStr, auth=bb, timeout=10) as response:
         with wrapGetResponseWithProgress(response) as rr:
             if response.status_code != 200:
                 log.error("failed getting %s : %d : %s", urlStr,
@@ -104,7 +104,7 @@ def uploadFile(fName: str, usr: str, pwd: str,  destUrl: str) -> None:
     bb = requests.auth.HTTPBasicAuth(usr, pwd)
     with rich.progress.open(fName, "rb", description="Uploading %s ..." % fName) as data:
         log.debug("POST %s ...", destUrl)
-        with requests.post(url=destUrl, data=data, auth=bb) as response:
+        with requests.post(url=destUrl, data=data, auth=bb, timeout=10) as response:
             logHttpResponse(response)
 
 
@@ -112,7 +112,7 @@ def requestRestart(usr: str, pwd: str, host: str) -> None:
     bb = requests.auth.HTTPBasicAuth(usr, pwd)
     u = "%s/ota?restart" % host
     log.debug("POST %s ...", u)
-    with requests.post(url=u, auth=bb) as response:
+    with requests.post(url=u, auth=bb, timeout=10) as response:
         logHttpResponse(response)
 
 

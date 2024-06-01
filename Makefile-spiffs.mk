@@ -1,44 +1,46 @@
 ## most of these are from nodemcu-firmware/tools/Makefile
 
 ## they are here in order to provide lua->lc compilation for SPIFFS
-FWDIR				?= ./vendor/nodemcu-firmware
+FWDIR						?= ./vendor/nodemcu-firmware
 
-FS_DIR   			?= $(FWDIR)/local/fs
-LFS_DIR  			?= $(FWDIR)/local/lua
+FS_DIR   				?= $(FWDIR)/local/fs
+LFS_DIR  				?= $(FWDIR)/local/lua
 
-FS_FILES	 		?= $(patsubst $(FS_DIR)/%,%,$(shell find $(FS_DIR)/ -name '*' '!' -name .gitignore ))
+FS_FILES	 			?= $(patsubst $(FS_DIR)/%,%,$(shell find $(FS_DIR)/ -name '*' '!' -name .gitignore ))
 
 #############################
 ### branch specific settings
 ifeq ($(strip $(X_BRANCH_NATURE)),esp8266) ### ESP8266 specific settings
 
-APP_DIR 			= $(FWDIR)/app
+APP_DIR 				= $(FWDIR)/app
 
 LFS_SIZE_TMP 		?= $(shell $(CC) -E -dM - <$(APP_DIR)/include/user_config.h | grep SPIFFS_MAX_FILESYSTEM_SIZE | cut -d ' ' -f 3)
 ifneq ($(strip $(LFS_SIZE_TMP)),)
-LFS_SIZE 			= $(shell printf "0x%x" $(LFS_SIZE_TMP))
+LFS_SIZE 				= $(shell printf "0x%x" $(LFS_SIZE_TMP))
 endif
 
-LFS_LOC 			?= $(shell $(CC) -E -dM - <$(APP_DIR)/include/user_config.h | grep SPIFFS_FIXED_LOCATION | cut -d ' ' -f 3)
+LFS_LOC 				?= $(shell $(CC) -E -dM - <$(APP_DIR)/include/user_config.h | grep SPIFFS_FIXED_LOCATION | cut -d ' ' -f 3)
 ifeq ($(strip $(LFS_LOC)),)
-OBJDUMP 			= $(shell find $(FWDIR)/tools/toolchains -name \*-objdump)
-LFS_LOC 			:= $(shell printf "0x%x" $$((0x$(shell $(OBJDUMP) -t $(APP_DIR)/.output/eagle/debug/image/eagle.app.v6.out |grep " _flash_used_end" |cut -f1 -d" ") - 0x40200000)))
+OBJDUMP 				= $(shell find $(FWDIR)/tools/toolchains -name \*-objdump)
+LFS_LOC 				:= $(shell printf "0x%x" $$((0x$(shell $(OBJDUMP) -t $(APP_DIR)/.output/eagle/debug/image/eagle.app.v6.out |grep " _flash_used_end" |cut -f1 -d" ") - 0x40200000)))
 else
-LFS_LOC 			:= $(shell printf "0x%x" $(LFS_LOC))
+LFS_LOC 				:= $(shell printf "0x%x" $(LFS_LOC))
 endif
 
 LUAC_CROSS 			?= $(PWD)/$(FWDIR)/luac.cross
-SPIFFSIMG			?= $(FWDIR)/tools/spiffsimg/spiffsimg
+SPIFFSIMG				?= $(FWDIR)/tools/spiffsimg/spiffsimg
 
 #############################
-else	### ESP32 specific settings
+else ifeq ($(strip $(X_BRANCH_NATURE)),esp32) ### ESP32 specific settings
 
 LUAC_CROSS 			?= $(PWD)/$(FWDIR)/build/luac_cross/luac.cross
-SPIFFSIMG			?= $(FWDIR)/sdk/esp32-esp-idf/components/spiffs/spiffsgen.py
+SPIFFSIMG				?= $(FWDIR)/sdk/esp32-esp-idf/components/spiffs/spiffsgen.py
 
 SPIFFS_SIZE			?= $(shell grep spiffs $(FWDIR)/components/platform/partitions.csv | awk -F, '{printf $$5}')
 
 #############################
+else
+$(error X_BRANCH_NATURE not supported : "$(X_BRANCH_NATURE)")
 endif ### end of branch nature settings
 
 .PHONY: docker-deps 

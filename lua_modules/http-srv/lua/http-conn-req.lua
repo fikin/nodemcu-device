@@ -34,7 +34,9 @@ end
 local function readMaxBytes(conn, maxLen)
   while true do
     if #conn.buffer > 0 then
+      -- maxLen of data is returned
       local str = string.sub(conn.buffer, 1, maxLen)
+      -- remainer of read data stays in the buffer
       conn.buffer = string.sub(conn.buffer, #str + 1)
       return str
     elseif conn.req.isEOF then
@@ -59,12 +61,10 @@ end
 ---@return str_fn function which is assigned to http_req.body and can be called repeatedly until returns nil on EOF
 local function readBodyFn(conn, bytes)
   return function()
-    while bytes > 0 do
-      local buf = readMaxBytes(conn, 512)
+    if bytes == 0 then return nil end
+      local buf = readMaxBytes(conn, bytes)
       bytes = bytes - #buf
       return buf
-    end
-    return nil
   end
 end
 

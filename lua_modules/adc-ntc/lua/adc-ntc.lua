@@ -27,17 +27,17 @@ local cfg = require("device-settings")(modname)
 ---@return number average value
 local function readAvg(cnt)
     local t = 0
-    for i = 1, cnt, 1 do
+    for _ = 1, cnt, 1 do
         t = t + adc.read(0)
     end
     return t / cnt
 end
 
----@param onReadCb fun(adc_temp) callback when temps have been read
+---@param onReadCb fun(temp:adc_temp) callback when temps have been read
 local function main(onReadCb)
     package.loaded[modname] = nil
 
-    local Vstep = cfg.VccA0 / 1023
+    local Vstep = cfg.VccA0 / 1024
     local AdcValue = readAvg(20) + cfg.AdcCorr
     local Vntc = Vstep * AdcValue
     local Rntc = cfg.R1 * Vntc / (cfg.VccR1 - Vntc)

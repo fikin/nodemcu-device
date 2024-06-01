@@ -23,21 +23,27 @@ end
 
 ---assign gpio pin level and hvac_action
 ---@param isOn boolean
-local function setRealy(isOn)
+local function setHvacAction(isOn)
   local action = determineHvacAction(isOn)
-  state.data.hvac_action = action
-  log.info("setting hvac action to %s, mode is %s", action, state.data.hvac_mode)
-  require("gpio-set-pin")(state.relayPin, isOn)
+  if state.data.hvac_action == action then
+    log.debug("hvac action is %s, mode is %s", action, state.data.hvac_mode)
+  else
+    log.info("setting hvac action from %s to %s, mode is %s", state.data.hvac_action, action, state.data.hvac_mode)
+    state.data.hvac_action = action
+    if state.invertPin then isOn = not isOn end
+    local gpio = require("gpio")
+    gpio.write(state.relayPin, isOn and gpio.HIGH or gpio.LOW)
+  end
 end
 
 ---turns heating on
 local function ensureIsOn()
-  setRealy(true)
+  setHvacAction(true)
 end
 
 ---turns heating off
 local function ensureIsOff()
-  setRealy(false)
+  setHvacAction(false)
 end
 
 ---turns heating on if temp is below LOW and off if temp is above HIGH

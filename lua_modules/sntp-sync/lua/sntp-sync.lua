@@ -20,11 +20,7 @@ local modname = ...
 ---@field syncOngoing boolean
 ---@field tmr tmr_instance
 
----get state
----@return sntp_sync_state
-local function getState()
-  return require("state")(modname)
-end
+local state = require("rtc-state")("sntp-sync")
 
 ---tests if wifi is having IP address in station mode
 ---@return boolean
@@ -43,7 +39,7 @@ end
 ---@param code integer
 ---@param err string error text
 local function errCbFn(code, err)
-  getState().syncOngoing = false
+  state(nil, tonumber(false)) -- not ongoing
   require("log").error("%s: %s", require("sntp-dns-code")(code), err)
 end
 
@@ -53,17 +49,15 @@ end
 ---@param srv string
 ---@param info any
 local function okCbFn(sec, micro, srv, info)
-  getState().syncOngoing = false
+  state(nil, tonumber(false)) -- not ongoing
   local log = require("log")
   log.info("%s", log.json, { sec = sec, micro = micro, srv = srv, info = info })
 end
 
 ---callback called by wifi event
 local function wifiCbFn()
-  local wifi = require("wifi")
-  local mode = wifi.getmode()
   if isConnected() then
-    getState().syncOngoing = true
+    state(nil, tonumber(true)) -- ongoing
     require("sntp").sync(nil, okCbFn, errCbFn, nil)
   else
     require("log").debug("skipping, not connected to internet")
@@ -71,28 +65,29 @@ local function wifiCbFn()
 end
 
 ---initialize cfg with device settings
----@return sntp_sync_state
 local function init()
   local tmr = require("tmr")
+
   ---@type sntp_sync_cfg
   local cfg = require("device-settings")(modname)
 
-  local state = { syncOngoing = true, tmr = tmr.create() }
-  state.tmr:register(cfg.syncIntervalSec * 1000, tmr.ALARM_AUTO, wifiCbFn)
-  state.tmr:start()
-  require("sntp").sync(cfg.serverIps, okCbFn, errCbFn, nil)
+  -- repeating NTP sync
+  tmr.create():alarm(cfg.syncIntervalSec * 1000, tmr.ALARM_AUTO, wifiCbFn)
 
-  return state
+  require("sntp").sync(cfg.serverIps, okCbFn, errCbFn, nil)
 end
 
 ---register for wifi event when getting ip address, to sync the time
 local function main()
   package.loaded[modname] = nil
 
-  if not require("state")(modname, nil, true) then
-    require("state")(modname, init())
-  elseif not getState().syncOngoing then
-    wifiCbFn()
+  local ok, val = state()
+  if ok then
+    if val == 0 then -- not ongoing
+      wifiCbFn()
+    end
+  else
+    init()
   end
 end
 

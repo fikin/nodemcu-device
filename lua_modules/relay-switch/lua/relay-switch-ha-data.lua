@@ -1,18 +1,15 @@
---[[
-    Temperature sensor.
-]]
 local modname = ...
 
----@return relay_switch_cfg
-local function getState()
-    return require("state")("relay-switch")
-end
-
----@return web_ha_entity_data
+--@return web_ha_entity_data
 local function main()
     package.loaded[modname] = nil
-    
-    return { ["relay-switch"] = getState().data }
+
+    ---@type lights_switch_cfg
+    local cfg = require("device-settings")("relay-switch")
+
+    cfg.data = { is_on = require("relay")(cfg.relay)() }
+
+    return { ["relay-switch"] = cfg.data }
 end
 
 return main

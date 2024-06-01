@@ -1,0 +1,4 @@
+{
+  "outfile": "syslog.log",
+  "logrotate": 1024
+}

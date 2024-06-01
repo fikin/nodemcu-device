@@ -11,10 +11,10 @@
 local modname = ...
 
 ---@param conn http_conn*
----@param method string
+---@param _ string method
 ---@param pathPattern string
 ---@return boolean match
-local function isPathMatch(conn, method, pathPattern)
+local function isPathMatch(conn, _, pathPattern)
   return string.find(conn.req.url, pathPattern) ~= nil
 end
 
@@ -58,19 +58,24 @@ local function handleSwVersion(conn)
   require("http-h-send-json")(conn, data)
 end
 
----reads sw_version and sends it back to caller
----@param conn http_conn*
-local function handleSwVersion(conn)
-  local data = require("get-sw-version")()
-  require("http-h-send-json")(conn, data)
-end
-
 ---reads "releases" file and sends it back to caller
 ---@param conn http_conn*
 local function handleSwRelease(conn)
   local txt = require("file").getcontents("release")
   conn.resp.code = "200"
   conn.resp.headers["Content-Type"] = "text/plain"
+  conn.resp.headers["Content-Length"] = #txt
+  conn.resp.headers["Cache-Control"] = "private, no-cache, no-store"
+  conn.resp.body = txt
+end
+
+---return folder structure
+---@param conn http_conn*
+local function handleListFiles(conn)
+  local lst = require("file").list()
+  local txt = require("log").json(lst)
+  conn.resp.code = "200"
+  conn.resp.headers["Content-Type"] = "application/json"
   conn.resp.headers["Content-Length"] = #txt
   conn.resp.headers["Cache-Control"] = "private, no-cache, no-store"
   conn.resp.body = txt
@@ -134,6 +139,8 @@ local function main(conn)
     return checkAuth(handleSwVersion, conn)
   elseif isPath(conn, "GET", "/ota?release") then
     return checkAuth(handleSwRelease, conn)
+  elseif isPath(conn, "GET", "/ota?listfiles") then
+    return checkAuth(handleListFiles, conn)
   elseif isPath(conn, "POST", "/ota?restart") then
     return checkAuth(handleRestart, conn)
   elseif isPathMatch(conn, "POST", "/ota/.+") then

@@ -20,16 +20,27 @@ local function durationBetweenCalls()
 end
 
 local secondSize = 1000000
+
 ---@class vetinari_const
-local constants = {
+---@field minuteSize         integer
+---@field tickSize           integer
+---@field oneAndHalfTickSize integer
+---@field oneAndHalfSec      integer
+
+---@type vetinari_const
+local _constants = {
     minuteSize = secondSize * 60,
-    tickSize = secondSize / 2, -- hand moves 2x faster than normal
+    tickSize = secondSize / 2,               -- hand moves 2x faster than normal
     oneAndHalfTickSize = secondSize * 3 / 4, -- tickSize x 1.5
-    oneAndHalfSec = secondSize * 3 / 2 -- secondSize x 1.5
+    oneAndHalfSec = secondSize * 3 / 2       -- secondSize x 1.5
 }
 
 ---@class vetinari_vars
-local vars = {
+---@field remainingTime  integer
+---@field movesToMake integer
+
+---@type vetinari_vars
+local _vars = {
     remainingTime = 0,
     movesToMake = -1000
 }
@@ -87,9 +98,9 @@ local function shouldMoveSecondsHand()
     local calcDuration = durationBetweenCalls() -- start time of duration tracking
 
     return function()
-        local d = recalc(constants, vars, calcDuration)
-        local flg = shouldHandMove(constants, vars)
-        advance(vars, d, flg)
+        local d = recalc(_constants, _vars, calcDuration)
+        local flg = shouldHandMove(_constants, _vars)
+        advance(_vars, d, flg)
         return flg
     end
 end
@@ -221,7 +232,7 @@ local function main(typeOfClock)
             trueOnNCall = trueOnNCall
         }
     else
-        assert("expected 'silent' or 'loud' clock type but given " .. typeOfClock)
+        error("expected 'silent' or 'loud' clock type but found " .. typeOfClock)
     end
 end
 

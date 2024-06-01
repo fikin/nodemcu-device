@@ -1,11 +1,8 @@
 {
   "Lua.workspace.library": [
-    "${workspace}/vendor/nodemcu-lua-mocks/lua/?.lua",
+    "../nodemcu-lua-mocks/lua",
     "${3rd}/lfs/library"
   ],
-  "Lua.runtime.version": "Lua 5.4",
-  "Lua.workspace.useGitIgnore": false,
-  "Lua.diagnostics.globals": [
-    "lfs"
-  ]
+  "Lua.runtime.version": "Lua 5.3",
+  "Lua.workspace.useGitIgnore": true,
 }

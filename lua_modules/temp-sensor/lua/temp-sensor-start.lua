@@ -13,13 +13,14 @@ local log = require("log")
 ---@field filterSize integer
 ---@field moduleName string
 ---@field data temp_sensor_cfg_data
+---@field firstReading boolean
 
 ---@return temp_sensor_cfg
 local function getState()
     return require("state")("temp-sensor")
 end
 
----call thermostat's control loop
+---call sensor's control loop
 local function applyControlLoop()
     require("temp-sensor-control")()
 end
@@ -31,12 +32,13 @@ local function prepareRteState()
 
     -- by default 22C, until reading happens
     state.data = { native_value = 22 }
+    state.firstReading = true
 
     -- remember in RTE state
     require("state")("temp-sensor", state)
 end
 
----schedule repeating timer to control the thermostat
+---schedule repeating timer to control the sensor
 local function scheduleTimerLoop()
     log.debug("scheduling control loop")
     local state = getState()

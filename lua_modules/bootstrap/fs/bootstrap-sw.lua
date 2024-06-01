@@ -35,5 +35,5 @@ fs("web-ota"):set("usr", adminUsr):set("pwd", adminPwd):done()
 
 -- minimal set of modules on.
 -- restart at the end since the boot sequence is modified.
--- fs("init-seq"):set("bootsequence",{ "bootstrap", "user-settings", "log-start", "wifi-apply-config", "wifi-mgr", "http-srv", "telnet" }):done()
+-- fs("init-seq"):set("modules",{ "bootstrap", "user-settings", "log-start", "wifi-apply-config", "wifi-mgr", "http-srv", "telnet" }):done()
 -- node.restart()

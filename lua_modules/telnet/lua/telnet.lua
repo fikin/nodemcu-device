@@ -14,23 +14,18 @@ local modname = ...
 local node = require("node")
 local log = require("log")
 
+---contains pipe property
+local stdout = {}
+
 ---@class telnet_cfg
 ---@field port integer
 ---@field timeoutSec integer
 ---@field usr string
 ---@field pwd string
 
----@class telnet_state
----@field lastLogingTs string
-
 ---@return telnet_cfg
 local function getSettings()
   return require("device-settings")(modname)
-end
-
----@return telnet_state
-local function getState()
-  return require("state")(modname)
 end
 
 local cfg = getSettings()
@@ -40,7 +35,7 @@ local usr, pwd = cfg.usr, cfg.pwd
 local function onDisconnect()
   log.audit("telnet session closed")
   node.output()
-  stdout = nil
+  stdout.pipe = nil
 end
 
 ---pass incoming socket data to node's input
@@ -52,16 +47,13 @@ local function onReceiving(_, data)
 end
 
 ---called initial time to pipe first stdout data to the socket
----@param tbl table containing "pipe":tools_pipe
----@return fun(skt:socket)
-local function readAndSendOnceFact(tbl)
-  return function(skt)
-    local rec = tbl.pipe:read(1400)
-    if rec and #rec > 0 then
-      if not pcall(function() skt:send(rec) end) then
-        pcall(function() skt:close() end)
-        onDisconnect()
-      end
+---@param skt socket
+local function readAndSendOnceFact(skt)
+  local rec = stdout.pipe:read(1400)
+  if rec and #rec > 0 then
+    if not pcall(function() skt:send(rec) end) then
+      pcall(function() skt:close() end)
+      onDisconnect()
     end
   end
 end
@@ -73,34 +65,37 @@ local function logNewConnection(skt)
   log.audit("incomming connection from %s", log.json, { port = port, ip = ip })
 end
 
----@param skt socket
-local function welcomeMsg(skt)
+---@param _ socket
+local function welcomeMsg(_)
   log.info("Welcome to NodeMCU")
   collectgarbage()
   collectgarbage()
   log.info("%d mem free", node.heap())
-  local state = getState()
-  log.info("Last login: %s", state.lastLogingTs or log.ts())
-  state.lastLogingTs = log.ts()
+
+  local ts = require("get-timestamp")
+  local tsStr, tsSec = ts()
+
+  local lastLogin = require("rtc-state")("telnet")
+  local ok, lastSec = lastLogin()
+  if ok then tsStr = ts(lastSec or tsSec) end
+
+  log.info("Last login: %s", tsStr)
+
+  lastLogin(nil, tsSec)
 end
 
 ---redirects node std streams to the socket
 ---@param skt socket
 local function openNodeSession(skt)
-  -- pipe provided by node.output
-  local stdout = {}
-
-  local readAndSendOnce = readAndSendOnceFact(stdout)
-
   local function firstWrite(opipe)
     stdout.pipe = opipe
-    readAndSendOnce(skt)
+    readAndSendOnceFact(skt)
     return false -- don't repost as the on:sent will do this
   end
 
   node.output(firstWrite, 0)
   skt:on("receive", onReceiving)
-  skt:on("sent", readAndSendOnce)
+  skt:on("sent", readAndSendOnceFact)
   skt:on("disconnection", onDisconnect)
   welcomeMsg(skt)
 end
@@ -168,7 +163,7 @@ end
 local function onNewConnection(skt)
   logNewConnection(skt)
 
-  if stdout then
+  if stdout.pipe then
     alreadyConnected(skt)
     return
   end
@@ -180,7 +175,6 @@ end
 ---@return tcpServer
 local function startup()
   local net = require("net")
-  local cfg = getSettings()
   local srv = net.createServer(cfg.timeoutSec)
   srv:listen(cfg.port, onNewConnection)
   log.info("listening on port %d", cfg.port)
