@@ -68,10 +68,11 @@ vendor/hererocks:
 	@mkdir vendor/hererocks
 	curl -sLo vendor/hererocks/hererocks.py https://github.com/mpeterv/hererocks/raw/master/hererocks.py
 	python vendor/hererocks/hererocks.py vendor/lua53 -l5.3 -rlatest
-	@source vendor/lua53/bin/activate \
+	export PATH="vendor/lua53/bin:${PATH}" \
 		&& luarocks install luacheck \
 		&& luarocks install luacov \
-		&& luarocks install luacov-console
+		&& luarocks install luacov-console \
+		&& luarocks install luacov-html
 
 ###################
 ###
@@ -154,7 +155,7 @@ mock_spiffs_dir: prepare-firmware					## prepares vendor/test-spiffs folder, use
 	@touch $(NODEMCU_MOCKS_SPIFFS_DIR)/LFS.img
 	@[ -d ./integration-tests/fs ] && cp ./integration-tests/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/ || return 0
 
-test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES) coverage	## runs unit tests
+test: vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES) ## runs unit tests
 
 ###################
 ### integration testing
@@ -168,7 +169,7 @@ $(INTEGRATION_TEST_CASES):
 		&& export PATH="vendor/lua53/bin:${PATH}" \
 		&& lua -lluacov $@
 
-integration-test: vendor/nodemcu-lua-mocks $(INTEGRATION_TEST_CASES) coverage	## runs integration tests
+integration-test: vendor/nodemcu-lua-mocks $(INTEGRATION_TEST_CASES) ## runs integration tests
 
 ###################
 ### linting
@@ -188,8 +189,19 @@ lint: vendor/hererocks lint-lua lint-test 							## lint all lua files
 ###################
 ### coverage report
 
-coverage:		## prints coverage report, collected when running unit and integration tests
-	export export PATH="vendor/lua53/bin:${PATH}" \
+coverage:					## prints coverage report, collected when running unit and integration tests
+	export LUA_PATH="$(LUA_PATH);vendor/lua53/share/lua/5.3/?.lua;vendor/lua53/share/lua/5.3/?/init.lua;;lua/?.lua;lua/?.lua" \
+		&& export LUA_CPATH="vendor/lua53/lib/lua/5.3/?.so;vendor/lua53/lib/lua/5.3/loadall.so;./?.so" \
+		&& export PATH="vendor/lua53/bin:${PATH}" \
+		&& luacov-console lua_modules \
 		&& luacov-console lua_modules -s
 
-###################
+coverage_html:		## generate luacov-html/ coverage report
+	export LUA_PATH="$(LUA_PATH);vendor/lua53/share/lua/5.3/?.lua;vendor/lua53/share/lua/5.3/?/init.lua;;lua/?.lua;lua/?.lua" \
+		&& export LUA_CPATH="vendor/lua53/lib/lua/5.3/?.so;vendor/lua53/lib/lua/5.3/loadall.so;./?.so" \
+		&& export PATH="vendor/lua53/bin:${PATH}" \
+		&& luacov -c=.luacov_html lua_modules
+
+##############################################
+##############################################
+
