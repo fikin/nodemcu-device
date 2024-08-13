@@ -9,11 +9,12 @@
 ]]
 local modname = ...
 
+local file = require("file")
+
 ---loads a json file, it does not exists it returns empty table
 ---@param fName string
 ---@return table
 local function loadJsonFile(fName)
-  local file = require("file")
   if file.exists(fName) then
     return require("read-json-file")(fName)
   end
@@ -44,6 +45,18 @@ local function loadModuleSettings(moduleName)
   return cfg1
 end
 
+---load compiled device settings ds-%.lc if exists.
+---if not, it reads ds-%.json and fs-%.json and merges them.
+---@param moduleName string
+---@return table
+local function loadCompiledDeviceSettings(moduleName)
+  local fName = string.format("ds-%s.lc", moduleName)
+  if file.exists(fName) then
+    return assert(load(file.getcontents(fName) or ""))()
+  end
+  return loadModuleSettings(moduleName)
+end
+
 ---read device settings for given module name.
 ---it reads ds-modulename.json and merges it with fs-modulename.json.
 ---@param moduleName string
@@ -55,7 +68,7 @@ local function main(moduleName, factoryOnly)
   if factoryOnly then
     return loadFactorySettings(moduleName)
   end
-  return loadModuleSettings(moduleName)
+  return loadCompiledDeviceSettings(moduleName)
 end
 
 return main
