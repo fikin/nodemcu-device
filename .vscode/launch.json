@@ -43,7 +43,8 @@
         "${workspaceFolder}/lua_modules/web-ota/lua/?.lua",
         "${workspaceFolder}/lua_modules/web-portal/lua/?.lua",
         "${workspaceFolder}/lua_modules/wifimgr/lua/?.lua",
-        "${workspaceFolder}/vendor/nodemcu-lua-mocks/lua/?.lua"
+        "${workspaceFolder}/vendor/nodemcu-lua-mocks/lua/?.lua",
+        "${workspaceFolder}/vendor/tests-spiffs/?.lua"
       ]
     },
     {

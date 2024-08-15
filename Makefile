@@ -141,7 +141,7 @@ flash:	flash-$(X_BRANCH_NATURE)						## flashes all images from nodemcu-firmware
 
 $(UNIT_TEST_CASES):
 	@echo [INFO] : Running tests in $@ ...
-	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);$(LUA_LFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
+	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);$(LUA_LFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua;$(NODEMCU_MOCKS_SPIFFS_DIR)/?.lua" \
 		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
 		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
 		&& export PATH="vendor/lua53/bin:${PATH}" \
