@@ -33,6 +33,7 @@ end
 local function main()
   package.loaded[modname] = nil
 
+  -- aggresive gc logic
   local tmr = require("tmr")
   tmr.create():alarm(500, tmr.ALARM_AUTO, doGC)
 
