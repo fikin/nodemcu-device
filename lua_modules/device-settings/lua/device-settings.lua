@@ -50,10 +50,12 @@ end
 ---@param moduleName string
 ---@return table
 local function loadCompiledDeviceSettings(moduleName)
-  local fName = string.format("ds-%s.lc", moduleName)
-  if file.exists(fName) then
-    return assert(load(file.getcontents(fName) or ""))()
-  end
+  -- local fName = string.format("ds-%s.lc", moduleName)
+  -- if file.exists(fName) then
+  --   return assert(load(file.getcontents(fName) or ""))()
+  -- end
+  local ok, fn = pcall(require, string.format("ds-%s", moduleName))
+  if ok then return fn() end
   return loadModuleSettings(moduleName)
 end
 

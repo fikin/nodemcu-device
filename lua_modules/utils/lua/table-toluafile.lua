@@ -7,17 +7,12 @@ local modname = ...
 ---if compile is true, saves as compiled lua file
 ---@param name string
 ---@param tbl table
----@param compile boolean
-local function main(name, tbl, compile)
+---@param compile boolean generate .lc file
+---@param gc boolean gc from package.loaded after call
+local function main(name, tbl, compile, gc)
   package.loaded[modname] = nil -- gc
 
-  local file = require("file")
-
-  local fLua = name .. ".lua"
-  file.putcontents(fLua, "return " .. require("table-tostring")(tbl))
-  if compile then
-    require("node").compile(fLua)
-  end
+  require("save-func")(name, require("table-tostring")(tbl), compile, gc)
 end
 
 return main

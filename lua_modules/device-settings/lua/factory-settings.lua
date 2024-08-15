@@ -71,7 +71,7 @@ local function saveCfgIfChanged(cfg, moduleName)
   local cfgCopy = require("table-clone")(cfg)
   require("table-substract")(cfgCopy, cfgFS)
   require("table-tojsonfile")(fname, cfg, true)
-  require("table-toluafile")(fname, cfg, true)
+  require("table-toluafile")(fname, cfg, true, true)
 end
 
 ---Builder interface towards factory settings.
