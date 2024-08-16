@@ -58,6 +58,13 @@ local function doSetup(name, settings)
   end)
 end
 
+---@param name string
+---@param settings device_gated_switch_cfg
+local function assertSettings(name,settings)
+  assert(settings.sensorId, string.format("400: sensorId is required for device '%s'", name))
+  assert(settings.switchId, string.format("400: switchId is required for device '%s'", name))
+end
+
 ---switch as control loop based on timer schedule, underlying switch
 ---and gate as binary_sensor.
 ---@param name string
@@ -69,6 +76,7 @@ local function main(name, settings, changes, setup)
   package.loaded[modname] = nil
 
   if setup then
+    assertSettings(name, settings)
     doSetup(name, settings)
     if settings.is_on then
       changes = { is_on = true }

@@ -6,17 +6,6 @@ local modname = ...
 
 local gpio = require("gpio")
 
----settings of a single switch
----@class device_switch_cfg
----@field pin integer
----@field inverted boolean
----@field set_float boolean
----@field is_on boolean
-
----HASS switch changes payload
----@class hass_switch_changes
----@field is_on boolean
-
 ---account for inversion of value
 ---@param inverted boolean
 ---@param value boolean
@@ -43,7 +32,9 @@ end
 ---@param setup boolean perform initial setup and ignore changes
 ---@return boolean
 local function main(name, settings, changes, setup)
-  package.loaded[modname] = nil
+  if not settings.cache then
+    package.loaded[modname] = nil
+  end
 
   if setup then
     gpio.mode(settings.pin, gpio.OUTPUT, settings.set_float and gpio.FLOAT or gpio.PULLUP)

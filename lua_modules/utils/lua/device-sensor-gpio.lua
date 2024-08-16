@@ -6,13 +6,6 @@ local modname = ...
 
 local gpio = require("gpio")
 
----settings of a single switch
----@class device_gpio_input_cfg
----@field pin integer
----@field inverted boolean
----@field set_float boolean
----@field debounceMs integer
-
 ---read gpio input now
 ---@param cfg device_gpio_input_cfg
 ---@return boolean
@@ -56,23 +49,25 @@ end
 
 ---plain simply gpio input sensor
 ---@param name string name
----@param cfg device_gpio_input_cfg
+---@param settings device_gpio_input_cfg
 ---@param _ table|nil changes
 ---@param setup boolean
 ---@return boolean
-local function main(name, cfg, _, setup)
-  package.loaded[modname] = nil
+local function main(name, settings, _, setup)
+  if not settings.cache then
+    package.loaded[modname] = nil
+  end
 
   if setup then
-    gpio.mode(cfg.pin, gpio.INPUT, cfg.set_float and gpio.FLOAT or gpio.PULLUP)
-    if cfg.debounceMs > 0 then
-      waitForChange(name, cfg)
+    gpio.mode(settings.pin, gpio.INPUT, settings.set_float and gpio.FLOAT or gpio.PULLUP)
+    if settings.debounceMs > 0 then
+      waitForChange(name, settings)
     end
   end
-  if cfg.debounceMs > 0 then
+  if settings.debounceMs > 0 then
     return getState(name)[0]
   else
-    return readInput(cfg)
+    return readInput(settings)
   end
 end
 

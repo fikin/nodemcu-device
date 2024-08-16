@@ -4,6 +4,17 @@ Creates a device of HASS type "switch" controlling GPIO pin.
 
 local modname = ...
 
+---settings of a single switch
+---@class device_switch_cfg:device_common_dev_cfg
+---@field pin integer
+---@field inverted boolean|nil should gpio values be inverted
+---@field set_float boolean|nil should setup set it to FLOAT instead of PULLUP
+---@field is_on boolean|nil initial state of the switch, set during setup
+
+---HASS switch changes payload
+---@class hass_switch_changes
+---@field is_on boolean
+
 ---@param name string
 ---@param spec hass_spec
 local function createSpec(name, spec)
@@ -20,35 +31,21 @@ local function createSpec(name, spec)
 end
 
 ---@param name string
----@param settings table
-local function createDev(name, settings)
-  local code = string.format([[
-local modname = ...
-local function main(...)
-  package.loaded[modname] = nil
-  return require("device-switch-gpio")("%s", %s, ...)
-end
-return main
-]],
-    name,
-    require("table-tostring")({
-      pin       = assert(settings.pin, string.format("pin is required for '%s'", name)),
-      inverted  = settings.inverted or false,
-      set_float = settings.set_float or false,
-    })
-  )
-  require("save-code")(string.format("dev-%s",name), code, true)
+---@param settings device_switch_cfg
+local function assertSettings(name, settings)
+  assert(settings.pin, string.format("pin is required for device '%s'", name))
 end
 
 ---create device with given name and settings
 ---@param name string
 ---@param spec hass_spec
----@param settings table
+---@param settings device_switch_cfg
 local function main(name, spec, settings)
   package.loaded[modname] = nil
 
+  assertSettings(name, settings)
   createSpec(name, spec)
-  createDev(name, settings)
+  require("device-factory-dev")("device-switch-gpio", name, settings, "changes.is_on")
 end
 
 return main

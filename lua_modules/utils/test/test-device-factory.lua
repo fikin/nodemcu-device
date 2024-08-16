@@ -22,8 +22,8 @@ local devinfo = {
     hwVersion = "my hw version",
 }
 
-local test_gpio_input = {
-    name = "test_gpio_input",
+local door_sensor = {
+    name = "door_sensor",
     type = "sensor-gpio",
     internal = false,
     spec = {
@@ -37,8 +37,8 @@ local test_gpio_input = {
     },
 }
 
-local test_debounce = {
-    name = "test_debounce",
+local water_sensor = {
+    name = "water_sensor",
     type = "sensor-gpio",
     internal = true,
     spec = {
@@ -52,8 +52,8 @@ local test_debounce = {
     },
 }
 
-local test_switch = {
-    name = "test_switch",
+local door_switch = {
+    name = "door_switch",
     type = "switch-gpio",
     internal = false,
     spec = {
@@ -67,8 +67,8 @@ local test_switch = {
     },
 }
 
-local test_switch_loop = {
-    name = "test_switch_loop",
+local valve_control_loop = {
+    name = "valve_control_loop",
     type = "switch-func",
     internal = false,
     spec = {
@@ -77,16 +77,17 @@ local test_switch_loop = {
     settings = {
         funcname = "fnc-gated-switch",
         scheduleMs = 5,
-        sensorId = "test_gpio_input",
-        switchId = "test_switch",
+        sensorId = "door_sensor",
+        switchId = "door_switch",
         is_on = true,
+        cache = true,
     },
 }
 
 local function assertPlainInput()
     -- assert plain gpio input
     local pin = 1
-    local inputFn = require("dev-test_gpio_input")
+    local inputFn = require("dev-" .. door_sensor.name)
     inputFn(nil, true)                -- setup
     lu.assertEquals(nodemcu.gpio_get_mode(pin), gpio.INPUT)
     lu.assertEquals(inputFn(), true)  -- get, true is default nodemcu value
@@ -99,7 +100,7 @@ end
 local function assertBounceInput()
     -- assert bouncing gpio input, inverted values
     local pin = 3
-    local inputFn = require("dev-test_debounce")
+    local inputFn = require("dev-" .. water_sensor.name)
     inputFn(nil, true)                -- setup
     lu.assertEquals(nodemcu.gpio_get_mode(pin), gpio.INPUT)
     lu.assertEquals(inputFn(), false) -- get, true is default nodemcu value
@@ -113,7 +114,7 @@ end
 
 local function assertSwitch(pin2)
     -- assert switch on-off sequence
-    local switchFn = require("dev-test_switch")
+    local switchFn = require("dev-" .. door_switch.name)
     switchFn(nil, true)                                 -- setup
     lu.assertEquals(nodemcu.gpio_get_mode(2), gpio.OUTPUT)
     lu.assertEquals(switchFn({ is_on = true }), true)   -- set
@@ -124,28 +125,28 @@ end
 local function assertDeviceFiles()
     lu.assertEquals(require("device-settings")("dev-info"), devinfo)
     lu.assertEquals(require("device-settings")("dev-list"), {
-        "test_gpio_input",
-        "test_switch",
-        "test_debounce",
-        "test_switch_loop",
+        "door_sensor",
+        "door_switch",
+        "water_sensor",
+        "valve_control_loop",
     })
     lu.assertEquals(require("device-settings")("dev-hass-list"), {
-        "test_gpio_input",
-        "test_switch",
-        "test_switch_loop",
+        "door_sensor",
+        "door_switch",
+        "valve_control_loop",
     })
 end
 
 local function assertSwitchGateFunc(pin2)
     local sensorPin = 1
     nodemcu.gpio_set(sensorPin, 1) -- prepare sensor to on
-    local switchFn = require("dev-test_switch_loop")
-    switchFn(nil, true)      -- setup
+    local switchFn = require("dev-" .. valve_control_loop.name)
+    switchFn(nil, true)            -- setup
     nodemcu.advanceTime(10)
     lu.assertEquals(pin2, { 1 })
     nodemcu.advanceTime(10)         -- one control loop with no change
     lu.assertEquals(pin2, { 1 })
-    nodemcu.gpio_set(sensorPin, 0)        -- set sensor to off
+    nodemcu.gpio_set(sensorPin, 0)  -- set sensor to off
     nodemcu.advanceTime(10)
     lu.assertEquals(pin2, { 1, 0 }) -- and switch is off too
 end
@@ -163,10 +164,10 @@ function testOk()
     fn({
         info = devinfo,
         devices = {
-            test_gpio_input,
-            test_switch,
-            test_debounce,
-            test_switch_loop,
+            door_sensor,
+            door_switch,
+            water_sensor,
+            valve_control_loop,
         },
     })
 
