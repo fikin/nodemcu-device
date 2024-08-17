@@ -14,54 +14,6 @@
 ]]
 local modname = ...
 
-local file = require("file")
-local sjson = require("sjson")
-
----cleans up temp files during saving
----@param fTmp string
----@param fBak string
-local function cleanUpFiles(fTmp, fBak)
-  if file.exists(fTmp) then file.remove(fTmp); end
-  if file.exists(fBak) then file.remove(fBak); end
-end
-
----renames a file
----@param from string
----@param to string
----@return boolean
-local function renameFile(from, to)
-  if file.exists(from) then return file.rename(from, to); end
-  return true
-end
-
----saves text into file using intermediate fName.bak file
----@param txt string
----@param fName string
-local function safeSaveJsonFile(txt, fName)
-  local l = require("log")
-  l.info("updating device settings %s : %s", fName, txt)
-  -- saving is using .tmp and .bak
-  local fTmp, fBak = fName .. ".tmp", fName .. ".bak"
-  cleanUpFiles(fTmp, fBak)
-  if not file.putcontents(fTmp, txt) then
-    cleanUpFiles(fTmp, fBak)
-    error(string.format("failed saving %s", fTmp))
-  end
-  file.remove(fBak)
-  if not renameFile(fName, fBak) then
-    cleanUpFiles(fTmp, fBak)
-    error(string.format("failed renaming %s to %s", fName, fBak))
-  end
-  if not file.rename(fTmp, fName) then
-    if not renameFile(fBak, fName) then
-      l.error("failed renaming %s to %s", fBak, fName)
-    end
-    cleanUpFiles(fTmp, fBak)
-    error(string.format("failed renaming %s to %s", fTmp, fName))
-  end
-  cleanUpFiles(fTmp, fBak)
-end
-
 ---checks the given existingValue and decides if to return that or defValue
 ---decision is based on existingValue being empty, nil or in template form "<..>".
 ---@param existingValue string|boolean|number|table|nil to check
@@ -110,50 +62,16 @@ local function get(parent, child, fullpath)
   end
 end
 
----checks if changes are different from saved ones
----@param fName string
----@param txt string
----@return boolean
-local function shouldSaveChanges(fName, txt)
-  if file.exists(fName) then
-    local txt2 = file.getcontents(fName)
-    return txt ~= txt2
-  end
-  return true
-end
-
----converts text to json
----this is called to confirm json encoding before happened
----without any errors. there is some strange bug when saving
----settings occasionally the payload (file content text) is
----rather broken i.e. {d@@@@...} ...
----@param txt string
----@return boolean
-local function isJson(txt)
-  require("sjson").decode(txt)
-  return true
-end
-
----checks if cfg is empty and if so saves nothing.
----@param cfg table
----@param fName string
-local function saveDeviceSettings(cfg, fName)
-  local txt = assert(sjson.encode(cfg))
-  assert(isJson(txt))
-  if txt == "[]" then
-    file.remove(fName) -- empty device settings, no need to save them
-  elseif shouldSaveChanges(fName, txt) then
-    safeSaveJsonFile(txt, fName)
-  end
-end
-
 ---compares cfg against factory settings
 ---@param cfg table
 ---@param moduleName string
 local function saveCfgIfChanged(cfg, moduleName)
+  local fname = string.format("ds-%s", moduleName)
   local cfgFS = require("device-settings")(moduleName, true)
-  require("table-substract")(cfg, cfgFS)
-  saveDeviceSettings(cfg, string.format("ds-%s.json", moduleName))
+  local cfgCopy = require("table-clone")(cfg)
+  require("table-substract")(cfgCopy, cfgFS)
+  require("table-tojsonfile")(fname, cfg, true)
+  require("table-toluafile")(fname, cfg, true, true)
 end
 
 ---Builder interface towards factory settings.
