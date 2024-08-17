@@ -6,13 +6,8 @@ Then it uses the `devices-list` configuration to load the devices in the order.
 ]]
 local modname = ...
 
----@param _ tmr_instance
-local function doGC(_)
-  collectgarbage()
-end
-
 ---@param b bootprotect*
-local function configureFromBootSequence(b)
+local function configureFromInitSequence(b)
   ---@type init_seq_cfg
   local cfg = require("device-settings")("init-seq")
   for _, m in ipairs(cfg.bootsequence) do
@@ -33,14 +28,10 @@ end
 local function main()
   package.loaded[modname] = nil
 
-  -- aggresive gc logic
-  local tmr = require("tmr")
-  tmr.create():alarm(500, tmr.ALARM_AUTO, doGC)
-
   -- device startup sequence
-  local b = require("bootprotect")
+  local b = require(_G["BOOTPROTECT"] or "bootprotect")
 
-  configureFromBootSequence(b)
+  configureFromInitSequence(b)
   configureFromDevicesList(b)
 
   b.start()
