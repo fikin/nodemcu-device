@@ -32,7 +32,7 @@ local log = require("log")
 
 ---@param info hass_info
 local function saveDeviceInfo(info)
-  local fs = require("factory-settings")("dev-info")
+  local fs = require("factory-settings")("device-info")
   fs.cfg = {
     manufacturer = info.manufacturer or "Noname vendor",
     name         = info.name or require("wifi").sta.gethostname(),
@@ -49,7 +49,7 @@ local function saveDevicesList(devices)
   for _, device in ipairs(devices) do
     table.insert(arr, device.name)
   end
-  local fs = require("factory-settings")("dev-list")
+  local fs = require("factory-settings")("devices-list")
   fs.cfg = arr
   fs:done()
 end
@@ -62,7 +62,7 @@ local function saveDevicesHassList(devices)
       table.insert(arr, device.name)
     end
   end
-  local fs = require("factory-settings")("dev-hass-list")
+  local fs = require("factory-settings")("devices-hass-list")
   fs.cfg = arr
   fs:done()
 end

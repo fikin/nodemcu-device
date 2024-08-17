@@ -123,14 +123,14 @@ local function assertSwitch(pin2)
 end
 
 local function assertDeviceFiles()
-    lu.assertEquals(require("device-settings")("dev-info"), devinfo)
-    lu.assertEquals(require("device-settings")("dev-list"), {
+    lu.assertEquals(require("device-settings")("device-info"), devinfo)
+    lu.assertEquals(require("device-settings")("devices-list"), {
         "door_sensor",
         "door_switch",
         "water_sensor",
         "valve_control_loop",
     })
-    lu.assertEquals(require("device-settings")("dev-hass-list"), {
+    lu.assertEquals(require("device-settings")("devices-hass-list"), {
         "door_sensor",
         "door_switch",
         "valve_control_loop",
