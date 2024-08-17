@@ -22,7 +22,7 @@ X_LUA								?= 53
 MOCKS_REPO								?= https://github.com/fikin/nodemcu-lua-mocks
 MOCKS_BRANCH							?= master
 # only SPIFFS lua files are here (lua_moduesl/*/fs/*lua) + external dependencies
-LUA_SPIFFS_PATH						?= $(shell ls -f lua_modules/*/fs/*.lua | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
+LUA_SPIFFS_PATH						?= $(shell ls -f lua_modules/*/fs/*.lua  | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
 LUA_LFS_PATH							?= $(shell ls -f lua_modules/*/lua/*.lua | xargs -n1 dirname | sort -u | xargs -IA echo "A/?.lua;" | awk '{printf("%s",$$0)}')
 # only LFS lua files are here (lua_modules/*/lua/*.lua)
 NODEMCU_LFS_FILES					?= $(wildcard lua_modules/*/lua/*.lua)
@@ -31,6 +31,8 @@ INTEGRATION_TEST_CASES		?= $(wildcard integration-tests/lua/*est*.lua)
 # dir containing all SPIFFS files except *.lua/lc
 NODEMCU_MOCKS_SPIFFS_DIR	?=  vendor/tests-spiffs
 ###
+
+LUA_EXTRA_PATH						?= ./vendor/nodemcu-lua-mocks/lua/?.lua;./vendor/lua53/share/lua/5.3/?.lua
 
 LUAOPTS										:=
 
@@ -139,14 +141,15 @@ flash:	flash-$(X_BRANCH_NATURE)						## flashes all images from nodemcu-firmware
 ###################
 ### unit testing
 
+# difference with integration tests is presence of LUA_LFS_PATH in lua path, integration tests simulate node.LFS better while unit tests not.
 $(UNIT_TEST_CASES):
 	@echo [INFO] : Running tests in $@ ...
-	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);$(LUA_LFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua;$(NODEMCU_MOCKS_SPIFFS_DIR)/?.lua" \
+	@$(MAKE) mock_spiffs_dir
+	export LUA_PATH="$(LUA_PATH);$(LUA_LFS_PATH);$(NODEMCU_MOCKS_SPIFFS_DIR)/?.lua;$(LUA_EXTRA_PATH)" \
 		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
 		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
 		&& export PATH="vendor/lua53/bin:${PATH}" \
 		&& lua -lluacov $@
-# difference with integration tests is presence of LUA_LFS_PATH in lua path, integration tests simulate node.LFS better while unit tests not.
 
 mock_spiffs_dir: prepare-firmware					## prepares vendor/test-spiffs folder, used in running tests
 	@mkdir -p $(NODEMCU_MOCKS_SPIFFS_DIR)
@@ -155,7 +158,7 @@ mock_spiffs_dir: prepare-firmware					## prepares vendor/test-spiffs folder, use
 	@touch $(NODEMCU_MOCKS_SPIFFS_DIR)/LFS.img
 	@[ -d ./integration-tests/fs ] && cp ./integration-tests/fs/* $(NODEMCU_MOCKS_SPIFFS_DIR)/ || return 0
 
-test: vendor/hererocks vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASES) ## runs unit tests
+test: vendor/hererocks vendor/nodemcu-lua-mocks $(UNIT_TEST_CASES) ## runs unit tests
 
 ###################
 ### integration testing
@@ -163,13 +166,14 @@ test: vendor/hererocks vendor/nodemcu-lua-mocks mock_spiffs_dir $(UNIT_TEST_CASE
 $(INTEGRATION_TEST_CASES):
 	@echo [INFO] : Running tests in $@ ...
 	@$(MAKE) mock_spiffs_dir
-	export LUA_PATH="$(LUA_PATH);$(LUA_SPIFFS_PATH);vendor/nodemcu-lua-mocks/lua/?.lua" \
+	@cp integration-tests/fs/* "$(NODEMCU_MOCKS_SPIFFS_DIR)"/
+	export LUA_PATH="$(LUA_PATH);$(NODEMCU_MOCKS_SPIFFS_DIR)/?.lua;$(LUA_EXTRA_PATH)" \
 		&& export NODEMCU_MOCKS_SPIFFS_DIR="$(NODEMCU_MOCKS_SPIFFS_DIR)" \
 		&& export NODEMCU_LFS_FILES="$(NODEMCU_LFS_FILES)" \
 		&& export PATH="vendor/lua53/bin:${PATH}" \
 		&& lua -lluacov $@
 
-integration-test: vendor/hererocks vendor/nodemcu-lua-mocks mock_spiffs_dir $(INTEGRATION_TEST_CASES) ## runs integration tests
+integration-test: vendor/hererocks vendor/nodemcu-lua-mocks $(INTEGRATION_TEST_CASES) ## runs integration tests
 
 ###################
 ### linting
@@ -190,14 +194,14 @@ lint: vendor/hererocks lint-lua lint-test 							## lint all lua files
 ### coverage report
 
 coverage:					## prints coverage report, collected when running unit and integration tests
-	export LUA_PATH="$(LUA_PATH);vendor/lua53/share/lua/5.3/?.lua;vendor/lua53/share/lua/5.3/?/init.lua;;lua/?.lua;lua/?.lua" \
+	export LUA_PATH="$(LUA_EXTRA_PATH);vendor/lua53/share/lua/5.3/?/init.lua;;lua/?.lua;lua/?.lua" \
 		&& export LUA_CPATH="vendor/lua53/lib/lua/5.3/?.so;vendor/lua53/lib/lua/5.3/loadall.so;./?.so" \
 		&& export PATH="vendor/lua53/bin:${PATH}" \
 		&& luacov-console lua_modules \
 		&& luacov-console lua_modules -s
 
 coverage_html:		## generate luacov-html/ coverage report
-	export LUA_PATH="$(LUA_PATH);vendor/lua53/share/lua/5.3/?.lua;vendor/lua53/share/lua/5.3/?/init.lua;;lua/?.lua;lua/?.lua" \
+	export LUA_PATH="$(LUA_EXTRA_PATH);vendor/lua53/share/lua/5.3/?/init.lua;;lua/?.lua;lua/?.lua" \
 		&& export LUA_CPATH="vendor/lua53/lib/lua/5.3/?.so;vendor/lua53/lib/lua/5.3/loadall.so;./?.so" \
 		&& export PATH="vendor/lua53/bin:${PATH}" \
 		&& luacov -c=.luacov_html lua_modules
