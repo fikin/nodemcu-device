@@ -13,22 +13,25 @@ local function main()
         if file.exists(f) then
             log.info("running %s", f)
 
-            local ok, err = pcall(require, "bootstrap-sw")
+            file.remove(fNameErr) -- remove old error
 
-            file.remove(f)
+            local ok, err = pcall(require, fName)
+
+            file.remove(f) -- make sure next reboot we do not repeat it
 
             if not ok then
                 log.error("bootstrap failed : %s : %s", f, err)
                 file.remove(fNameErr)
                 file.putcontents(fNameErr, err)
+                error(err)
             end
 
-            collectgarbage()
-            collectgarbage()
-
+            collectgarbage("collect")
+            collectgarbage("collect")
             return
         end
     end
+    log.info("no bootstrap-sw found")
 end
 
 return main
