@@ -17,11 +17,19 @@ local function bootSequence()
   require("boot-seq")()
 end
 
-local function main()
+local function delay()
   local tmr = require("tmr")
   -- delay starting boot up init logic with 1sec,
   -- just in time to issue `file.remove("init.lc")` in case of desperate needs
   tmr.create():alarm(1000, tmr.ALARM_SINGLE, bootSequence)
+end
+
+local function main()
+  if _G["NODEMCU_NO_BOOT_DELAY"] then
+    bootSequence()
+  else
+    delay()
+  end
 end
 
 main()
